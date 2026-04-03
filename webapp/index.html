@@ -199,7 +199,13 @@
       border-radius:10px;padding:10px 13px;color:var(--text);font-size:15px;
       outline:none;font-family:inherit
     }
+    .field select{
+      width:100%;background:rgba(8, 13, 28, .95);border:1px solid var(--border);
+      border-radius:10px;padding:10px 13px;color:var(--text);font-size:15px;
+      outline:none;font-family:inherit
+    }
     .field input:focus{border-color:var(--accent)}
+    .field select:focus{border-color:var(--accent)}
     .toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;color:var(--text2)}
     .switch{position:relative;width:44px;height:24px;flex-shrink:0}
     .switch input{opacity:0;width:0;height:0}
@@ -287,6 +293,20 @@
       <label class="switch"><input type="checkbox" id="cfg-tts"><span class="slider"></span></label>
       Falar respostas em voz alta
     </div>
+    <div class="field">
+      <label>Voz da resposta</label>
+      <select id="cfg-voice">
+        <option value="auto">Automática (mais natural)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Naturalidade da voz</label>
+      <select id="cfg-voice-style">
+        <option value="natural">Mais natural (recomendado)</option>
+        <option value="clara">Mais clara</option>
+        <option value="rapida">Mais rápida</option>
+      </select>
+    </div>
     <div class="toggle-row">
       <label class="switch"><input type="checkbox" id="cfg-automic"><span class="slider"></span></label>
       Microfone automático após resposta
@@ -310,17 +330,56 @@ let CFG = {
   token:   localStorage.getItem('brt_token')   || '',
   tts:     localStorage.getItem('brt_tts')     !== 'false',
   automic: localStorage.getItem('brt_automic') === 'true',
+  voice:   localStorage.getItem('brt_voice')   || 'auto',
+  voiceStyle: localStorage.getItem('brt_voice_style') || 'natural',
 };
+
+function voicePriority(v) {
+  const n = (v.name || '').toLowerCase();
+  const l = (v.lang || '').toLowerCase();
+  let score = 0;
+  if (l.startsWith('pt-br')) score += 100;
+  else if (l.startsWith('pt')) score += 70;
+  if (n.includes('neural') || n.includes('natural') || n.includes('premium') || n.includes('enhanced')) score += 50;
+  if (n.includes('antonio') || n.includes('francisca') || n.includes('thiago') || n.includes('maria')) score += 8;
+  return score;
+}
+
+function applyVoiceOptions() {
+  const select = document.getElementById('cfg-voice');
+  if (!select) return;
+
+  const options = [{ value: 'auto', label: 'Automática (mais natural)' }];
+  const ordered = [...voices].sort((a, b) => voicePriority(b) - voicePriority(a));
+  ordered.forEach(v => {
+    options.push({ value: v.name, label: `${v.name} (${v.lang})` });
+  });
+
+  select.innerHTML = '';
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    select.appendChild(o);
+  });
+
+  const exists = options.some(o => o.value === CFG.voice);
+  select.value = exists ? CFG.voice : 'auto';
+}
 
 function saveSettings() {
   CFG.url     = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
   CFG.token   = document.getElementById('cfg-token').value.trim();
   CFG.tts     = document.getElementById('cfg-tts').checked;
   CFG.automic = document.getElementById('cfg-automic').checked;
+  CFG.voice   = document.getElementById('cfg-voice').value;
+  CFG.voiceStyle = document.getElementById('cfg-voice-style').value;
   localStorage.setItem('brt_url',     CFG.url);
   localStorage.setItem('brt_token',   CFG.token);
   localStorage.setItem('brt_tts',     CFG.tts);
   localStorage.setItem('brt_automic', CFG.automic);
+  localStorage.setItem('brt_voice', CFG.voice);
+  localStorage.setItem('brt_voice_style', CFG.voiceStyle);
   // Update cert link to use saved server URL
   const cl = document.getElementById('cert-link');
   if (cl && CFG.url) cl.href = CFG.url + '/cert';
@@ -334,10 +393,13 @@ function installCert(e) {
 }
 
 function openSettings() {
+  applyVoiceOptions();
   document.getElementById('cfg-url').value    = CFG.url;
   document.getElementById('cfg-token').value  = CFG.token;
   document.getElementById('cfg-tts').checked  = CFG.tts;
   document.getElementById('cfg-automic').checked = CFG.automic;
+  document.getElementById('cfg-voice').value = CFG.voice;
+  document.getElementById('cfg-voice-style').value = CFG.voiceStyle;
   document.getElementById('settings-overlay').classList.remove('hidden');
 }
 function closeSettings() {
@@ -527,18 +589,40 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 let voices = [];
 function loadVoices() {
   voices = window.speechSynthesis?.getVoices?.() || [];
+  applyVoiceOptions();
 }
 loadVoices();
 window.speechSynthesis?.addEventListener?.('voiceschanged', loadVoices);
+
+function pickVoice() {
+  if (!voices.length) return null;
+  if (CFG.voice && CFG.voice !== 'auto') {
+    const exact = voices.find(v => v.name === CFG.voice);
+    if (exact) return exact;
+  }
+  const ranked = [...voices].sort((a, b) => voicePriority(b) - voicePriority(a));
+  return ranked[0] || null;
+}
+
+function voiceStyleConfig() {
+  switch (CFG.voiceStyle) {
+    case 'clara': return { rate: 0.98, pitch: 1.0 };
+    case 'rapida': return { rate: 1.12, pitch: 1.0 };
+    default: return { rate: 0.94, pitch: 1.02 };
+  }
+}
 
 function speak(text, onEnd) {
   if (!('speechSynthesis' in window) || !CFG.tts) { if (onEnd) onEnd(); return; }
   window.speechSynthesis.cancel();
   const clean = text.replace(/\[.*?\]/g,'').replace(/https?:\/\/\S+/g,'link').substring(0, 450);
   const utt = new SpeechSynthesisUtterance(clean);
-  utt.lang = 'pt-BR'; utt.rate = 1.05;
-  const ptVoice = voices.find(v => v.lang.startsWith('pt-BR')) || voices.find(v => v.lang.startsWith('pt'));
-  if (ptVoice) utt.voice = ptVoice;
+  utt.lang = 'pt-BR';
+  const cfg = voiceStyleConfig();
+  utt.rate = cfg.rate;
+  utt.pitch = cfg.pitch;
+  const chosen = pickVoice();
+  if (chosen) utt.voice = chosen;
   utt.onend = () => { if (CFG.automic) startMic(); if (onEnd) onEnd(); };
   window.speechSynthesis.speak(utt);
 }
