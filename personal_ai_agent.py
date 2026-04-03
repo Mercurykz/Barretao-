@@ -436,7 +436,6 @@ class LocalOllamaClient:
             return ""
 
         if self.provider == "gemini":
-            endpoint = f"{self.base_url}/v1beta/models/{self.model}:generateContent"
             params = {"key": self.api_key} if self.api_key else None
             payload = {
                 "contents": [
@@ -447,15 +446,39 @@ class LocalOllamaClient:
                 ],
                 "generationConfig": {"temperature": self.temperature},
             }
-            response = self.requests.post(endpoint, params=params, json=payload, timeout=180)
-            response.raise_for_status()
-            data = response.json()
-            candidates = data.get("candidates") if isinstance(data, dict) else None
-            if candidates and isinstance(candidates, list):
-                content = candidates[0].get("content", {}) if isinstance(candidates[0], dict) else {}
-                parts = content.get("parts", []) if isinstance(content, dict) else []
-                if parts and isinstance(parts, list):
-                    return str(parts[0].get("text", "")).strip()
+
+            model_candidates: list[str] = [self.model]
+            if self.model and not self.model.endswith("-latest"):
+                model_candidates.append(f"{self.model}-latest")
+            model_candidates.extend(["gemini-1.5-flash-latest", "gemini-2.0-flash"])
+
+            seen_models: set[str] = set()
+            last_error: Exception | None = None
+            for model_name in model_candidates:
+                model_name = model_name.strip()
+                if not model_name or model_name in seen_models:
+                    continue
+                seen_models.add(model_name)
+
+                for api_version in ("v1beta", "v1"):
+                    endpoint = f"{self.base_url}/{api_version}/models/{model_name}:generateContent"
+                    try:
+                        response = self.requests.post(endpoint, params=params, json=payload, timeout=180)
+                        response.raise_for_status()
+                        data = response.json()
+                        candidates = data.get("candidates") if isinstance(data, dict) else None
+                        if candidates and isinstance(candidates, list):
+                            content = candidates[0].get("content", {}) if isinstance(candidates[0], dict) else {}
+                            parts = content.get("parts", []) if isinstance(content, dict) else []
+                            if parts and isinstance(parts, list):
+                                return str(parts[0].get("text", "")).strip()
+                        return ""
+                    except Exception as e:
+                        last_error = e
+                        continue
+
+            if last_error:
+                raise last_error
             return ""
 
         # default: ollama
