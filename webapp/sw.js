@@ -1,4 +1,4 @@
-const CACHE = 'brt-v6';
+const CACHE = 'brt-v7';
 const ASSETS = [
   '/app/',
   '/app/index.html',
@@ -28,6 +28,23 @@ self.addEventListener('fetch', e => {
 
   // Cache app shell (PWA assets)
   if (url.pathname.startsWith('/app/')) {
+    const isHtmlShell = url.pathname === '/app/' || url.pathname === '/app/index.html';
+
+    if (isHtmlShell) {
+      e.respondWith(
+        fetch(e.request)
+          .then(res => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE).then(c => c.put(e.request, clone));
+            }
+            return res;
+          })
+          .catch(() => caches.match(e.request).then(cached => cached || caches.match('/app/index.html')))
+      );
+      return;
+    }
+
     e.respondWith(
       caches.match(e.request).then(cached => {
         const net = fetch(e.request).then(res => {

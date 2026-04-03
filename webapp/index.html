@@ -188,8 +188,11 @@
     .overlay.hidden{display:none}
     .modal{
       background:rgba(18, 28, 56, .92);border-radius:22px 22px 0 0;padding:22px 18px 28px;
-      width:100%;max-width:720px;margin:0 auto;animation:su .25s ease
+      width:100%;max-width:720px;margin:0 auto;animation:su .25s ease;
+      max-height:min(88dvh, 760px);overflow-y:auto
     }
+    .modal::-webkit-scrollbar{width:6px}
+    .modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
     @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
     .modal h2{font-size:16px;margin-bottom:18px;text-align:center;font-weight:700}
     .field{margin-bottom:14px}
