@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+.venv311/
+venv/
+agent_memory.db
+certs/*.pem
+certs/*.key
+certs/*.crt

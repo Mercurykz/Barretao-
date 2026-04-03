@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Barretão</title>
+  <link rel="manifest" href="/app/manifest.json">
+  <meta name="theme-color" content="#12162b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Barretão">
+  <link rel="apple-touch-icon" href="/app/icon.svg">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{
+      --bg:#0a0f1f;
+      --bg2:#12162b;
+      --surface:rgba(24, 35, 70, .68);
+      --surface2:rgba(20, 28, 54, .78);
+      --accent:#7c6cff;
+      --accent-2:#5fcbff;
+      --accent2:#ff6b9a;
+      --green:#57d3a8;
+      --text:#ecf1ff;
+      --text2:#9aa9d8;
+      --bubble-user:linear-gradient(135deg, #7c6cff 0%, #5fcbff 100%);
+      --bubble-agent:rgba(31, 44, 86, .88);
+      --border:rgba(170, 187, 255, .16);
+      --shadow:0 18px 40px rgba(4, 8, 25, .35);
+    }
+    html,body{
+      height:100%;
+      background:radial-gradient(1300px 800px at 10% -10%, #2a3470 0%, transparent 45%),
+                 radial-gradient(1100px 700px at 110% 10%, #203b6d 0%, transparent 40%),
+                 linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      font-size:16px;
+      overflow:hidden
+    }
+
+    .bg-orb{position:fixed;border-radius:50%;filter:blur(40px);opacity:.28;z-index:0;pointer-events:none}
+    .orb1{width:240px;height:240px;left:-80px;top:-40px;background:#6f6dff}
+    .orb2{width:280px;height:280px;right:-90px;bottom:110px;background:#3cc4ff}
+
+    /* ── Layout ── */
+    #app{display:flex;flex-direction:column;height:100dvh;max-width:760px;margin:0 auto;position:relative;z-index:2}
+
+    @media (min-width: 900px){
+      #app{
+        height:calc(100dvh - 24px);
+        margin:12px auto;
+        border:1px solid var(--border);
+        border-radius:18px;
+        overflow:hidden;
+        box-shadow:0 24px 60px rgba(2, 6, 18, .55);
+      }
+    }
+
+    /* ── Header ── */
+    header{
+      display:flex;align-items:center;padding:12px 14px;
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      gap:10px;flex-shrink:0;
+      box-shadow:0 8px 24px rgba(5, 10, 28, .22);
+    }
+    .avatar{
+      width:40px;height:40px;border-radius:50%;
+      background:linear-gradient(140deg, var(--accent), var(--accent-2));
+      display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+      box-shadow:0 8px 20px rgba(77, 110, 255, .45)
+    }
+    .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .header-info{flex:1;min-width:0}
+    .header-info h1{font-size:15px;font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .status{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;font-weight:600}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--text2);flex-shrink:0}
+    .dot.online{background:var(--green)}
+    .dot.offline{background:var(--accent2)}
+    .hbtn{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      color:var(--text2);font-size:18px;
+      cursor:pointer;padding:6px 8px;border-radius:10px;flex-shrink:0;
+      transition:.18s
+    }
+    .hbtn:hover{background:rgba(255,255,255,.09);color:var(--text);transform:translateY(-1px)}
+
+    /* ── Messages ── */
+    #messages{
+      flex:1;overflow-y:auto;padding:14px 12px;
+      display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;
+      background:linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,0))
+    }
+    .section-title{
+      margin:4px auto 10px;
+      padding:5px 10px;
+      font-size:11px;
+      letter-spacing:.35px;
+      color:var(--text2);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:999px;
+    }
+    .msg{display:flex;flex-direction:column;max-width:82%;animation:fu .2s ease}
+    @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .msg.user{align-self:flex-end;align-items:flex-end}
+    .msg.agent{align-self:flex-start;align-items:flex-start}
+    .bubble{
+      padding:11px 14px;border-radius:18px;
+      font-size:14px;line-height:1.55;word-break:break-word;white-space:pre-wrap
+    }
+    .msg.user .bubble{background:var(--bubble-user);color:#fff;border-bottom-right-radius:5px;box-shadow:0 10px 24px rgba(65, 118, 255, .25)}
+    .msg.agent .bubble{background:var(--bubble-agent);color:var(--text);border-bottom-left-radius:5px;border:1px solid var(--border);box-shadow:var(--shadow)}
+    .msg-time{font-size:10px;color:var(--text2);margin-top:3px;padding:0 4px}
+
+    /* typing indicator */
+    .typing-dots{display:flex;gap:5px;align-items:center;padding:12px 16px}
+    .typing-dots span{
+      width:8px;height:8px;background:var(--accent);border-radius:50%;
+      animation:bounce 1.2s infinite
+    }
+    .typing-dots span:nth-child(2){animation-delay:.2s}
+    .typing-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+    /* ── Input area ── */
+    #input-area{
+      padding:9px 10px;background:var(--surface);border-top:1px solid var(--border);
+      display:flex;gap:8px;align-items:flex-end;flex-shrink:0;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px)
+    }
+    #msg-input{
+      flex:1;background:rgba(9, 14, 30, .92);border:1px solid var(--border);border-radius:22px;
+      padding:10px 15px;color:var(--text);font-size:15px;resize:none;
+      max-height:120px;outline:none;font-family:inherit;line-height:1.4
+    }
+    #msg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,108,255,.17)}
+    #msg-input::placeholder{color:var(--text2)}
+    .ibtn{
+      width:44px;height:44px;border-radius:50%;border:1px solid var(--border);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;transition:.15s;
+      box-shadow:0 8px 20px rgba(6, 10, 24, .28)
+    }
+    #btn-mic{background:rgba(255,255,255,.03);color:var(--text2)}
+    #btn-mic.listening{background:var(--accent2);color:#fff;animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    #btn-send{background:linear-gradient(140deg, var(--accent), var(--accent-2));color:#fff;border:none}
+    #btn-send:active{opacity:.8}
+    #btn-mic:active{opacity:.8}
+    #btn-send:hover,#btn-mic:hover{transform:translateY(-1px)}
+
+    /* ── Empty state ── */
+    #empty-state{
+      flex:1;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:10px;color:var(--text2);text-align:center;padding:30px;
+      position:relative;overflow:hidden
+    }
+    #empty-state .big-icon{width:78px;height:78px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 10px 20px rgba(96,120,255,.35))}
+    #empty-state .big-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:1px solid var(--border)}
+    #empty-state h2{font-size:20px;color:var(--text);font-weight:700;letter-spacing:.2px}
+    #empty-state p{font-size:13px;line-height:1.7;max-width:420px}
+    #empty-state::before{
+      content:'';
+      position:absolute;
+      width:220px;height:220px;border-radius:50%;
+      background:radial-gradient(circle at center, rgba(120,116,255,.2), transparent 70%);
+      transform:translateY(-30px);
+      z-index:-1;
+    }
+    .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:6px}
+    .chip{
+      background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:999px;
+      padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:.15s;
+      backdrop-filter: blur(6px)
+    }
+    .chip:hover,.chip:active{background:linear-gradient(140deg, var(--accent), var(--accent-2));border-color:transparent;color:#fff;transform:translateY(-1px)}
+
+    /* ── Modal ── */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.72);
+      display:flex;align-items:flex-end;z-index:100
+    }
+    .overlay.hidden{display:none}
+    .modal{
+      background:rgba(18, 28, 56, .92);border-radius:22px 22px 0 0;padding:22px 18px 28px;
+      width:100%;max-width:720px;margin:0 auto;animation:su .25s ease
+    }
+    @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal h2{font-size:16px;margin-bottom:18px;text-align:center;font-weight:700}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+    .field input{
+      width:100%;background:rgba(8, 13, 28, .95);border:1px solid var(--border);
+      border-radius:10px;padding:10px 13px;color:var(--text);font-size:15px;
+      outline:none;font-family:inherit
+    }
+    .field input:focus{border-color:var(--accent)}
+    .toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;color:var(--text2)}
+    .switch{position:relative;width:44px;height:24px;flex-shrink:0}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.3s}
+    .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+    .switch input:checked+.slider{background:var(--accent)}
+    .switch input:checked+.slider::before{transform:translateX(20px)}
+    .btn-main{
+      width:100%;background:linear-gradient(140deg, var(--accent), var(--accent-2));color:#fff;border:none;border-radius:12px;
+      padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px
+    }
+    .btn-main:active{opacity:.85}
+    .hint{font-size:12px;color:var(--text2);margin-top:12px;text-align:center;line-height:1.6}
+    .brand-note{
+      text-align:center;
+      color:var(--text2);
+      font-size:11px;
+      padding:6px 0 2px;
+      letter-spacing:.25px;
+    }
+
+    /* safe area iPhone */
+    @supports(padding-bottom:env(safe-area-inset-bottom)){
+      #input-area{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+    }
+    #messages::-webkit-scrollbar{width:4px}
+    #messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  </style>
+</head>
+<body>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div id="app">
+  <header>
+    <div class="avatar"><img src="/app/icon.svg" alt="Ícone do Barretão"></div>
+    <div class="header-info">
+      <h1 id="agent-label">Barretão Assistant</h1>
+      <div class="status">
+        <div class="dot offline" id="status-dot"></div>
+        <span id="status-text">Não conectado</span>
+      </div>
+    </div>
+    <button class="hbtn" id="btn-briefing" title="Briefing do dia">☀️</button>
+    <button class="hbtn" id="btn-settings" title="Configurações">⚙️</button>
+  </header>
+
+  <div id="messages">
+    <div id="empty-state">
+      <div class="section-title">Assistente local com IA</div>
+      <div class="big-icon"><img src="/app/icon.svg" alt="Ícone do Barretão"></div>
+      <h2>Olá. Sou o Barretão.</h2>
+      <p>Assistente pessoal local com foco em produtividade, rotina e respostas rápidas.</p>
+      <div class="chips">
+        <div class="chip" onclick="sendChip('bom dia')">Bom dia</div>
+        <div class="chip" onclick="sendChip('o que você sabe sobre mim?')">Meu perfil</div>
+        <div class="chip" onclick="sendChip('minha rotina de hoje')">Minha rotina</div>
+        <div class="chip" onclick="sendChip('meus eventos de hoje')">Eventos de hoje</div>
+        <div class="chip" onclick="sendChip('pesquisar notícias de hoje')">Pesquisar</div>
+        <div class="chip" onclick="sendChip('qual a previsão do tempo?')">Previsão do tempo</div>
+      </div>
+      <div class="brand-note">Barretão Hub · IA local · Privacidade em primeiro lugar</div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <button class="ibtn" id="btn-mic" title="Falar">🎤</button>
+    <textarea id="msg-input" placeholder="Escreva ou fale..." rows="1"></textarea>
+    <button class="ibtn" id="btn-send" title="Enviar">➤</button>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="overlay hidden" id="settings-overlay">
+  <div class="modal">
+    <h2>⚙️ Configurações</h2>
+    <div class="field">
+      <label>Endereço do servidor</label>
+      <input type="url" id="cfg-url" placeholder="http://192.168.1.X:8787" inputmode="url" autocomplete="url">
+    </div>
+    <div class="field">
+      <label>Token de acesso</label>
+      <input type="password" id="cfg-token" placeholder="Deixe vazio se não configurou">
+    </div>
+    <div class="toggle-row">
+      <label class="switch"><input type="checkbox" id="cfg-tts"><span class="slider"></span></label>
+      Falar respostas em voz alta
+    </div>
+    <div class="toggle-row">
+      <label class="switch"><input type="checkbox" id="cfg-automic"><span class="slider"></span></label>
+      Microfone automático após resposta
+    </div>
+    <button class="btn-main" onclick="saveSettings()">Salvar e conectar</button>
+    <div class="hint">
+      📱 Para instalar como app: toque no menu do navegador → <b>"Adicionar à tela inicial"</b><br>
+      🌐 Dentro de casa: use IP local. Fora de casa: use URL pública HTTPS (túnel)<br><br>
+      🍎 <b>iPhone/Safari:</b> Para o microfone funcionar, instale o certificado:<br>
+      <a id="cert-link" href="#" style="color:var(--accent);text-decoration:underline" onclick="installCert(event)">
+        ⬇️ Baixar e instalar certificado (apenas iPhone)
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────
+let CFG = {
+  url:     localStorage.getItem('brt_url')     || window.location.origin,
+  token:   localStorage.getItem('brt_token')   || '',
+  tts:     localStorage.getItem('brt_tts')     !== 'false',
+  automic: localStorage.getItem('brt_automic') === 'true',
+};
+
+function saveSettings() {
+  CFG.url     = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  CFG.token   = document.getElementById('cfg-token').value.trim();
+  CFG.tts     = document.getElementById('cfg-tts').checked;
+  CFG.automic = document.getElementById('cfg-automic').checked;
+  localStorage.setItem('brt_url',     CFG.url);
+  localStorage.setItem('brt_token',   CFG.token);
+  localStorage.setItem('brt_tts',     CFG.tts);
+  localStorage.setItem('brt_automic', CFG.automic);
+  // Update cert link to use saved server URL
+  const cl = document.getElementById('cert-link');
+  if (cl && CFG.url) cl.href = CFG.url + '/cert';
+  closeSettings();
+  checkStatus();
+}
+
+function installCert(e) {
+  const base = CFG.url || (window.location.origin);
+  window.location.href = base + '/cert';
+}
+
+function openSettings() {
+  document.getElementById('cfg-url').value    = CFG.url;
+  document.getElementById('cfg-token').value  = CFG.token;
+  document.getElementById('cfg-tts').checked  = CFG.tts;
+  document.getElementById('cfg-automic').checked = CFG.automic;
+  document.getElementById('settings-overlay').classList.remove('hidden');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.add('hidden');
+}
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+});
+document.getElementById('btn-settings').onclick = openSettings;
+
+// ── Status ────────────────────────────────────────────────────────────────
+async function checkStatus() {
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  if (!CFG.url) {
+    dot.className  = 'dot offline';
+    text.textContent = 'Configure o servidor ⚙️';
+    return;
+  }
+  try {
+    const r = await fetch(CFG.url + '/health', { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      dot.className  = 'dot online';
+      text.textContent = 'Online ✓';
+    } else throw new Error();
+  } catch {
+    dot.className  = 'dot offline';
+    text.textContent = 'Sem conexão';
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function now() {
+  return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────
+let isTyping = false;
+
+function addMessage(text, role) {
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+  const box = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="bubble">${escHtml(text)}</div><div class="msg-time">${now()}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  if (isTyping) return; isTyping = true;
+  const box = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg agent'; div.id = 'typing';
+  div.innerHTML = '<div class="bubble typing-dots"><span></span><span></span><span></span></div>';
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+function hideTyping() {
+  isTyping = false;
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function sendCommand(text) {
+  if (!CFG.url) { addMessage('Configure o servidor primeiro (⚙️).', 'agent'); openSettings(); return; }
+  showTyping();
+  const headers = { 'Content-Type': 'application/json' };
+  if (CFG.token) headers['Authorization'] = `Bearer ${CFG.token}`;
+  try {
+    const r = await fetch(CFG.url + '/command', {
+      method: 'POST', headers,
+      body: JSON.stringify({ text, source: 'webapp' }),
+      signal: AbortSignal.timeout(90000),
+    });
+    const data = await r.json();
+    hideTyping();
+    const answer = data.answer || data.detail || 'Sem resposta.';
+    addMessage(answer, 'agent');
+    if (CFG.tts) speak(answer);
+    else if (CFG.automic) startMic();
+    setOnline();
+  } catch (err) {
+    hideTyping();
+    const msg = err.name === 'TimeoutError'
+      ? 'Tempo esgotado. O agente demorou demais para responder.'
+      : 'Erro de conexão. Verifique o endereço do servidor (⚙️).';
+    addMessage(msg, 'agent');
+    setOffline();
+  }
+}
+
+async function getBriefing() {
+  if (!CFG.url) { openSettings(); return; }
+  showTyping();
+  const headers = {};
+  if (CFG.token) headers['Authorization'] = `Bearer ${CFG.token}`;
+  try {
+    const r = await fetch(CFG.url + '/briefing', { headers, signal: AbortSignal.timeout(30000) });
+    const data = await r.json();
+    hideTyping();
+    const answer = data.answer || 'Sem briefing.';
+    addMessage(answer, 'agent');
+    if (CFG.tts) speak(answer);
+    setOnline();
+  } catch {
+    hideTyping();
+    addMessage('Não consegui buscar o briefing. Verifique a conexão.', 'agent');
+    setOffline();
+  }
+}
+
+function setOnline() {
+  document.getElementById('status-dot').className = 'dot online';
+  document.getElementById('status-text').textContent = 'Online ✓';
+}
+function setOffline() {
+  document.getElementById('status-dot').className = 'dot offline';
+  document.getElementById('status-text').textContent = 'Sem conexão';
+}
+
+document.getElementById('btn-briefing').onclick = getBriefing;
+
+// ── Send ──────────────────────────────────────────────────────────────────
+function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = ''; input.style.height = 'auto';
+  sendCommand(text);
+}
+function sendChip(text) { addMessage(text, 'user'); sendCommand(text); }
+
+document.getElementById('btn-send').onclick = sendMessage;
+document.getElementById('msg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+document.getElementById('msg-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// ── Voice input ───────────────────────────────────────────────────────────
+let recognition = null;
+const micBtn = document.getElementById('btn-mic');
+
+function startMic() {
+  if (!recognition) return;
+  try { recognition.start(); } catch(_) {}
+}
+
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'pt-BR';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart  = () => { micBtn.classList.add('listening'); micBtn.textContent = '🔴'; };
+  recognition.onend    = () => { micBtn.classList.remove('listening'); micBtn.textContent = '🎤'; };
+  recognition.onresult = e  => {
+    const t = e.results[0][0].transcript.trim();
+    if (t) { addMessage(t, 'user'); sendCommand(t); }
+  };
+  recognition.onerror  = e  => {
+    micBtn.classList.remove('listening'); micBtn.textContent = '🎤';
+    if (e.error !== 'aborted' && e.error !== 'no-speech')
+      addMessage('Não entendi. Tente de novo. 🎤', 'agent');
+  };
+
+  micBtn.onclick = () => {
+    if (micBtn.classList.contains('listening')) recognition.stop();
+    else recognition.start();
+  };
+} else {
+  micBtn.title = 'Voz não suportada neste navegador';
+  micBtn.style.opacity = '.35';
+  micBtn.onclick = () => addMessage('Use o Chrome no Android ou Safari no iPhone para voz.', 'agent');
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────────
+let voices = [];
+function loadVoices() {
+  voices = window.speechSynthesis?.getVoices?.() || [];
+}
+loadVoices();
+window.speechSynthesis?.addEventListener?.('voiceschanged', loadVoices);
+
+function speak(text, onEnd) {
+  if (!('speechSynthesis' in window) || !CFG.tts) { if (onEnd) onEnd(); return; }
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/\[.*?\]/g,'').replace(/https?:\/\/\S+/g,'link').substring(0, 450);
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.lang = 'pt-BR'; utt.rate = 1.05;
+  const ptVoice = voices.find(v => v.lang.startsWith('pt-BR')) || voices.find(v => v.lang.startsWith('pt'));
+  if (ptVoice) utt.voice = ptVoice;
+  utt.onend = () => { if (CFG.automic) startMic(); if (onEnd) onEnd(); };
+  window.speechSynthesis.speak(utt);
+}
+
+// ── PWA install ───────────────────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  // Show an install chip
+  const chips = document.querySelector('.chips');
+  if (chips && !document.getElementById('install-chip')) {
+    const chip = document.createElement('div');
+    chip.className = 'chip'; chip.id = 'install-chip';
+    chip.textContent = '📲 Instalar app';
+    chip.onclick = () => { deferredPrompt.prompt(); deferredPrompt = null; chip.remove(); };
+    chips.appendChild(chip);
+  }
+});
+
+// ── Service Worker ────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/app/sw.js').catch(() => {});
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+if (!CFG.url) {
+  openSettings();
+} else {
+  checkStatus();
+}
+setInterval(checkStatus, 30000);
+</script>
+</body>
+</html>

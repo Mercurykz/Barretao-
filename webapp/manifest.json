@@ -1,0 +1,29 @@
+{
+  "name": "Barretão Assistant",
+  "short_name": "Barretão",
+  "description": "Assistente pessoal com IA local e foco em produtividade",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#12162b",
+  "theme_color": "#12162b",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/app/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Bom dia",
+      "short_name": "Briefing",
+      "description": "Abrir briefing do dia",
+      "url": "/app/?action=briefing"
+    }
+  ]
+}
