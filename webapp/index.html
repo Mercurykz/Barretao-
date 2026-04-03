@@ -334,6 +334,28 @@
       <label>Voice ID do provider</label>
       <input type="text" id="cfg-server-voice-id" placeholder="Ex.: pt-BR-AntonioNeural ou ID do provider" autocomplete="off">
     </div>
+    <div class="field">
+      <label>MAC para ligar PC (Wake-on-LAN)</label>
+      <input type="text" id="cfg-wol-mac" placeholder="AA:BB:CC:DD:EE:FF" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Broadcast WOL</label>
+      <input type="text" id="cfg-wol-broadcast" placeholder="192.168.1.255" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Porta WOL</label>
+      <input type="number" id="cfg-wol-port" placeholder="9" inputmode="numeric" autocomplete="off">
+    </div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="bindWakeOnLan()">Vincular ligar PC (WOL)</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="runPcPowerAction('ligar')">Ligar PC</button>
+      <button class="btn-sub" onclick="runPcPowerAction('desligar')">Desligar PC</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="runPcPowerAction('cancelar')">Cancelar desligamento/reinício</button>
+    </div>
     <div class="btn-row">
       <button class="btn-sub" onclick="testBrowserVoice()">Testar voz do app</button>
       <button class="btn-sub" onclick="testServerVoice()">Testar voz do Barretão</button>
@@ -366,6 +388,9 @@ let CFG = {
   voiceStyle: localStorage.getItem('brt_voice_style') || 'natural',
   serverVoiceProvider: localStorage.getItem('brt_server_voice_provider') || 'edge',
   serverVoiceId: localStorage.getItem('brt_server_voice_id') || '',
+  wolMac: localStorage.getItem('brt_wol_mac') || '',
+  wolBroadcast: localStorage.getItem('brt_wol_broadcast') || '255.255.255.255',
+  wolPort: localStorage.getItem('brt_wol_port') || '9',
 };
 
 function voicePriority(v) {
@@ -442,7 +467,74 @@ function getSettingsDraft() {
     voiceStyle: document.getElementById('cfg-voice-style').value,
     serverVoiceProvider: document.getElementById('cfg-server-voice-provider').value,
     serverVoiceId: document.getElementById('cfg-server-voice-id').value.trim(),
+    wolMac: document.getElementById('cfg-wol-mac').value.trim(),
+    wolBroadcast: document.getElementById('cfg-wol-broadcast').value.trim(),
+    wolPort: document.getElementById('cfg-wol-port').value.trim(),
   };
+}
+
+async function bindWakeOnLan() {
+  const draft = getSettingsDraft();
+  if (!draft.url) {
+    addMessage('Configure o servidor antes de vincular o Wake-on-LAN.', 'agent');
+    return;
+  }
+  if (!draft.wolMac) {
+    addMessage('Informe o MAC do PC para vincular o Wake-on-LAN.', 'agent');
+    return;
+  }
+
+  const prevUrl = CFG.url;
+  const prevToken = CFG.token;
+  CFG.url = draft.url;
+  CFG.token = draft.token;
+
+  const wolBroadcast = draft.wolBroadcast || '255.255.255.255';
+  const wolPort = draft.wolPort || '9';
+  try {
+    const ans = await sendAgentSettingsCommand(`configurar wol ${draft.wolMac} ${wolBroadcast} ${wolPort}`);
+    addMessage(ans || 'Wake-on-LAN vinculado com sucesso.', 'agent');
+  } catch (_) {
+    addMessage('Falha ao vincular Wake-on-LAN. Verifique MAC, rede e token.', 'agent');
+  } finally {
+    CFG.url = prevUrl;
+    CFG.token = prevToken;
+  }
+}
+
+async function runPcPowerAction(action) {
+  const draft = getSettingsDraft();
+  if (!draft.url) {
+    addMessage('Configure o servidor antes de usar controle de energia do PC.', 'agent');
+    return;
+  }
+
+  const prevUrl = CFG.url;
+  const prevToken = CFG.token;
+  CFG.url = draft.url;
+  CFG.token = draft.token;
+
+  const cmdMap = {
+    ligar: 'ligar pc',
+    desligar: 'desligar pc',
+    cancelar: '/pc cancel',
+  };
+  const cmd = cmdMap[action] || '';
+  if (!cmd) {
+    CFG.url = prevUrl;
+    CFG.token = prevToken;
+    return;
+  }
+
+  try {
+    const ans = await sendAgentSettingsCommand(cmd);
+    addMessage(ans || 'Comando enviado ao servidor.', 'agent');
+  } catch (_) {
+    addMessage('Falha ao enviar comando de energia do PC. Verifique conexão e token.', 'agent');
+  } finally {
+    CFG.url = prevUrl;
+    CFG.token = prevToken;
+  }
 }
 
 async function testServerVoice() {
@@ -527,6 +619,9 @@ async function saveSettings() {
   CFG.voiceStyle = document.getElementById('cfg-voice-style').value;
   CFG.serverVoiceProvider = document.getElementById('cfg-server-voice-provider').value;
   CFG.serverVoiceId = document.getElementById('cfg-server-voice-id').value.trim();
+  CFG.wolMac = document.getElementById('cfg-wol-mac').value.trim();
+  CFG.wolBroadcast = document.getElementById('cfg-wol-broadcast').value.trim() || '255.255.255.255';
+  CFG.wolPort = document.getElementById('cfg-wol-port').value.trim() || '9';
   localStorage.setItem('brt_url',     CFG.url);
   localStorage.setItem('brt_token',   CFG.token);
   localStorage.setItem('brt_tts',     CFG.tts);
@@ -535,6 +630,9 @@ async function saveSettings() {
   localStorage.setItem('brt_voice_style', CFG.voiceStyle);
   localStorage.setItem('brt_server_voice_provider', CFG.serverVoiceProvider);
   localStorage.setItem('brt_server_voice_id', CFG.serverVoiceId);
+  localStorage.setItem('brt_wol_mac', CFG.wolMac);
+  localStorage.setItem('brt_wol_broadcast', CFG.wolBroadcast);
+  localStorage.setItem('brt_wol_port', CFG.wolPort);
   // Update cert link to use saved server URL
   const cl = document.getElementById('cert-link');
   if (cl && CFG.url) cl.href = CFG.url + '/cert';
@@ -559,6 +657,9 @@ function openSettings() {
   document.getElementById('cfg-voice-style').value = CFG.voiceStyle;
   document.getElementById('cfg-server-voice-provider').value = CFG.serverVoiceProvider;
   document.getElementById('cfg-server-voice-id').value = CFG.serverVoiceId;
+  document.getElementById('cfg-wol-mac').value = CFG.wolMac;
+  document.getElementById('cfg-wol-broadcast').value = CFG.wolBroadcast;
+  document.getElementById('cfg-wol-port').value = CFG.wolPort;
   document.getElementById('settings-overlay').classList.remove('hidden');
   refreshServerVoiceStatus();
 }
