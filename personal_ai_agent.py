@@ -14,6 +14,7 @@ import tempfile
 import uuid
 import queue
 import socket
+import html
 from datetime import datetime
 from typing import Any
 
@@ -140,6 +141,16 @@ class VoiceIO:
         edge_tts_voice: str,
         edge_tts_rate: str,
         edge_tts_volume: str,
+        elevenlabs_api_key: str,
+        elevenlabs_voice_id: str,
+        elevenlabs_model_id: str,
+        openai_tts_api_key: str,
+        openai_tts_base_url: str,
+        openai_tts_model: str,
+        openai_tts_voice: str,
+        azure_speech_key: str,
+        azure_speech_region: str,
+        azure_speech_voice: str,
     ) -> None:
         self.language = language
         self.stt_engine = stt_engine.lower().strip()
@@ -149,10 +160,21 @@ class VoiceIO:
         self.tts_volume = max(0.0, min(1.0, tts_volume))
         self.tts_voice_hint = tts_voice_hint.strip().lower()
         self.tts_humanized = tts_humanized
-        self.tts_provider = tts_provider.strip().lower()
+        self.tts_provider = self._normalize_tts_provider(tts_provider)
         self.edge_tts_voice = edge_tts_voice.strip() or "pt-BR-FranciscaNeural"
         self.edge_tts_rate = edge_tts_rate.strip() or "+0%"
         self.edge_tts_volume = edge_tts_volume.strip() or "+0%"
+        self.elevenlabs_api_key = elevenlabs_api_key.strip()
+        self.elevenlabs_voice_id = elevenlabs_voice_id.strip() or "21m00Tcm4TlvDq8ikWAM"
+        self.elevenlabs_model_id = elevenlabs_model_id.strip() or "eleven_multilingual_v2"
+        self.openai_tts_api_key = openai_tts_api_key.strip()
+        self.openai_tts_base_url = openai_tts_base_url.strip().rstrip("/") or "https://api.openai.com/v1"
+        self.openai_tts_model = openai_tts_model.strip() or "gpt-4o-mini-tts"
+        self.openai_tts_voice = openai_tts_voice.strip() or "coral"
+        self.azure_speech_key = azure_speech_key.strip()
+        self.azure_speech_region = azure_speech_region.strip() or "brazilsouth"
+        self.azure_speech_voice = azure_speech_voice.strip() or "pt-BR-FranciscaNeural"
+        self.requests = importlib.import_module("requests")
 
         self._stop_signal = threading.Event()
         self._speak_queue: queue.Queue[str] = queue.Queue()
@@ -167,6 +189,57 @@ class VoiceIO:
         self._init_stt()
         self._speaker_thread.start()
 
+    def _normalize_tts_provider(self, provider: str) -> str:
+        alias_map = {
+            "": "edge",
+            "microsoft": "edge",
+            "edge-tts": "edge",
+            "local": "pyttsx3",
+            "pytts": "pyttsx3",
+            "eleven": "elevenlabs",
+            "11labs": "elevenlabs",
+            "openai-tts": "openai",
+            "azure": "azure",
+            "azure-speech": "azure",
+        }
+        normalized = provider.strip().lower()
+        return alias_map.get(normalized, normalized or "edge")
+
+    def set_tts_provider(self, provider: str) -> tuple[bool, str]:
+        normalized = self._normalize_tts_provider(provider)
+        if normalized not in {"edge", "pyttsx3", "elevenlabs", "openai", "azure"}:
+            return False, "Provider inválido. Use: edge, pyttsx3, elevenlabs, openai ou azure."
+        self.tts_provider = normalized
+        return True, f"Provider de voz alterado para {normalized}."
+
+    def get_current_voice(self) -> str:
+        if self.tts_provider == "edge":
+            return self.edge_tts_voice
+        if self.tts_provider == "elevenlabs":
+            return self.elevenlabs_voice_id
+        if self.tts_provider == "openai":
+            return self.openai_tts_voice
+        if self.tts_provider == "azure":
+            return self.azure_speech_voice
+        return self.tts_voice_hint or "padrão do sistema"
+
+    def set_custom_voice(self, voice_id: str) -> bool:
+        candidate = voice_id.strip()
+        if not candidate:
+            return False
+        if self.tts_provider == "edge":
+            return self.set_edge_voice(candidate)
+        if self.tts_provider == "elevenlabs":
+            self.elevenlabs_voice_id = candidate
+            return True
+        if self.tts_provider == "openai":
+            self.openai_tts_voice = candidate
+            return True
+        if self.tts_provider == "azure":
+            self.azure_speech_voice = candidate
+            return True
+        return False
+
     def set_edge_voice(self, voice_id: str) -> bool:
         candidate = voice_id.strip()
         if not candidate:
@@ -178,20 +251,48 @@ class VoiceIO:
 
     def apply_voice_preset(self, preset: str) -> tuple[bool, str]:
         p = preset.strip().lower()
-        presets: dict[str, tuple[str, str]] = {
-            "feminina": ("pt-BR-FranciscaNeural", "pt-br"),
-            "masculina": ("pt-BR-AntonioNeural", "pt-br"),
-            "profissional": ("pt-BR-AntonioNeural", "portuguese"),
-            "natural": ("pt-BR-FranciscaNeural", "pt-br"),
+        presets: dict[str, dict[str, str]] = {
+            "feminina": {
+                "edge": "pt-BR-FranciscaNeural",
+                "elevenlabs": "EXAVITQu4vr4xnSDxMaL",
+                "openai": "coral",
+                "azure": "pt-BR-FranciscaNeural",
+                "hint": "pt-br",
+            },
+            "masculina": {
+                "edge": "pt-BR-AntonioNeural",
+                "elevenlabs": "ErXwobaYiN019PkySvjV",
+                "openai": "ash",
+                "azure": "pt-BR-AntonioNeural",
+                "hint": "pt-br",
+            },
+            "profissional": {
+                "edge": "pt-BR-AntonioNeural",
+                "elevenlabs": "VR6AewLTigWG4xSOukaG",
+                "openai": "sage",
+                "azure": "pt-BR-AntonioNeural",
+                "hint": "portuguese",
+            },
+            "natural": {
+                "edge": "pt-BR-FranciscaNeural",
+                "elevenlabs": "EXAVITQu4vr4xnSDxMaL",
+                "openai": "coral",
+                "azure": "pt-BR-FranciscaNeural",
+                "hint": "pt-br",
+            },
         }
         if p not in presets:
             return False, "Preset de voz inválido. Use: feminina, masculina, profissional ou natural."
 
-        edge_voice, hint = presets[p]
-        self.edge_tts_voice = edge_voice
+        preset_data = presets[p]
+        self.edge_tts_voice = preset_data["edge"]
+        self.elevenlabs_voice_id = preset_data["elevenlabs"]
+        self.openai_tts_voice = preset_data["openai"]
+        self.azure_speech_voice = preset_data["azure"]
+        hint = preset_data["hint"]
         self.tts_voice_hint = hint
         self._select_tts_voice()
-        return True, f"Voz alterada para '{p}' ({edge_voice})."
+        return True, f"Voz alterada para '{p}' ({self.get_current_voice()})."
 
     def _init_tts(self) -> None:
         try:
@@ -276,8 +377,8 @@ class VoiceIO:
                 continue
             self._stop_signal.clear()
 
-            if self.tts_provider == "edge":
-                ok = self._speak_with_edge_tts(text)
+            if self.tts_provider in {"edge", "elevenlabs", "openai", "azure"}:
+                ok = self._speak_with_remote_tts(text)
                 if ok:
                     continue
 
@@ -308,26 +409,13 @@ class VoiceIO:
         except Exception:
             pass
 
-    def _speak_with_edge_tts(self, text: str) -> bool:
+    def _play_audio_file(self, file_path: str) -> bool:
         try:
-            edge_tts = importlib.import_module("edge_tts")
             pygame = importlib.import_module("pygame")
         except Exception:
             return False
 
-        file_path = os.path.join(
-            tempfile.gettempdir(), f"barretao_tts_{uuid.uuid4().hex}.mp3"
-        )
-
         try:
-            communicate = edge_tts.Communicate(
-                text=text,
-                voice=self.edge_tts_voice,
-                rate=self.edge_tts_rate,
-                volume=self.edge_tts_volume,
-            )
-            asyncio.run(communicate.save(file_path))
-
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
 
@@ -345,12 +433,135 @@ class VoiceIO:
             return True
         except Exception:
             return False
+
+    def _play_audio_bytes(self, audio_bytes: bytes, suffix: str = ".mp3") -> bool:
+        file_path = os.path.join(
+            tempfile.gettempdir(), f"barretao_tts_{uuid.uuid4().hex}{suffix}"
+        )
+        try:
+            with open(file_path, "wb") as f:
+                f.write(audio_bytes)
+            return self._play_audio_file(file_path)
+        except Exception:
+            return False
         finally:
             try:
                 if os.path.exists(file_path):
                     os.remove(file_path)
             except Exception:
                 pass
+
+    def _speak_with_remote_tts(self, text: str) -> bool:
+        if self.tts_provider == "edge":
+            return self._speak_with_edge_tts(text)
+        if self.tts_provider == "elevenlabs":
+            return self._speak_with_elevenlabs(text)
+        if self.tts_provider == "openai":
+            return self._speak_with_openai_tts(text)
+        if self.tts_provider == "azure":
+            return self._speak_with_azure_tts(text)
+        return False
+
+    def _speak_with_edge_tts(self, text: str) -> bool:
+        try:
+            edge_tts = importlib.import_module("edge_tts")
+        except Exception:
+            return False
+
+        file_path = os.path.join(
+            tempfile.gettempdir(), f"barretao_tts_{uuid.uuid4().hex}.mp3"
+        )
+
+        try:
+            communicate = edge_tts.Communicate(
+                text=text,
+                voice=self.edge_tts_voice,
+                rate=self.edge_tts_rate,
+                volume=self.edge_tts_volume,
+            )
+            asyncio.run(communicate.save(file_path))
+            return self._play_audio_file(file_path)
+        except Exception:
+            return False
+        finally:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception:
+                pass
+
+    def _speak_with_elevenlabs(self, text: str) -> bool:
+        if not self.elevenlabs_api_key or not self.elevenlabs_voice_id:
+            return False
+        try:
+            response = self.requests.post(
+                f"https://api.elevenlabs.io/v1/text-to-speech/{self.elevenlabs_voice_id}",
+                headers={
+                    "xi-api-key": self.elevenlabs_api_key,
+                    "Accept": "audio/mpeg",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "text": text,
+                    "model_id": self.elevenlabs_model_id,
+                    "output_format": "mp3_44100_128",
+                    "voice_settings": {"stability": 0.45, "similarity_boost": 0.8},
+                },
+                timeout=180,
+            )
+            response.raise_for_status()
+            return self._play_audio_bytes(response.content, ".mp3")
+        except Exception:
+            return False
+
+    def _speak_with_openai_tts(self, text: str) -> bool:
+        if not self.openai_tts_api_key:
+            return False
+        try:
+            response = self.requests.post(
+                f"{self.openai_tts_base_url}/audio/speech",
+                headers={
+                    "Authorization": f"Bearer {self.openai_tts_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": self.openai_tts_model,
+                    "voice": self.openai_tts_voice,
+                    "input": text,
+                    "response_format": "mp3",
+                },
+                timeout=180,
+            )
+            response.raise_for_status()
+            return self._play_audio_bytes(response.content, ".mp3")
+        except Exception:
+            return False
+
+    def _speak_with_azure_tts(self, text: str) -> bool:
+        if not self.azure_speech_key or not self.azure_speech_region:
+            return False
+        try:
+            ssml = (
+                "<speak version='1.0' xml:lang='pt-BR'>"
+                f"<voice name='{html.escape(self.azure_speech_voice)}'>"
+                f"{html.escape(text)}"
+                "</voice></speak>"
+            )
+            response = self.requests.post(
+                f"https://{self.azure_speech_region}.tts.speech.microsoft.com/cognitiveservices/v1",
+                headers={
+                    "Ocp-Apim-Subscription-Key": self.azure_speech_key,
+                    "Content-Type": "application/ssml+xml",
+                    "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+                    "User-Agent": "Barretao",
+                },
+                data=ssml.encode("utf-8"),
+                timeout=180,
+            )
+            response.raise_for_status()
+            return self._play_audio_bytes(response.content, ".mp3")
+        except Exception:
+            return False
 
     def listen_once(self) -> str:
         if not self.sr or not self.recognizer:
@@ -651,6 +862,20 @@ class PersonalAIAgent:
                 edge_tts_voice=os.getenv("EDGE_TTS_VOICE", "pt-BR-FranciscaNeural"),
                 edge_tts_rate=os.getenv("EDGE_TTS_RATE", "+0%"),
                 edge_tts_volume=os.getenv("EDGE_TTS_VOLUME", "+0%"),
+                elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
+                elevenlabs_voice_id=os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM"),
+                elevenlabs_model_id=os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2"),
+                openai_tts_api_key=(
+                    os.getenv("OPENAI_TTS_API_KEY", "").strip()
+                    or os.getenv("OPENAI_API_KEY", "").strip()
+                    or os.getenv("LLM_API_KEY", "").strip()
+                ),
+                openai_tts_base_url=os.getenv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1"),
+                openai_tts_model=os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"),
+                openai_tts_voice=os.getenv("OPENAI_TTS_VOICE", "coral"),
+                azure_speech_key=os.getenv("AZURE_SPEECH_KEY", ""),
+                azure_speech_region=os.getenv("AZURE_SPEECH_REGION", "brazilsouth"),
+                azure_speech_voice=os.getenv("AZURE_SPEECH_VOICE", "pt-BR-FranciscaNeural"),
             )
             if enable_voice
             else SilentVoice()
@@ -787,11 +1012,24 @@ class PersonalAIAgent:
         if isinstance(self.voice, SilentVoice):
             return
         try:
+            row_provider = self.conn.execute(
+                "SELECT value FROM user_profile WHERE key = 'voice_provider'"
+            ).fetchone()
+            if row_provider and str(row_provider[0]).strip():
+                self.voice.set_tts_provider(str(row_provider[0]).strip())
+
             row_custom = self.conn.execute(
-                "SELECT value FROM user_profile WHERE key = 'voice_edge'"
+                "SELECT value FROM user_profile WHERE key = 'voice_value'"
             ).fetchone()
             if row_custom and str(row_custom[0]).strip():
-                self.voice.set_edge_voice(str(row_custom[0]).strip())
+                self.voice.set_custom_voice(str(row_custom[0]).strip())
+                return
+
+            row_edge = self.conn.execute(
+                "SELECT value FROM user_profile WHERE key = 'voice_edge'"
+            ).fetchone()
+            if row_edge and str(row_edge[0]).strip():
+                self.voice.set_edge_voice(str(row_edge[0]).strip())
                 return
 
             row_profile = self.conn.execute(
@@ -808,9 +1046,20 @@ class PersonalAIAgent:
         return (
             "🎙️ Voz atual:\n"
             f"- Provider: {self.voice.tts_provider}\n"
-            f"- Edge voice: {self.voice.edge_tts_voice}\n"
+            f"- Voice: {self.voice.get_current_voice()}\n"
             f"- Auto speak: {'on' if self.voice.auto_speak else 'off'}"
         )
+
+    def set_voice_provider(self, raw_provider: str) -> str:
+        if isinstance(self.voice, SilentVoice):
+            return "Voz desativada neste modo."
+        ok, msg = self.voice.set_tts_provider(raw_provider)
+        if not ok:
+            return msg
+        self.save_user_fact("voice_provider", self.voice.tts_provider)
+        self.save_user_fact("voice_value", self.voice.get_current_voice())
+        self.voice.speak("Provider de voz atualizado com sucesso.", force=True)
+        return f"✅ {msg} Voz atual: {self.voice.get_current_voice()}"
 
     def set_voice_profile(self, raw_profile: str) -> str:
         if isinstance(self.voice, SilentVoice):
@@ -819,7 +1068,7 @@ class PersonalAIAgent:
         profile_raw = raw_profile.strip()
         profile_n = self.normalize_text(profile_raw)
         if not profile_raw:
-            return "Use: alterar voz para <feminina|masculina|profissional|natural|pt-BR-...Neural>"
+            return "Use: alterar voz para <feminina|masculina|profissional|natural|voice-id>"
 
         alias_map = {
             "feminina": "feminina",
@@ -838,18 +1087,22 @@ class PersonalAIAgent:
             if not ok:
                 return msg
             self.save_user_fact("voz_perfil", target)
+            self.save_user_fact("voice_provider", self.voice.tts_provider)
+            self.save_user_fact("voice_value", self.voice.get_current_voice())
             self.save_user_fact("voice_edge", self.voice.edge_tts_voice)
             self.voice.speak("Voz atualizada com sucesso.", force=True)
             return f"✅ {msg}"
 
         custom = profile_raw.replace("voz ", "").strip()
-        if self.voice.set_edge_voice(custom):
+        if self.voice.set_custom_voice(custom):
             self.save_user_fact("voz_perfil", "custom")
+            self.save_user_fact("voice_provider", self.voice.tts_provider)
+            self.save_user_fact("voice_value", self.voice.get_current_voice())
             self.save_user_fact("voice_edge", self.voice.edge_tts_voice)
             self.voice.speak("Voz atualizada com sucesso.", force=True)
-            return f"✅ Voz custom aplicada: {self.voice.edge_tts_voice}"
+            return f"✅ Voz custom aplicada: {self.voice.get_current_voice()}"
 
-        return "Não reconheci a voz. Exemplos: 'alterar voz para masculina' ou 'alterar voz para pt-BR-AntonioNeural'."
+        return "Não reconheci a voz. Exemplos: 'alterar voz para masculina', 'alterar voz para pt-BR-AntonioNeural' ou o ID de voz do provider atual."
 
     def build_system_prompt(self) -> str:
         base = (
@@ -2911,6 +3164,10 @@ Máximo 400 caracteres, sem bullet points."""
         if normalized in {"voz feminina", "mudar para voz feminina"}:
             return self.set_voice_profile("feminina")
 
+        if normalized.startswith("usar voz ") or normalized.startswith("trocar provider de voz para "):
+            value = self.extract_after_first(text, ["usar voz ", "trocar provider de voz para "]) or ""
+            return self.set_voice_provider(value)
+
         if normalized.startswith("alterar voz para ") or normalized.startswith("mudar voz para "):
             value = self.extract_after_first(text, ["alterar voz para ", "mudar voz para "]) or ""
             return self.set_voice_profile(value)
@@ -3331,6 +3588,7 @@ def print_help() -> None:
     print("  /voice on|off       Ativar/desativar fala automática")
     print("  /voice status       Mostrar voz atual")
     print("  /voice set <perfil> Alterar voz (feminina|masculina|profissional|natural|pt-BR-...Neural)")
+    print("  /voice provider <p> Trocar provider (edge|pyttsx3|elevenlabs|openai|azure)")
     print("  /stop               Parar fala atual imediatamente")
     print("  /say <texto>        Falar um texto agora")
     print("  /shortcut add ...   Salvar/atualizar atalho")
@@ -3579,10 +3837,12 @@ def main() -> None:
                 print(f"Fala automática: {'ativada' if agent.voice.auto_speak else 'desativada'}")
             elif option == "status":
                 print(agent.get_voice_status())
+            elif option.startswith("provider "):
+                print(agent.set_voice_provider(option_raw[9:].strip()))
             elif option.startswith("set "):
                 print(agent.set_voice_profile(option_raw[4:].strip()))
             else:
-                print("Use: /voice on|off|status|set <perfil>")
+                print("Use: /voice on|off|status|provider <nome>|set <perfil>")
             continue
 
         if user_input.lower() == "/stop":

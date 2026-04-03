@@ -322,6 +322,41 @@ Dicas:
 - `TTS_RATE` entre `150` e `175` costuma soar mais natural
 - `TTS_VOICE_HINT` pode ser `pt-br`, `portuguese`, `maria`, etc.
 
+Providers suportados em `TTS_PROVIDER`:
+- `edge` (padrão, vozes neurais Microsoft via `edge-tts`)
+- `pyttsx3` (voz local do sistema)
+- `elevenlabs`
+- `openai`
+- `azure`
+
+Exemplos:
+
+```text
+TTS_PROVIDER=elevenlabs
+ELEVENLABS_API_KEY=sua_chave
+ELEVENLABS_VOICE_ID=EXAVITQu4vr4xnSDxMaL
+ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+```
+
+```text
+TTS_PROVIDER=openai
+OPENAI_TTS_API_KEY=sua_chave
+OPENAI_TTS_MODEL=gpt-4o-mini-tts
+OPENAI_TTS_VOICE=coral
+```
+
+```text
+TTS_PROVIDER=azure
+AZURE_SPEECH_KEY=sua_chave
+AZURE_SPEECH_REGION=brazilsouth
+AZURE_SPEECH_VOICE=pt-BR-FranciscaNeural
+```
+
+Comandos:
+- `/voice provider edge|pyttsx3|elevenlabs|openai|azure`
+- `/voice set feminina|masculina|profissional|natural|<voice-id>`
+- `/voice status`
+
 ## Aprendizado da sua rotina
 O agente registra suas ações de automação (`/open`, `/ps` e execução de atalhos) e aprende padrões de uso por dia e horário.
 
