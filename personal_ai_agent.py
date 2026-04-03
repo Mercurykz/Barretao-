@@ -858,7 +858,9 @@ class PersonalAIAgent:
             "e usa esse conhecimento para personalizar cada resposta cada vez mais. "
             "Use o perfil do usuário sempre que relevante para dar respostas mais precisas e contextualizadas. "
             "Responda em português do Brasil. "
-            "Quando útil, proponha passos curtos e acionáveis."
+            "Quando útil, proponha passos curtos e acionáveis. "
+            "Escreva de forma natural, limpa e direta. "
+            "Não use markdown nem enfeites visuais como **, __, ##, listas estilizadas ou blocos decorativos, a menos que o usuário peça explicitamente."
         )
 
         if self.persona_mode in {"grok", "grok-like", "grok_like", "irreverente"}:
@@ -1450,6 +1452,7 @@ Máximo 400 caracteres, sem bullet points."""
                 ],
                 purpose="learn",
             )
+            content = self._clean_response_text(content)
             
             # Salva
             self.save_kb_entry(topic, content, "geral", topic.lower())
@@ -1882,6 +1885,19 @@ Máximo 400 caracteres, sem bullet points."""
         blocks = [b for b in [profile_block, notes_block, routine_block] if b]
         return "\n\n".join(blocks) if blocks else "Sem contexto pessoal ainda."
 
+    def _clean_response_text(self, text: str) -> str:
+        cleaned = str(text or "").strip()
+        if not cleaned:
+            return ""
+
+        cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned, flags=re.DOTALL)
+        cleaned = re.sub(r"__(.*?)__", r"\1", cleaned, flags=re.DOTALL)
+        cleaned = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", cleaned)
+        cleaned = cleaned.replace("**", "")
+        cleaned = cleaned.replace("__", "")
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        return cleaned.strip()
+
     def ask(self, user_message: str) -> str:
         # Extrai fatos rápidos por regex antes de responder
         self._extract_facts_quick(user_message)
@@ -1902,7 +1918,7 @@ Máximo 400 caracteres, sem bullet points."""
         
         context.extend(self.history[-12:])
 
-        answer = self._chat_with_models(context, purpose="chat")
+        answer = self._clean_response_text(self._chat_with_models(context, purpose="chat"))
         self.history.append({"role": "assistant", "content": answer})
 
         # Aprendizado em background (LLM extrai preferências da conversa)
@@ -2038,6 +2054,7 @@ Máximo 400 caracteres, sem bullet points."""
                 ],
                 purpose="web",
             )
+            answer = self._clean_response_text(answer)
         except Exception:
             answer = unique_snippets[0]
 
