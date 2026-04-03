@@ -221,6 +221,12 @@
       padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px
     }
     .btn-main:active{opacity:.85}
+    .btn-row{display:flex;gap:10px;margin-top:8px}
+    .btn-sub{
+      flex:1;background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--border);border-radius:12px;
+      padding:12px;font-size:14px;font-weight:600;cursor:pointer
+    }
+    .btn-sub:active{opacity:.85}
     .hint{font-size:12px;color:var(--text2);margin-top:12px;text-align:center;line-height:1.6}
     .brand-note{
       text-align:center;
@@ -328,6 +334,10 @@
       <label>Voice ID do provider</label>
       <input type="text" id="cfg-server-voice-id" placeholder="Ex.: pt-BR-AntonioNeural ou ID do provider" autocomplete="off">
     </div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="testBrowserVoice()">Testar voz do app</button>
+      <button class="btn-sub" onclick="testServerVoice()">Testar voz do Barretão</button>
+    </div>
     <button class="btn-main" onclick="saveSettings()">Salvar e conectar</button>
     <div class="hint">
       🎙️ As opções acima controlam a voz local do app e também a voz do servidor Barretão<br>
@@ -412,6 +422,58 @@ async function applyServerVoiceSettings() {
   } catch (_) {
     addMessage('Não consegui aplicar a voz do Barretão no servidor agora. Verifique conexão, token e chaves do provider.', 'agent');
   }
+}
+
+function getSettingsDraft() {
+  return {
+    url: document.getElementById('cfg-url').value.trim().replace(/\/$/, ''),
+    token: document.getElementById('cfg-token').value.trim(),
+    voice: document.getElementById('cfg-voice').value,
+    voiceStyle: document.getElementById('cfg-voice-style').value,
+    serverVoiceProvider: document.getElementById('cfg-server-voice-provider').value,
+    serverVoiceId: document.getElementById('cfg-server-voice-id').value.trim(),
+  };
+}
+
+async function testServerVoice() {
+  const draft = getSettingsDraft();
+  if (!draft.url) {
+    addMessage('Configure o servidor antes de testar a voz do Barretão.', 'agent');
+    return;
+  }
+
+  const prevUrl = CFG.url;
+  const prevToken = CFG.token;
+  CFG.url = draft.url;
+  CFG.token = draft.token;
+
+  try {
+    if (draft.serverVoiceProvider) {
+      await sendAgentSettingsCommand(`trocar provider de voz para ${draft.serverVoiceProvider}`);
+    }
+    if (draft.serverVoiceId) {
+      await sendAgentSettingsCommand(`alterar voz para ${draft.serverVoiceId}`);
+    }
+    await sendAgentSettingsCommand('falar teste de voz do Barretão');
+    addMessage('Teste de voz enviado para o Barretão.', 'agent');
+  } catch (_) {
+    addMessage('Falha ao testar a voz do Barretão. Verifique token, conexão e configuração do provider.', 'agent');
+  } finally {
+    CFG.url = prevUrl;
+    CFG.token = prevToken;
+  }
+}
+
+function testBrowserVoice() {
+  const draft = getSettingsDraft();
+  const prevVoice = CFG.voice;
+  const prevStyle = CFG.voiceStyle;
+  CFG.voice = draft.voice;
+  CFG.voiceStyle = draft.voiceStyle;
+  speak('Teste de voz do aplicativo Barretão.', () => {
+    CFG.voice = prevVoice;
+    CFG.voiceStyle = prevStyle;
+  });
 }
 
 async function saveSettings() {

@@ -1,4 +1,4 @@
-const CACHE = 'brt-v8';
+const CACHE = 'brt-v9';
 const ASSETS = [
   '/app/',
   '/app/index.html',
