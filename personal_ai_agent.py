@@ -415,6 +415,37 @@ class LocalOllamaClient:
                 parts.append(f"[{role}] {content}")
         return "\n\n".join(parts)
 
+    def _gemini_api_roots(self) -> list[str]:
+        base = self.base_url.rstrip("/")
+        if base.endswith("/v1") or base.endswith("/v1beta"):
+            return [base]
+        return [f"{base}/v1beta", f"{base}/v1"]
+
+    def _discover_gemini_models(self, params: dict[str, str] | None) -> list[str]:
+        names: list[str] = []
+        seen: set[str] = set()
+        for root in self._gemini_api_roots():
+            try:
+                response = self.requests.get(f"{root}/models", params=params, timeout=8)
+                response.raise_for_status()
+                data = response.json()
+                items = data.get("models", []) if isinstance(data, dict) else []
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    methods = item.get("supportedGenerationMethods", [])
+                    if methods and "generateContent" not in methods:
+                        continue
+                    name = str(item.get("name", "")).strip()
+                    if name.startswith("models/"):
+                        name = name.split("/", 1)[1]
+                    if name and name not in seen:
+                        seen.add(name)
+                        names.append(name)
+            except Exception:
+                continue
+        return names
+
     def chat(self, messages: list[dict[str, str]]) -> str:
         if self.provider in {"openai", "openai-compatible", "openrouter", "groq"}:
             url = f"{self.base_url}/v1/chat/completions"
@@ -447,21 +478,34 @@ class LocalOllamaClient:
                 "generationConfig": {"temperature": self.temperature},
             }
 
+            discovered_models = self._discover_gemini_models(params)
+
             model_candidates: list[str] = [self.model]
             if self.model and not self.model.endswith("-latest"):
                 model_candidates.append(f"{self.model}-latest")
-            model_candidates.extend(["gemini-1.5-flash-latest", "gemini-2.0-flash"])
+            model_candidates.extend(
+                [
+                    "gemini-2.5-flash",
+                    "gemini-2.5-flash-lite",
+                    "gemini-2.0-flash",
+                    "gemini-1.5-flash",
+                    "gemini-1.5-flash-latest",
+                ]
+            )
+            model_candidates.extend(discovered_models)
 
             seen_models: set[str] = set()
             last_error: Exception | None = None
             for model_name in model_candidates:
                 model_name = model_name.strip()
+                if model_name.startswith("models/"):
+                    model_name = model_name.split("/", 1)[1]
                 if not model_name or model_name in seen_models:
                     continue
                 seen_models.add(model_name)
 
-                for api_version in ("v1beta", "v1"):
-                    endpoint = f"{self.base_url}/{api_version}/models/{model_name}:generateContent"
+                for root in self._gemini_api_roots():
+                    endpoint = f"{root}/models/{model_name}:generateContent"
                     try:
                         response = self.requests.post(endpoint, params=params, json=payload, timeout=180)
                         response.raise_for_status()
@@ -504,8 +548,11 @@ class LocalOllamaClient:
                 return response.status_code < 500
             if self.provider == "gemini":
                 params = {"key": self.api_key} if self.api_key else None
-                response = self.requests.get(f"{self.base_url}/v1beta/models", params=params, timeout=5)
-                return response.status_code < 500
+                for root in self._gemini_api_roots():
+                    response = self.requests.get(f"{root}/models", params=params, timeout=5)
+                    if response.status_code < 500:
+                        return True
+                return False
             response = self.requests.get(f"{self.base_url}/api/tags", timeout=3)
             return response.status_code < 500
         except Exception:
@@ -530,18 +577,7 @@ class LocalOllamaClient:
 
             if self.provider == "gemini":
                 params = {"key": self.api_key} if self.api_key else None
-                response = self.requests.get(f"{self.base_url}/v1beta/models", params=params, timeout=8)
-                response.raise_for_status()
-                data = response.json()
-                items = data.get("models", []) if isinstance(data, dict) else []
-                names: list[str] = []
-                for item in items:
-                    name = str(item.get("name", "")).strip() if isinstance(item, dict) else ""
-                    # retorno: models/gemini-1.5-flash
-                    if name.startswith("models/"):
-                        name = name.split("/", 1)[1]
-                    if name:
-                        names.append(name)
+                names = self._discover_gemini_models(params)
                 return names
 
             response = self.requests.get(f"{self.base_url}/api/tags", timeout=5)
