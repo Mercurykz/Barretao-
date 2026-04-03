@@ -20,8 +20,9 @@ from typing import Any
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 
 
-def init_db(db_path: str = "agent_memory.db") -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path, check_same_thread=False)
+def init_db(db_path: str | None = None) -> sqlite3.Connection:
+    resolved_db_path = (db_path or os.getenv("AGENT_DB_PATH", "agent_memory.db")).strip()
+    conn = sqlite3.connect(resolved_db_path, check_same_thread=False)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS notes (
@@ -390,13 +391,74 @@ class SilentVoice:
 
 
 class LocalOllamaClient:
-    def __init__(self, base_url: str, model: str, temperature: float) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        model: str,
+        temperature: float,
+        provider: str = "ollama",
+        api_key: str = "",
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.temperature = temperature
+        self.provider = provider.strip().lower() or "ollama"
+        self.api_key = api_key.strip()
         self.requests = importlib.import_module("requests")
 
+    def _messages_to_text(self, messages: list[dict[str, str]]) -> str:
+        parts: list[str] = []
+        for msg in messages:
+            role = str(msg.get("role", "user")).strip()
+            content = str(msg.get("content", "")).strip()
+            if content:
+                parts.append(f"[{role}] {content}")
+        return "\n\n".join(parts)
+
     def chat(self, messages: list[dict[str, str]]) -> str:
+        if self.provider in {"openai", "openai-compatible", "openrouter", "groq"}:
+            url = f"{self.base_url}/v1/chat/completions"
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": self.temperature,
+            }
+            headers = {"Content-Type": "application/json"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            response = self.requests.post(url, json=payload, headers=headers, timeout=180)
+            response.raise_for_status()
+            data = response.json()
+            choices = data.get("choices") if isinstance(data, dict) else None
+            if choices and isinstance(choices, list):
+                msg = choices[0].get("message", {}) if isinstance(choices[0], dict) else {}
+                return str(msg.get("content", "")).strip()
+            return ""
+
+        if self.provider == "gemini":
+            endpoint = f"{self.base_url}/v1beta/models/{self.model}:generateContent"
+            params = {"key": self.api_key} if self.api_key else None
+            payload = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": self._messages_to_text(messages)}],
+                    }
+                ],
+                "generationConfig": {"temperature": self.temperature},
+            }
+            response = self.requests.post(endpoint, params=params, json=payload, timeout=180)
+            response.raise_for_status()
+            data = response.json()
+            candidates = data.get("candidates") if isinstance(data, dict) else None
+            if candidates and isinstance(candidates, list):
+                content = candidates[0].get("content", {}) if isinstance(candidates[0], dict) else {}
+                parts = content.get("parts", []) if isinstance(content, dict) else []
+                if parts and isinstance(parts, list):
+                    return str(parts[0].get("text", "")).strip()
+            return ""
+
+        # default: ollama
         url = f"{self.base_url}/api/chat"
         payload = {
             "model": self.model,
@@ -411,6 +473,16 @@ class LocalOllamaClient:
 
     def is_available(self) -> bool:
         try:
+            if self.provider in {"openai", "openai-compatible", "openrouter", "groq"}:
+                headers = {}
+                if self.api_key:
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+                response = self.requests.get(f"{self.base_url}/v1/models", headers=headers, timeout=5)
+                return response.status_code < 500
+            if self.provider == "gemini":
+                params = {"key": self.api_key} if self.api_key else None
+                response = self.requests.get(f"{self.base_url}/v1beta/models", params=params, timeout=5)
+                return response.status_code < 500
             response = self.requests.get(f"{self.base_url}/api/tags", timeout=3)
             return response.status_code < 500
         except Exception:
@@ -418,6 +490,37 @@ class LocalOllamaClient:
 
     def list_available_models(self) -> list[str]:
         try:
+            if self.provider in {"openai", "openai-compatible", "openrouter", "groq"}:
+                headers = {}
+                if self.api_key:
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+                response = self.requests.get(f"{self.base_url}/v1/models", headers=headers, timeout=8)
+                response.raise_for_status()
+                data = response.json()
+                items = data.get("data", []) if isinstance(data, dict) else []
+                names: list[str] = []
+                for item in items:
+                    model_id = str(item.get("id", "")).strip() if isinstance(item, dict) else ""
+                    if model_id:
+                        names.append(model_id)
+                return names
+
+            if self.provider == "gemini":
+                params = {"key": self.api_key} if self.api_key else None
+                response = self.requests.get(f"{self.base_url}/v1beta/models", params=params, timeout=8)
+                response.raise_for_status()
+                data = response.json()
+                items = data.get("models", []) if isinstance(data, dict) else []
+                names: list[str] = []
+                for item in items:
+                    name = str(item.get("name", "")).strip() if isinstance(item, dict) else ""
+                    # retorno: models/gemini-1.5-flash
+                    if name.startswith("models/"):
+                        name = name.split("/", 1)[1]
+                    if name:
+                        names.append(name)
+                return names
+
             response = self.requests.get(f"{self.base_url}/api/tags", timeout=5)
             response.raise_for_status()
             data = response.json()
@@ -439,7 +542,13 @@ class PersonalAIAgent:
 
         self.agent_name = os.getenv("AGENT_NAME", "Assistente")
         self.wake_name = os.getenv("WAKE_NAME", self.agent_name).strip().lower()
-        self.model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+        self.llm_provider = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
+        self.model = (
+            os.getenv("LLM_MODEL", "").strip()
+            or os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+            or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+            or os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        )
         self.temperature = float(os.getenv("OLLAMA_TEMPERATURE", "0.7"))
         self.multi_model_enabled = os.getenv("MULTI_MODEL_ENABLED", "false").lower() == "true"
         self.multi_model_mode = os.getenv("MULTI_MODEL_MODE", "primary_fallback").strip().lower()
@@ -447,17 +556,24 @@ class PersonalAIAgent:
             self.multi_model_mode = "primary_fallback"
         self.auto_use_all_models = os.getenv("AUTO_USE_ALL_MODELS", "false").lower() == "true"
         self.secondary_model = os.getenv("OLLAMA_MODEL_SECONDARY", "").strip()
+        primary_base = os.getenv("LLM_BASE_URL", "").strip() or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        primary_key = os.getenv("LLM_API_KEY", "").strip() or os.getenv("OPENAI_API_KEY", "").strip() or os.getenv("GEMINI_API_KEY", "").strip()
         self.client = LocalOllamaClient(
-            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+            base_url=primary_base,
             model=self.model,
             temperature=self.temperature,
+            provider=self.llm_provider,
+            api_key=primary_key,
         )
         self.secondary_client: LocalOllamaClient | None = None
         if self.multi_model_enabled and self.secondary_model:
+            secondary_base = os.getenv("OLLAMA_BASE_URL_SECONDARY", primary_base)
             self.secondary_client = LocalOllamaClient(
-                base_url=os.getenv("OLLAMA_BASE_URL_SECONDARY", os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")),
+                base_url=secondary_base,
                 model=self.secondary_model,
                 temperature=self.temperature,
+                provider=self.llm_provider,
+                api_key=primary_key,
             )
         self.model_pool: list[LocalOllamaClient] = []
         self._rr_index = 0
@@ -528,6 +644,8 @@ class PersonalAIAgent:
                         base_url=self.client.base_url,
                         model=model_name,
                         temperature=self.temperature,
+                        provider=self.client.provider,
+                        api_key=self.client.api_key,
                     )
                 )
 
@@ -582,7 +700,8 @@ class PersonalAIAgent:
         raise RuntimeError("Nenhum modelo disponível para responder.")
 
     def get_model_status(self) -> str:
-        rows = [f"- primário: {self.client.model} @ {self.client.base_url}"]
+        rows = [f"- provider: {self.client.provider}"]
+        rows.append(f"- primário: {self.client.model} @ {self.client.base_url}")
         rows.append(f"- modo: {self.multi_model_mode}")
         rows.append(f"- multi-modelo: {'ativado' if len(self.model_pool) > 1 else 'desativado'}")
         rows.append(f"- auto usar todos os modelos: {'on' if self.auto_use_all_models else 'off'}")

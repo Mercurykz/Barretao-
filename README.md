@@ -35,7 +35,10 @@ pip install -r requirements.txt
 
 ## 4) Configuração
 1. Copie `.env.example` para `.env`
-2. Ajuste `OLLAMA_MODEL` (se quiser outro)
+2. Escolha o provider de LLM e modelo
+	- Local (padrão): `LLM_PROVIDER=ollama` + `OLLAMA_BASE_URL` + `OLLAMA_MODEL`
+	- OpenAI compatível: `LLM_PROVIDER=openai` + `LLM_BASE_URL` + `LLM_MODEL` + `LLM_API_KEY`
+	- Gemini: `LLM_PROVIDER=gemini` + `LLM_MODEL` + `GEMINI_API_KEY`
 	- Multi-modelo opcional: `MULTI_MODEL_ENABLED=true`, `OLLAMA_MODEL_SECONDARY=<modelo>`, `MULTI_MODEL_MODE=primary_fallback|smart_router|round_robin`
 	- Usar todos os modelos locais disponíveis: `AUTO_USE_ALL_MODELS=true`
 	- Wake-on-LAN opcional: `WOL_DEFAULT_MAC`, `WOL_BROADCAST`, `WOL_PORT`
@@ -83,17 +86,32 @@ Passo a passo:
 ```text
 HUB_API_TOKEN=seu_token_forte
 PUBLIC_TUNNEL=false
+AGENT_DB_PATH=/data/agent_memory.db
 ```
 
-4. Se você usar LLM remoto, configure também:
+4. Se você usar LLM remoto, configure também (escolha um):
 
 ```text
+# OpenAI/OpenRouter/Groq (compatível /v1/chat/completions)
+LLM_PROVIDER=openai
+LLM_BASE_URL=https://api.openai.com
+LLM_MODEL=gpt-4o-mini
+LLM_API_KEY=seu_token
+
+# ou Gemini
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-1.5-flash
+GEMINI_API_KEY=seu_token
+
+# ou endpoint Ollama remoto
+LLM_PROVIDER=ollama
 OLLAMA_BASE_URL=https://SEU_ENDPOINT_OLLAMA
 OLLAMA_MODEL=llama3.1:8b
 ```
 
 5. Deploy automático: o Railway vai iniciar com `uvicorn barretao_hub:app`.
 6. Abra a URL pública do Railway com `/app/` no final.
+7. Em **Volumes** do Railway, crie e monte um volume em `/data` (para não perder `agent_memory.db` em redeploy).
 
 Observação:
 - Railway não é ideal para rodar Ollama local no plano grátis. O recomendado é usar endpoint de LLM externo.
