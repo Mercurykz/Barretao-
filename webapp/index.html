@@ -338,6 +338,10 @@
       <button class="btn-sub" onclick="testBrowserVoice()">Testar voz do app</button>
       <button class="btn-sub" onclick="testServerVoice()">Testar voz do Barretão</button>
     </div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="refreshServerVoiceStatus()">Atualizar status da voz do Barretão</button>
+    </div>
+    <div class="hint" id="server-voice-status">Status da voz do servidor: ainda não consultado.</div>
     <button class="btn-main" onclick="saveSettings()">Salvar e conectar</button>
     <div class="hint">
       🎙️ As opções acima controlam a voz local do app e também a voz do servidor Barretão<br>
@@ -413,11 +417,17 @@ async function sendAgentSettingsCommand(text) {
 async function applyServerVoiceSettings() {
   if (!CFG.url) return;
   try {
+    const feedback = [];
     if (CFG.serverVoiceProvider) {
-      await sendAgentSettingsCommand(`trocar provider de voz para ${CFG.serverVoiceProvider}`);
+      const ans = await sendAgentSettingsCommand(`trocar provider de voz para ${CFG.serverVoiceProvider}`);
+      if (ans) feedback.push(ans);
     }
     if (CFG.serverVoiceId) {
-      await sendAgentSettingsCommand(`alterar voz para ${CFG.serverVoiceId}`);
+      const ans = await sendAgentSettingsCommand(`alterar voz para ${CFG.serverVoiceId}`);
+      if (ans) feedback.push(ans);
+    }
+    if (feedback.length) {
+      addMessage(feedback.join('\n'), 'agent');
     }
   } catch (_) {
     addMessage('Não consegui aplicar a voz do Barretão no servidor agora. Verifique conexão, token e chaves do provider.', 'agent');
@@ -448,16 +458,48 @@ async function testServerVoice() {
   CFG.token = draft.token;
 
   try {
+    const feedback = [];
     if (draft.serverVoiceProvider) {
-      await sendAgentSettingsCommand(`trocar provider de voz para ${draft.serverVoiceProvider}`);
+      const ans = await sendAgentSettingsCommand(`trocar provider de voz para ${draft.serverVoiceProvider}`);
+      if (ans) feedback.push(ans);
     }
     if (draft.serverVoiceId) {
-      await sendAgentSettingsCommand(`alterar voz para ${draft.serverVoiceId}`);
+      const ans = await sendAgentSettingsCommand(`alterar voz para ${draft.serverVoiceId}`);
+      if (ans) feedback.push(ans);
     }
     await sendAgentSettingsCommand('falar teste de voz do Barretão');
     addMessage('Teste de voz enviado para o Barretão.', 'agent');
+    if (feedback.length) {
+      addMessage(feedback.join('\n'), 'agent');
+    }
   } catch (_) {
     addMessage('Falha ao testar a voz do Barretão. Verifique token, conexão e configuração do provider.', 'agent');
+  } finally {
+    CFG.url = prevUrl;
+    CFG.token = prevToken;
+    await refreshServerVoiceStatus();
+  }
+}
+
+async function refreshServerVoiceStatus() {
+  const el = document.getElementById('server-voice-status');
+  if (!el) return;
+  const draft = getSettingsDraft();
+  if (!draft.url) {
+    el.textContent = 'Status da voz do servidor: configure o endereço do servidor.';
+    return;
+  }
+
+  const prevUrl = CFG.url;
+  const prevToken = CFG.token;
+  CFG.url = draft.url;
+  CFG.token = draft.token;
+
+  try {
+    const ans = await sendAgentSettingsCommand('voz status');
+    el.textContent = `Status da voz do servidor: ${ans || 'sem resposta'}`;
+  } catch (_) {
+    el.textContent = 'Status da voz do servidor: falha ao consultar (token/conexão).';
   } finally {
     CFG.url = prevUrl;
     CFG.token = prevToken;
@@ -499,6 +541,7 @@ async function saveSettings() {
   closeSettings();
   await checkStatus();
   await applyServerVoiceSettings();
+  await refreshServerVoiceStatus();
 }
 
 function installCert(e) {
@@ -517,6 +560,7 @@ function openSettings() {
   document.getElementById('cfg-server-voice-provider').value = CFG.serverVoiceProvider;
   document.getElementById('cfg-server-voice-id').value = CFG.serverVoiceId;
   document.getElementById('settings-overlay').classList.remove('hidden');
+  refreshServerVoiceStatus();
 }
 function closeSettings() {
   document.getElementById('settings-overlay').classList.add('hidden');

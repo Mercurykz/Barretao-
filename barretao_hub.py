@@ -210,7 +210,8 @@ def require_token(auth_header: Optional[str], expected_token: str) -> None:
 
 
 app = FastAPI(title="Barretão Hub", version="2.0.0")
-agent = PersonalAIAgent(enable_voice=False)
+hub_enable_voice = os.getenv("HUB_ENABLE_VOICE", "false").strip().lower() == "true"
+agent = PersonalAIAgent(enable_voice=hub_enable_voice)
 api_token = os.getenv("HUB_API_TOKEN", "").strip()
 
 # ── Serve PWA webapp ───────────────────────────────────────────────────────

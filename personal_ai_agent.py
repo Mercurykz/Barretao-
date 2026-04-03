@@ -212,6 +212,16 @@ class VoiceIO:
         self.tts_provider = normalized
         return True, f"Provider de voz alterado para {normalized}."
 
+    def provider_is_ready(self, provider: str | None = None) -> tuple[bool, str]:
+        selected = self._normalize_tts_provider(provider or self.tts_provider)
+        if selected == "elevenlabs" and not self.elevenlabs_api_key:
+            return False, "ELEVENLABS_API_KEY não configurada."
+        if selected == "openai" and not self.openai_tts_api_key:
+            return False, "OPENAI_TTS_API_KEY não configurada."
+        if selected == "azure" and not self.azure_speech_key:
+            return False, "AZURE_SPEECH_KEY não configurada."
+        return True, "ok"
+
     def get_current_voice(self) -> str:
         if self.tts_provider == "edge":
             return self.edge_tts_voice
@@ -1043,10 +1053,13 @@ class PersonalAIAgent:
     def get_voice_status(self) -> str:
         if isinstance(self.voice, SilentVoice):
             return "Voz desativada neste modo."
+        ready, reason = self.voice.provider_is_ready(self.voice.tts_provider)
+        provider_state = "ok" if ready else f"pendente ({reason})"
         return (
             "🎙️ Voz atual:\n"
             f"- Provider: {self.voice.tts_provider}\n"
             f"- Voice: {self.voice.get_current_voice()}\n"
+            f"- Provider status: {provider_state}\n"
             f"- Auto speak: {'on' if self.voice.auto_speak else 'off'}"
         )
 
@@ -1058,7 +1071,14 @@ class PersonalAIAgent:
             return msg
         self.save_user_fact("voice_provider", self.voice.tts_provider)
         self.save_user_fact("voice_value", self.voice.get_current_voice())
+        ready, reason = self.voice.provider_is_ready(self.voice.tts_provider)
         self.voice.speak("Provider de voz atualizado com sucesso.", force=True)
+        if not ready:
+            return (
+                f"⚠️ {msg} {reason} "
+                "A fala pode cair para a voz local/robotizada até configurar a chave correta. "
+                f"Voz atual: {self.voice.get_current_voice()}"
+            )
         return f"✅ {msg} Voz atual: {self.voice.get_current_voice()}"
 
     def set_voice_profile(self, raw_profile: str) -> str:
@@ -3164,12 +3184,26 @@ Máximo 400 caracteres, sem bullet points."""
         if normalized in {"voz feminina", "mudar para voz feminina"}:
             return self.set_voice_profile("feminina")
 
-        if normalized.startswith("usar voz ") or normalized.startswith("trocar provider de voz para "):
-            value = self.extract_after_first(text, ["usar voz ", "trocar provider de voz para "]) or ""
+        if (
+            normalized.startswith("usar voz ")
+            or normalized.startswith("trocar provider de voz para ")
+            or normalized.startswith("/voice provider ")
+        ):
+            value = self.extract_after_first(
+                text,
+                ["usar voz ", "trocar provider de voz para ", "/voice provider "],
+            ) or ""
             return self.set_voice_provider(value)
 
-        if normalized.startswith("alterar voz para ") or normalized.startswith("mudar voz para "):
-            value = self.extract_after_first(text, ["alterar voz para ", "mudar voz para "]) or ""
+        if (
+            normalized.startswith("alterar voz para ")
+            or normalized.startswith("mudar voz para ")
+            or normalized.startswith("/voice set ")
+        ):
+            value = self.extract_after_first(
+                text,
+                ["alterar voz para ", "mudar voz para ", "/voice set "],
+            ) or ""
             return self.set_voice_profile(value)
 
         if normalized in {"bom dia", "bom dia!", "bom dia barretao", "bom dia barretao"}:
