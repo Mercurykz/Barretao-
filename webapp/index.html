@@ -297,7 +297,7 @@
       Falar respostas em voz alta
     </div>
     <div class="field">
-      <label>Voz da resposta</label>
+      <label>Voz do app (navegador)</label>
       <select id="cfg-voice">
         <option value="auto">Automática (mais natural)</option>
       </select>
@@ -314,8 +314,23 @@
       <label class="switch"><input type="checkbox" id="cfg-automic"><span class="slider"></span></label>
       Microfone automático após resposta
     </div>
+    <div class="field">
+      <label>Provider de voz do Barretão</label>
+      <select id="cfg-server-voice-provider">
+        <option value="edge">edge</option>
+        <option value="pyttsx3">pyttsx3</option>
+        <option value="elevenlabs">elevenlabs</option>
+        <option value="openai">openai</option>
+        <option value="azure">azure</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Voice ID do provider</label>
+      <input type="text" id="cfg-server-voice-id" placeholder="Ex.: pt-BR-AntonioNeural ou ID do provider" autocomplete="off">
+    </div>
     <button class="btn-main" onclick="saveSettings()">Salvar e conectar</button>
     <div class="hint">
+      🎙️ As opções acima controlam a voz local do app e também a voz do servidor Barretão<br>
       📱 Para instalar como app: toque no menu do navegador → <b>"Adicionar à tela inicial"</b><br>
       🌐 Dentro de casa: use IP local. Fora de casa: use URL pública HTTPS (túnel)<br><br>
       🍎 <b>iPhone/Safari:</b> Para o microfone funcionar, instale o certificado:<br>
@@ -335,6 +350,8 @@ let CFG = {
   automic: localStorage.getItem('brt_automic') === 'true',
   voice:   localStorage.getItem('brt_voice')   || 'auto',
   voiceStyle: localStorage.getItem('brt_voice_style') || 'natural',
+  serverVoiceProvider: localStorage.getItem('brt_server_voice_provider') || 'edge',
+  serverVoiceId: localStorage.getItem('brt_server_voice_id') || '',
 };
 
 function voicePriority(v) {
@@ -370,24 +387,56 @@ function applyVoiceOptions() {
   select.value = exists ? CFG.voice : 'auto';
 }
 
-function saveSettings() {
+async function sendAgentSettingsCommand(text) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (CFG.token) headers['Authorization'] = `Bearer ${CFG.token}`;
+  const r = await fetch(CFG.url + '/command', {
+    method: 'POST', headers,
+    body: JSON.stringify({ text, source: 'webapp-settings' }),
+    signal: AbortSignal.timeout(20000),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || data.answer || 'Falha ao aplicar configuração');
+  return data.answer || data.detail || '';
+}
+
+async function applyServerVoiceSettings() {
+  if (!CFG.url) return;
+  try {
+    if (CFG.serverVoiceProvider) {
+      await sendAgentSettingsCommand(`trocar provider de voz para ${CFG.serverVoiceProvider}`);
+    }
+    if (CFG.serverVoiceId) {
+      await sendAgentSettingsCommand(`alterar voz para ${CFG.serverVoiceId}`);
+    }
+  } catch (_) {
+    addMessage('Não consegui aplicar a voz do Barretão no servidor agora. Verifique conexão, token e chaves do provider.', 'agent');
+  }
+}
+
+async function saveSettings() {
   CFG.url     = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
   CFG.token   = document.getElementById('cfg-token').value.trim();
   CFG.tts     = document.getElementById('cfg-tts').checked;
   CFG.automic = document.getElementById('cfg-automic').checked;
   CFG.voice   = document.getElementById('cfg-voice').value;
   CFG.voiceStyle = document.getElementById('cfg-voice-style').value;
+  CFG.serverVoiceProvider = document.getElementById('cfg-server-voice-provider').value;
+  CFG.serverVoiceId = document.getElementById('cfg-server-voice-id').value.trim();
   localStorage.setItem('brt_url',     CFG.url);
   localStorage.setItem('brt_token',   CFG.token);
   localStorage.setItem('brt_tts',     CFG.tts);
   localStorage.setItem('brt_automic', CFG.automic);
   localStorage.setItem('brt_voice', CFG.voice);
   localStorage.setItem('brt_voice_style', CFG.voiceStyle);
+  localStorage.setItem('brt_server_voice_provider', CFG.serverVoiceProvider);
+  localStorage.setItem('brt_server_voice_id', CFG.serverVoiceId);
   // Update cert link to use saved server URL
   const cl = document.getElementById('cert-link');
   if (cl && CFG.url) cl.href = CFG.url + '/cert';
   closeSettings();
-  checkStatus();
+  await checkStatus();
+  await applyServerVoiceSettings();
 }
 
 function installCert(e) {
@@ -403,6 +452,8 @@ function openSettings() {
   document.getElementById('cfg-automic').checked = CFG.automic;
   document.getElementById('cfg-voice').value = CFG.voice;
   document.getElementById('cfg-voice-style').value = CFG.voiceStyle;
+  document.getElementById('cfg-server-voice-provider').value = CFG.serverVoiceProvider;
+  document.getElementById('cfg-server-voice-id').value = CFG.serverVoiceId;
   document.getElementById('settings-overlay').classList.remove('hidden');
 }
 function closeSettings() {
