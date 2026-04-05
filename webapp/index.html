@@ -325,6 +325,119 @@
     .dbtn:hover{background:rgba(255,255,255,.13);color:var(--text)}
     .dbtn.danger:hover{background:rgba(255,80,100,.15);color:#ff6b9a;border-color:#ff6b9a}
     .section-sub{font-size:12px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text2);margin:16px 0 8px}
+
+    /* ── Devices full-screen overlay ─────────────────────────────────── */
+    #devices-overlay{
+      position:fixed;inset:0;z-index:1500;
+      display:flex;flex-direction:column;
+      background:linear-gradient(180deg,#0c1020 0%,var(--bg) 100%);
+    }
+    #devices-overlay.hidden{display:none}
+    .devices-topbar{
+      display:flex;align-items:center;gap:10px;padding:13px 16px;
+      border-bottom:1px solid var(--border);
+      background:var(--surface);backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);flex-shrink:0;
+    }
+    .devices-topbar h2{flex:1;font-size:16px;font-weight:700;margin:0}
+    .dev-refresh-btn{
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:10px;padding:6px 10px;color:var(--text2);font-size:14px;
+      cursor:pointer;transition:.15s;
+    }
+    .dev-refresh-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+    .devices-grid{
+      flex:1;overflow-y:auto;padding:16px;
+      display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+      align-content:start;
+    }
+    @media(min-width:480px){.devices-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(min-width:680px){.devices-grid{grid-template-columns:repeat(4,1fr)}}
+    /* individual card */
+    .dev-card{
+      background:var(--surface2);border:2px solid var(--border);
+      border-radius:18px;padding:18px 10px 14px;
+      display:flex;flex-direction:column;align-items:center;gap:9px;
+      cursor:pointer;transition:.18s;text-align:center;position:relative;
+      min-height:140px;justify-content:center;user-select:none;
+    }
+    .dev-card:hover,.dev-card:active{
+      border-color:var(--accent);
+      background:rgba(124,108,255,.13);
+      transform:translateY(-3px);
+      box-shadow:0 10px 28px rgba(77,110,255,.22);
+    }
+    .dev-card.is-me{border-color:rgba(87,211,168,.35);background:rgba(87,211,168,.07)}
+    .dev-card.is-me:hover{border-color:var(--green);background:rgba(87,211,168,.15)}
+    .dev-card .dc-icon{font-size:38px;line-height:1}
+    .dev-card .dc-name{font-size:13px;font-weight:700;word-break:break-word;line-height:1.3;color:var(--text)}
+    .dev-card .dc-status{
+      display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2);
+    }
+    .dc-dot{width:7px;height:7px;border-radius:50%;background:var(--text2);flex-shrink:0}
+    .dc-dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .dc-dot.off{background:#555}
+    .me-badge{
+      position:absolute;top:8px;right:8px;
+      background:var(--green);color:#0a0f1f;font-size:9px;font-weight:800;
+      border-radius:999px;padding:2px 7px;letter-spacing:.5px;text-transform:uppercase;
+    }
+    .no-devices-msg{
+      grid-column:1/-1;text-align:center;padding:60px 20px;
+      color:var(--text2);font-size:14px;line-height:1.8;
+    }
+    .no-devices-msg .ndm-icon{font-size:48px;margin-bottom:12px}
+    /* action bottom sheet */
+    #dev-sheet{
+      position:fixed;inset:0;z-index:1600;
+      display:flex;align-items:flex-end;justify-content:center;
+      background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+    }
+    #dev-sheet.hidden{display:none}
+    .dev-sheet-inner{
+      background:rgba(12,18,40,.98);border-radius:24px 24px 0 0;
+      padding:22px 16px 34px;width:100%;max-width:520px;
+      animation:su .22s ease;border-top:1px solid var(--border);
+    }
+    .dev-sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 18px}
+    .dev-sheet-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+    .dsh-icon{font-size:36px;flex-shrink:0}
+    .dsh-info .dsh-name{font-size:17px;font-weight:700}
+    .dsh-info .dsh-meta{font-size:12px;color:var(--text2);margin-top:3px}
+    .actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .action-btn{
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:16px;padding:16px 6px 12px;
+      display:flex;flex-direction:column;align-items:center;gap:8px;
+      cursor:pointer;transition:.18s;color:var(--text);font-family:inherit;border-width:1px;
+    }
+    .action-btn:hover,.action-btn:active{
+      background:rgba(124,108,255,.16);border-color:var(--accent);
+      transform:translateY(-2px);
+    }
+    .action-btn.act-danger:hover,.action-btn.act-danger:active{
+      background:rgba(255,80,100,.13);border-color:var(--accent2);color:var(--accent2);
+    }
+    .action-btn.act-green:hover,.action-btn.act-green:active{
+      background:rgba(87,211,168,.13);border-color:var(--green);color:var(--green);
+    }
+    .ab-icon{font-size:26px;line-height:1}
+    .ab-label{font-size:11px;font-weight:700;text-align:center;line-height:1.3;letter-spacing:.2px}
+    .dev-cmd-row{
+      display:flex;gap:8px;margin-top:14px;
+      border-top:1px solid var(--border);padding-top:14px;
+    }
+    .dev-cmd-input{
+      flex:1;background:rgba(8,13,28,.95);border:1px solid var(--border);
+      border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;
+      outline:none;font-family:inherit;transition:.15s;
+    }
+    .dev-cmd-input:focus{border-color:var(--accent)}
+    .dev-cmd-send{
+      background:linear-gradient(140deg,var(--accent),var(--accent-2));
+      border:none;border-radius:12px;padding:11px 18px;
+      color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;
+    }
   </style>
 </head>
 <body>
@@ -344,6 +457,7 @@
       <div class="user-avatar-sm">👤</div>
       <span id="user-name-badge">você</span>
     </div>
+    <button class="hbtn" id="btn-devices" title="Dispositivos">📱</button>
     <button class="hbtn" id="btn-briefing" title="Briefing do dia">☀️</button>
     <button class="hbtn" id="btn-settings" title="Configurações">⚙️</button>
   </header>
@@ -371,6 +485,41 @@
     <button class="ibtn" id="btn-mic" title="Falar">🎤</button>
     <textarea id="msg-input" placeholder="Escreva ou fale..." rows="1"></textarea>
     <button class="ibtn" id="btn-send" title="Enviar">➤</button>
+  </div>
+</div>
+
+<!-- Devices overlay -->
+<div id="devices-overlay" class="hidden">
+  <div class="devices-topbar">
+    <button class="close-btn" onclick="closeDevices()" style="font-size:22px;margin-right:2px">‹</button>
+    <h2>📱 Dispositivos</h2>
+    <button class="dev-refresh-btn" onclick="loadDevices()" title="Atualizar">🔄</button>
+  </div>
+  <div class="devices-grid" id="devices-grid">
+    <div class="no-devices-msg">
+      <div class="ndm-icon">📡</div>
+      Carregando dispositivos...
+    </div>
+  </div>
+</div>
+
+<!-- Device action sheet -->
+<div id="dev-sheet" class="hidden">
+  <div class="dev-sheet-inner">
+    <div class="dev-sheet-handle"></div>
+    <div class="dev-sheet-header">
+      <div class="dsh-icon" id="dsh-icon">🖥️</div>
+      <div class="dsh-info">
+        <div class="dsh-name" id="dsh-name">Dispositivo</div>
+        <div class="dsh-meta" id="dsh-meta">tipo · status</div>
+      </div>
+      <button class="close-btn" onclick="closeDeviceSheet()" style="margin-left:auto">✕</button>
+    </div>
+    <div class="actions-grid" id="dsh-actions"></div>
+    <div class="dev-cmd-row">
+      <input class="dev-cmd-input" id="dsh-cmd-input" placeholder="Comando personalizado..." autocomplete="off">
+      <button class="dev-cmd-send" onclick="sendSheetCustomCmd()">➤</button>
+    </div>
   </div>
 </div>
 
@@ -982,6 +1131,7 @@ function setOffline() {
   document.getElementById('status-text').textContent = 'Sem conexão';
 }
 
+document.getElementById('btn-devices').onclick  = openDevices;
 document.getElementById('btn-briefing').onclick = getBriefing;
 
 // ── Send ──────────────────────────────────────────────────────────────────
@@ -1132,6 +1282,146 @@ document.getElementById('install-overlay').addEventListener('click', e => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/app/sw.js').catch(() => {});
 }
+
+// ── Devices menu ─────────────────────────────────────────────────────────
+let _devicesCache = [];
+let _sheetDevice  = null;
+
+function openDevices() {
+  document.getElementById('devices-overlay').classList.remove('hidden');
+  loadDevices();
+}
+function closeDevices() {
+  document.getElementById('devices-overlay').classList.add('hidden');
+}
+
+function renderDeviceGrid(devs) {
+  const grid = document.getElementById('devices-grid');
+  if (!devs.length) {
+    grid.innerHTML = `<div class="no-devices-msg"><div class="ndm-icon">📡</div>Nenhum dispositivo registrado.<br><span style="font-size:13px">Abra o app em outro dispositivo para que ele apareça aqui.</span></div>`;
+    return;
+  }
+  grid.innerHTML = devs.map(d => {
+    const isMe = d.id === DEVICE_ID;
+    const icon = deviceTypeIcon(d.type);
+    const online = d.is_online ? 'on' : 'off';
+    const statusTxt = d.is_online ? 'Online' : 'Offline';
+    return `
+    <div class="dev-card${isMe ? ' is-me' : ''}" onclick="openDeviceSheet(${JSON.stringify(d.id)})">
+      ${isMe ? '<div class="me-badge">ESTE</div>' : ''}
+      <div class="dc-icon">${icon}</div>
+      <div class="dc-name">${escHtml(d.name)}</div>
+      <div class="dc-status"><div class="dc-dot ${online}"></div>${statusTxt}</div>
+    </div>`;
+  }).join('');
+}
+
+function openDeviceSheet(deviceId) {
+  const dev = _devicesCache.find(d => d.id === deviceId);
+  if (!dev) return;
+  _sheetDevice = dev;
+  const isMe = dev.id === DEVICE_ID;
+  document.getElementById('dsh-icon').textContent  = deviceTypeIcon(dev.type);
+  document.getElementById('dsh-name').textContent  = dev.name;
+  document.getElementById('dsh-meta').textContent  = `${dev.type} · ${dev.is_online ? '🟢 Online' : '⚫ Offline'}${isMe ? ' · este dispositivo' : ''}`;
+  document.getElementById('dsh-cmd-input').value   = '';
+  // build action buttons
+  const acts = [];
+  if (isMe) {
+    // actions run directly on the hub (same PC)
+    acts.push({icon:'⏻',  label:'Desligar',  cmd:'desligar pc',           cls:'act-danger'});
+    acts.push({icon:'🔄', label:'Reiniciar', cmd:'/pc restart',            cls:''});
+    acts.push({icon:'🔒', label:'Bloquear',  cmd:'/pc lock',               cls:''});
+    acts.push({icon:'😴', label:'Dormir',    cmd:'/pc sleep',              cls:''});
+    acts.push({icon:'❄️', label:'Hibernar',  cmd:'/pc hibernate',          cls:''});
+    acts.push({icon:'✅', label:'Cancelar',  cmd:'/pc cancel',             cls:'act-green'});
+  } else {
+    // actions queued for the remote device via heartbeat
+    acts.push({icon:'🔆', label:'Ligar (WOL)',  cmd:'__wol__',             cls:'act-green'});
+    acts.push({icon:'⏻',  label:'Desligar',    cmd:'desligar pc',          cls:'act-danger'});
+    acts.push({icon:'🔄', label:'Reiniciar',   cmd:'/pc restart',          cls:''});
+    acts.push({icon:'🔒', label:'Bloquear',    cmd:'/pc lock',             cls:''});
+    acts.push({icon:'😴', label:'Dormir',      cmd:'/pc sleep',            cls:''});
+    acts.push({icon:'❄️', label:'Hibernar',    cmd:'/pc hibernate',        cls:''});
+  }
+  // always: remove device
+  acts.push({icon:'🗑',  label:'Remover',   cmd:'__delete__',              cls:'act-danger'});
+  document.getElementById('dsh-actions').innerHTML = acts.map((a,i) =>
+    `<button class="action-btn ${a.cls}" onclick="_sheetAct(${i})">`+
+    `<div class="ab-icon">${a.icon}</div>`+
+    `<div class="ab-label">${a.label}</div>`+
+    `</button>`
+  ).join('');
+  // store acts list on sheet for click handler
+  document.getElementById('dsh-actions')._acts = acts;
+  document.getElementById('dev-sheet').classList.remove('hidden');
+}
+
+function _sheetAct(i) {
+  const acts = document.getElementById('dsh-actions')._acts;
+  const act  = acts[i];
+  if (!act || !_sheetDevice) return;
+  if (act.cmd === '__delete__') {
+    if (!confirm(`Remover "${_sheetDevice.name}"?`)) return;
+    deleteDevice(_sheetDevice.id);
+    closeDeviceSheet();
+    return;
+  }
+  if (act.cmd === '__wol__') {
+    // send WOL command via hub
+    const mac = prompt('MAC do dispositivo para ligar (ex: AA:BB:CC:DD:EE:FF):');
+    if (!mac) return;
+    _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, `ligar pc ${mac}`, act.label);
+    return;
+  }
+  _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, act.cmd, act.label);
+}
+
+async function _doDeviceAction(deviceId, isMe, cmd, label) {
+  closeDeviceSheet();
+  const devName = (_devicesCache.find(d => d.id === deviceId) || {}).name || deviceId;
+  addMessage(`⌨️ ${label} → ${devName}`, 'user');
+  showTyping();
+  try {
+    if (isMe) {
+      // run directly on the hub
+      const r = await authFetch('/command', { method:'POST', body: JSON.stringify({text: cmd, source:'devices-menu'}) });
+      const data = await r.json().catch(()=>({}));
+      hideTyping();
+      addMessage(data.answer || data.detail || 'Comando enviado.', 'agent');
+    } else {
+      // queue for remote device
+      const r = await authFetch(`/devices/${deviceId}/command`, { method:'POST', body: JSON.stringify({text: cmd}) });
+      hideTyping();
+      addMessage(r.ok ? `📡 "${label}" enviado para ${devName}. Será executado na próxima sincronização.` : 'Falha ao enviar comando.', 'agent');
+    }
+  } catch (e) {
+    hideTyping();
+    addMessage('Erro de conexão ao enviar comando.', 'agent');
+  }
+  closeDevices();
+}
+
+async function sendSheetCustomCmd() {
+  const input = document.getElementById('dsh-cmd-input');
+  const cmd = input.value.trim();
+  if (!cmd || !_sheetDevice) return;
+  input.value = '';
+  await _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, cmd, cmd);
+}
+
+function closeDeviceSheet() {
+  document.getElementById('dev-sheet').classList.add('hidden');
+  _sheetDevice = null;
+}
+
+// close sheet clicking backdrop
+document.getElementById('dev-sheet').addEventListener('click', e => {
+  if (e.target === document.getElementById('dev-sheet')) closeDeviceSheet();
+});
+document.getElementById('dsh-cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); sendSheetCustomCmd(); }
+});
 
 // ── Auth & Devices ────────────────────────────────────────────────────────
 let SESSION_TOKEN = localStorage.getItem('brt_session_token') || '';
@@ -1285,27 +1575,41 @@ async function heartbeat(register = false) {
 async function loadDevices() {
   if (!SESSION_TOKEN || !CFG.url) return;
   const container = document.getElementById('devices-list');
-  if (!container) return;
+  const grid      = document.getElementById('devices-grid');
   try {
     const r = await authFetch('/devices');
-    if (!r.ok) { container.innerHTML = '<div class="hint">Não foi possível carregar dispositivos.</div>'; return; }
+    if (!r.ok) {
+      if (container) container.innerHTML = '<div class="hint">Não foi possível carregar dispositivos.</div>';
+      return;
+    }
     const d = await r.json();
     const devs = d.devices || [];
-    if (!devs.length) { container.innerHTML = '<div class="hint" style="margin:4px 0">Nenhum dispositivo registrado ainda.</div>'; return; }
-    container.innerHTML = devs.map(dev => `
-      <div class="device-card" id="dev-${dev.id}">
-        <div class="device-icon">${deviceTypeIcon(dev.type)}</div>
-        <div class="device-info">
-          <div class="device-name">${escHtml(dev.name)}${dev.id === DEVICE_ID ? ' <span style="color:var(--accent-2);font-size:11px">(este)</span>' : ''}</div>
-          <div class="device-meta">${dev.is_online ? '🟢 Online' : '⚫ Offline'} · ${dev.type}</div>
-        </div>
-        <div class="device-actions">
-          ${dev.id !== DEVICE_ID ? `<button class="dbtn" onclick="promptDeviceCommand('${dev.id}','${escHtml(dev.name)}')">💬</button>` : ''}
-          <button class="dbtn danger" onclick="deleteDevice('${dev.id}')">🗑</button>
-        </div>
-      </div>
-    `).join('');
-  } catch (_) { container.innerHTML = '<div class="hint">Erro ao carregar dispositivos.</div>'; }
+    _devicesCache = devs;
+    // update settings panel list
+    if (container) {
+      if (!devs.length) {
+        container.innerHTML = '<div class="hint" style="margin:4px 0">Nenhum dispositivo registrado ainda.</div>';
+      } else {
+        container.innerHTML = devs.map(dev => `
+          <div class="device-card" id="dev-${dev.id}">
+            <div class="device-icon">${deviceTypeIcon(dev.type)}</div>
+            <div class="device-info">
+              <div class="device-name">${escHtml(dev.name)}${dev.id === DEVICE_ID ? ' <span style="color:var(--accent-2);font-size:11px">(este)</span>' : ''}</div>
+              <div class="device-meta">${dev.is_online ? '🟢 Online' : '⚫ Offline'} · ${dev.type}</div>
+            </div>
+            <div class="device-actions">
+              <button class="dbtn" onclick="openDeviceSheet('${dev.id}')">⚡</button>
+              <button class="dbtn danger" onclick="deleteDevice('${dev.id}')">🗑</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+    // update devices grid
+    if (grid) renderDeviceGrid(devs);
+  } catch (_) {
+    if (container) container.innerHTML = '<div class="hint">Erro ao carregar dispositivos.</div>';
+  }
 }
 
 async function deleteDevice(deviceId) {
