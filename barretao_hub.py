@@ -13,6 +13,8 @@ import re
 import shutil
 from typing import Optional
 
+import barretao_auth as auth
+
 # Fix emoji output on Windows terminals
 if sys.platform == "win32":
     import io
@@ -220,6 +222,153 @@ app = FastAPI(title="Barretão Hub", version="2.0.0")
 hub_enable_voice = os.getenv("HUB_ENABLE_VOICE", "false").strip().lower() == "true"
 agent = PersonalAIAgent(enable_voice=hub_enable_voice)
 api_token = os.getenv("HUB_API_TOKEN", "").strip()
+
+# Initialize auth DB
+auth.init_db()
+
+
+# ── Auth models ────────────────────────────────────────────────────────────
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    display_name: str = ""
+    email: str = ""
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class DeviceRegisterRequest(BaseModel):
+    device_id: str
+    name: str
+    type: str = "other"  # pc | phone | tablet | console | car | other
+
+
+class DeviceAckRequest(BaseModel):
+    answer: str = ""
+
+
+def require_auth(authorization: Optional[str]) -> dict:
+    """Validates bearer token (session or static API token). Returns user dict."""
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+        # Static API token (MCP / legacy) — treated as system user
+        if api_token and token == api_token:
+            return {"id": "__system__", "username": "system", "display_name": "System"}
+        # Session token
+        user = auth.get_user_by_token(token)
+        if user:
+            return user
+    raise HTTPException(status_code=401, detail="Login necessário")
+
+
+# ── Auth endpoints ─────────────────────────────────────────────────────────
+@app.post("/auth/register")
+def api_register(payload: RegisterRequest) -> dict:
+    """First registration is always allowed. Subsequent ones are locked."""
+    count = auth.user_count()
+    if count >= 1:
+        # Allow re-registration only if a valid session or admin token is provided
+        raise HTTPException(
+            status_code=403,
+            detail="Registro fechado. Este é um assistente pessoal privado.",
+        )
+    user = auth.register_user(payload.username, payload.password, payload.email, payload.display_name)
+    if not user:
+        raise HTTPException(status_code=409, detail="Usuário já existe")
+    token = auth.login_user(payload.username, payload.password)
+    return {"ok": True, "token": token, "user": user}
+
+
+@app.post("/auth/login")
+def api_login(payload: LoginRequest) -> dict:
+    token = auth.login_user(payload.username, payload.password)
+    if not token:
+        raise HTTPException(status_code=401, detail="Usuário ou senha incorretos")
+    user = auth.get_user_by_token(token)
+    return {"ok": True, "token": token, "user": user}
+
+
+@app.get("/auth/me")
+def api_me(authorization: Optional[str] = Header(default=None)) -> dict:
+    user = require_auth(authorization)
+    return {"ok": True, "user": user}
+
+
+@app.post("/auth/logout")
+def api_logout(authorization: Optional[str] = Header(default=None)) -> dict:
+    if authorization and authorization.startswith("Bearer "):
+        auth.logout_token(authorization.split(" ", 1)[1].strip())
+    return {"ok": True}
+
+
+@app.get("/auth/setup")
+def api_setup_status() -> dict:
+    """Returns whether first-time setup is needed."""
+    return {"needs_setup": auth.user_count() == 0}
+
+
+# ── Device endpoints ────────────────────────────────────────────────────────
+@app.get("/devices")
+def api_devices(authorization: Optional[str] = Header(default=None)) -> dict:
+    user = require_auth(authorization)
+    return {"ok": True, "devices": auth.get_devices(user["id"])}
+
+
+@app.post("/devices/register")
+def api_register_device(
+    payload: DeviceRegisterRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    device = auth.register_device(user["id"], payload.device_id, payload.name, payload.type)
+    return {"ok": True, "device": device}
+
+
+@app.post("/devices/{device_id}/heartbeat")
+def api_heartbeat(
+    device_id: str,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    auth.heartbeat_device(device_id, user["id"])
+    cmds = auth.get_pending_commands(device_id, user["id"])
+    return {"ok": True, "pending_commands": cmds}
+
+
+@app.post("/devices/{device_id}/ack/{cmd_id}")
+def api_ack_command(
+    device_id: str,
+    cmd_id: str,
+    payload: DeviceAckRequest = DeviceAckRequest(),
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    auth.ack_command(cmd_id, payload.answer)
+    return {"ok": True}
+
+
+@app.post("/devices/{device_id}/command")
+def api_send_to_device(
+    device_id: str,
+    payload: CommandRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    cmd_id = auth.queue_command(user["id"], device_id, payload.text)
+    return {"ok": True, "cmd_id": cmd_id}
+
+
+@app.delete("/devices/{device_id}")
+def api_delete_device(
+    device_id: str,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    ok = auth.delete_device(device_id, user["id"])
+    return {"ok": ok}
 
 # ── Serve PWA webapp ───────────────────────────────────────────────────────
 if WEBAPP_DIR.exists():

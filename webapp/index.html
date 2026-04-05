@@ -256,6 +256,75 @@
     }
     #messages::-webkit-scrollbar{width:4px}
     #messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    /* ── Login overlay ───────────────────────────────────────────────── */
+    #login-overlay{
+      position:fixed;inset:0;z-index:3000;
+      background:radial-gradient(1200px 800px at 30% -5%, #2a3470 0%, transparent 50%),
+                 linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      display:flex;align-items:center;justify-content:center;padding:20px;
+    }
+    #login-overlay.hidden{display:none}
+    .login-card{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;padding:32px 28px;width:100%;max-width:380px;
+      box-shadow:var(--shadow);display:flex;flex-direction:column;gap:18px;
+    }
+    .login-logo{
+      width:60px;height:60px;border-radius:50%;
+      background:linear-gradient(140deg, var(--accent), var(--accent-2));
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;margin:0 auto;box-shadow:0 8px 24px rgba(77,110,255,.5)
+    }
+    .login-title{text-align:center;font-size:22px;font-weight:700}
+    .login-sub{text-align:center;color:var(--text2);font-size:13px;margin-top:-8px}
+    .login-form{display:flex;flex-direction:column;gap:12px}
+    .login-form input{
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;
+      outline:none;transition:.18s;width:100%;
+    }
+    .login-form input:focus{border-color:var(--accent);background:rgba(124,108,255,.08)}
+    .btn-login{
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      border:none;border-radius:10px;padding:13px;color:#fff;
+      font-size:15px;font-weight:700;cursor:pointer;transition:.18s;letter-spacing:.3px;
+    }
+    .btn-login:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-login:disabled{opacity:.5;cursor:wait;transform:none}
+    .login-err{color:var(--accent2);font-size:13px;text-align:center;min-height:18px}
+    /* ── User badge ───────────────────────────────────────────────────── */
+    .user-badge{
+      display:none;align-items:center;gap:6px;
+      background:rgba(124,108,255,.12);border:1px solid rgba(124,108,255,.3);
+      border-radius:20px;padding:5px 10px 5px 6px;
+      font-size:13px;font-weight:600;cursor:pointer;transition:.18s;flex-shrink:0;
+    }
+    .user-badge.show{display:flex}
+    .user-badge:hover{background:rgba(124,108,255,.22)}
+    .user-avatar-sm{
+      width:24px;height:24px;border-radius:50%;
+      background:linear-gradient(140deg,var(--accent),var(--accent-2));
+      display:flex;align-items:center;justify-content:center;font-size:13px;
+    }
+    /* ── Device cards ─────────────────────────────────────────────────── */
+    .device-card{
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:12px;padding:11px 14px;
+      display:flex;align-items:center;gap:10px;margin-bottom:8px;
+    }
+    .device-icon{font-size:22px;flex-shrink:0}
+    .device-info{flex:1;min-width:0}
+    .device-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .device-meta{font-size:12px;color:var(--text2);margin-top:2px}
+    .device-actions{display:flex;gap:5px;flex-shrink:0}
+    .dbtn{
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:8px;padding:5px 8px;font-size:13px;cursor:pointer;color:var(--text2);transition:.15s;
+    }
+    .dbtn:hover{background:rgba(255,255,255,.13);color:var(--text)}
+    .dbtn.danger:hover{background:rgba(255,80,100,.15);color:#ff6b9a;border-color:#ff6b9a}
+    .section-sub{font-size:12px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text2);margin:16px 0 8px}
   </style>
 </head>
 <body>
@@ -270,6 +339,10 @@
         <div class="dot offline" id="status-dot"></div>
         <span id="status-text">Não conectado</span>
       </div>
+    </div>
+    <div class="user-badge" id="user-badge" onclick="openSettings()">
+      <div class="user-avatar-sm">👤</div>
+      <span id="user-name-badge">você</span>
     </div>
     <button class="hbtn" id="btn-briefing" title="Briefing do dia">☀️</button>
     <button class="hbtn" id="btn-settings" title="Configurações">⚙️</button>
@@ -298,6 +371,24 @@
     <button class="ibtn" id="btn-mic" title="Falar">🎤</button>
     <textarea id="msg-input" placeholder="Escreva ou fale..." rows="1"></textarea>
     <button class="ibtn" id="btn-send" title="Enviar">➤</button>
+  </div>
+</div>
+
+<!-- Login / Register overlay -->
+<div id="login-overlay" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">🍕</div>
+    <div class="login-title">Barretão</div>
+    <div class="login-sub" id="login-sub">Faça login para continuar</div>
+    <form class="login-form" id="login-form" onsubmit="doLogin(event)">
+      <input id="login-user" type="text" placeholder="Usuário" autocomplete="username" required>
+      <input id="login-pass" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <div id="login-name-wrap" style="display:none">
+        <input id="login-display" type="text" placeholder="Seu nome (opcional)" autocomplete="name">
+      </div>
+      <div class="login-err" id="login-err"></div>
+      <button type="submit" class="btn-login" id="login-btn">Entrar</button>
+    </form>
   </div>
 </div>
 
@@ -463,6 +554,12 @@
       <button class="btn-sub" onclick="refreshServerVoiceStatus()">Atualizar status da voz do Barretão</button>
     </div>
     <div class="hint" id="server-voice-status">Status da voz do servidor: ainda não consultado.</div>
+    <div class="section-sub">📱 Dispositivos</div>
+    <div id="devices-list"><div class="hint" style="margin:4px 0">Faça login para ver dispositivos.</div></div>
+    <div class="btn-row">
+      <button class="btn-sub" onclick="loadDevices()">🔄 Atualizar</button>
+      <button class="btn-sub" onclick="doLogout()" style="color:var(--accent2)">🚪 Sair da conta</button>
+    </div>
     <button class="btn-main" onclick="saveSettings()">Salvar e conectar</button>
     <div class="hint">
       🎙️ As opções acima controlam a voz local do app e também a voz do servidor Barretão<br>
@@ -1036,13 +1133,217 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/app/sw.js').catch(() => {});
 }
 
+// ── Auth & Devices ────────────────────────────────────────────────────────
+let SESSION_TOKEN = localStorage.getItem('brt_session_token') || '';
+let DEVICE_ID = localStorage.getItem('brt_device_id') || (() => {
+  const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem('brt_device_id', id);
+  return id;
+})();
+
+function deviceTypeFromUA() {
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) return 'phone';
+  if (/iphone|ipad|ipod/i.test(ua)) return 'phone';
+  if (/tablet/i.test(ua)) return 'tablet';
+  return 'pc';
+}
+function deviceNameFromUA() {
+  const ua = navigator.userAgent;
+  if (/iphone/i.test(ua)) return 'iPhone';
+  if (/ipad/i.test(ua)) return 'iPad';
+  if (/android/i.test(ua)) return 'Android';
+  if (/windows/i.test(ua)) return 'Windows PC';
+  if (/mac/i.test(ua)) return 'Mac';
+  return 'Dispositivo';
+}
+function deviceTypeIcon(type) {
+  return {pc:'🖥️',phone:'📱',tablet:'📱',console:'🎮',car:'🚗',other:'💻'}[type] || '💻';
+}
+
+async function authFetch(path, opts = {}) {
+  const token = SESSION_TOKEN || CFG.token;
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(CFG.url + path, { ...opts, headers, signal: AbortSignal.timeout(10000) });
+}
+
+async function initAuth() {
+  if (SESSION_TOKEN) CFG.token = SESSION_TOKEN;
+  if (!CFG.url) { showLoginOverlay(); return; }
+  if (SESSION_TOKEN) {
+    try {
+      const r = await authFetch('/auth/me');
+      if (r.ok) { const d = await r.json(); onLoggedIn(d.user, false); return; }
+    } catch (_) {}
+    SESSION_TOKEN = '';
+    localStorage.removeItem('brt_session_token');
+  }
+  try {
+    const r = await fetch(CFG.url + '/auth/setup', { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.needs_setup) showRegisterForm(); else showLoginForm();
+    } else showLoginForm();
+  } catch (_) { showLoginForm(); }
+  showLoginOverlay();
+}
+
+function showLoginOverlay() { document.getElementById('login-overlay').classList.remove('hidden'); }
+function hideLoginOverlay() { document.getElementById('login-overlay').classList.add('hidden'); }
+
+function showLoginForm() {
+  document.getElementById('login-sub').textContent = 'Faça login para continuar';
+  document.getElementById('login-btn').textContent = 'Entrar';
+  document.getElementById('login-name-wrap').style.display = 'none';
+  document.getElementById('login-form').dataset.mode = 'login';
+}
+function showRegisterForm() {
+  document.getElementById('login-sub').textContent = 'Primeiro acesso — crie sua conta';
+  document.getElementById('login-btn').textContent = 'Criar conta';
+  document.getElementById('login-name-wrap').style.display = 'block';
+  document.getElementById('login-form').dataset.mode = 'register';
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const btn  = document.getElementById('login-btn');
+  const err  = document.getElementById('login-err');
+  const form = document.getElementById('login-form');
+  const mode = form.dataset.mode || 'login';
+  const username    = document.getElementById('login-user').value.trim();
+  const password    = document.getElementById('login-pass').value;
+  const displayName = document.getElementById('login-display')?.value.trim() || '';
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = mode === 'register' ? 'Criando...' : 'Entrando...';
+  try {
+    const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
+    const body     = mode === 'register'
+      ? { username, password, display_name: displayName }
+      : { username, password };
+    const r = await fetch(CFG.url + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      err.textContent = data.detail || 'Falha no login';
+      btn.disabled = false;
+      btn.textContent = mode === 'register' ? 'Criar conta' : 'Entrar';
+      return;
+    }
+    SESSION_TOKEN = data.token;
+    localStorage.setItem('brt_session_token', SESSION_TOKEN);
+    CFG.token = SESSION_TOKEN;
+    localStorage.setItem('brt_token', SESSION_TOKEN);
+    onLoggedIn(data.user, true);
+  } catch (ex) {
+    err.textContent = 'Erro de conexão. Verifique o servidor.';
+    btn.disabled = false;
+    btn.textContent = mode === 'register' ? 'Criar conta' : 'Entrar';
+  }
+}
+
+function onLoggedIn(user, isNew) {
+  hideLoginOverlay();
+  const badge = document.getElementById('user-badge');
+  if (badge) { badge.classList.add('show'); document.getElementById('user-name-badge').textContent = user.display_name || user.username; }
+  heartbeat(true);
+  checkStatus();
+  loadDevices();
+}
+
+async function heartbeat(register = false) {
+  if (!SESSION_TOKEN || !CFG.url) return;
+  try {
+    if (register) {
+      await authFetch('/devices/register', {
+        method: 'POST',
+        body: JSON.stringify({ device_id: DEVICE_ID, name: deviceNameFromUA(), type: deviceTypeFromUA() }),
+      });
+    }
+    const r = await authFetch(`/devices/${DEVICE_ID}/heartbeat`, { method: 'POST', body: '{}' });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.pending_commands && d.pending_commands.length) {
+        for (const cmd of d.pending_commands) {
+          addMessage(`📡 Comando remoto: ${cmd.command}`, 'agent');
+          await authFetch(`/devices/${DEVICE_ID}/ack/${cmd.id}`, {
+            method: 'POST', body: JSON.stringify({ answer: 'recebido' }),
+          });
+        }
+      }
+    }
+  } catch (_) {}
+}
+
+async function loadDevices() {
+  if (!SESSION_TOKEN || !CFG.url) return;
+  const container = document.getElementById('devices-list');
+  if (!container) return;
+  try {
+    const r = await authFetch('/devices');
+    if (!r.ok) { container.innerHTML = '<div class="hint">Não foi possível carregar dispositivos.</div>'; return; }
+    const d = await r.json();
+    const devs = d.devices || [];
+    if (!devs.length) { container.innerHTML = '<div class="hint" style="margin:4px 0">Nenhum dispositivo registrado ainda.</div>'; return; }
+    container.innerHTML = devs.map(dev => `
+      <div class="device-card" id="dev-${dev.id}">
+        <div class="device-icon">${deviceTypeIcon(dev.type)}</div>
+        <div class="device-info">
+          <div class="device-name">${escHtml(dev.name)}${dev.id === DEVICE_ID ? ' <span style="color:var(--accent-2);font-size:11px">(este)</span>' : ''}</div>
+          <div class="device-meta">${dev.is_online ? '🟢 Online' : '⚫ Offline'} · ${dev.type}</div>
+        </div>
+        <div class="device-actions">
+          ${dev.id !== DEVICE_ID ? `<button class="dbtn" onclick="promptDeviceCommand('${dev.id}','${escHtml(dev.name)}')">💬</button>` : ''}
+          <button class="dbtn danger" onclick="deleteDevice('${dev.id}')">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (_) { container.innerHTML = '<div class="hint">Erro ao carregar dispositivos.</div>'; }
+}
+
+async function deleteDevice(deviceId) {
+  if (!confirm('Remover este dispositivo?')) return;
+  try { await authFetch(`/devices/${deviceId}`, { method: 'DELETE' }); loadDevices(); } catch (_) {}
+}
+
+async function promptDeviceCommand(deviceId, deviceName) {
+  const cmd = prompt(`Comando para "${deviceName}":`);
+  if (!cmd) return;
+  try {
+    const r = await authFetch(`/devices/${deviceId}/command`, {
+      method: 'POST', body: JSON.stringify({ text: cmd }),
+    });
+    addMessage(r.ok ? `📡 Comando enviado para ${deviceName}` : 'Falha ao enviar comando.', 'agent');
+  } catch (_) { addMessage('Erro de conexão ao enviar comando.', 'agent'); }
+}
+
+async function doLogout() {
+  if (!confirm('Sair da conta?')) return;
+  try { await authFetch('/auth/logout', { method: 'POST', body: '{}' }); } catch (_) {}
+  SESSION_TOKEN = '';
+  CFG.token = '';
+  localStorage.removeItem('brt_session_token');
+  localStorage.removeItem('brt_token');
+  document.getElementById('user-badge')?.classList.remove('show');
+  closeSettings();
+  initAuth();
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 if (!CFG.url) {
   openSettings();
 } else {
-  checkStatus();
+  initAuth();
 }
 setInterval(checkStatus, 30000);
+setInterval(() => heartbeat(false), 30000);
 </script>
 </body>
 </html>
