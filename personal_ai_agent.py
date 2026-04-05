@@ -15,6 +15,7 @@ import uuid
 import queue
 import socket
 import html
+import requests
 from datetime import datetime
 from typing import Any
 
@@ -916,6 +917,21 @@ class PersonalAIAgent:
 
         self.conn = init_db()
         self.history: list[dict[str, str]] = []
+
+        # Dev & Image Generation Features
+        self.code_execution_enabled = os.getenv("CODE_EXECUTION_ENABLED", "false").lower() == "true"
+        self.code_analysis_enabled = os.getenv("CODE_ANALYSIS_ENABLED", "true").lower() == "true"
+        self.vision_model_enabled = os.getenv("VISION_MODEL_ENABLED", "false").lower() == "true"
+        self.image_generation_enabled = os.getenv("IMAGE_GENERATION_ENABLED", "true").lower() == "true"
+        self.image_provider = os.getenv("IMAGE_PROVIDER", "openai").strip().lower()
+        self.image_model = os.getenv("IMAGE_MODEL", "dall-e-3").strip()
+        self.image_size = os.getenv("IMAGE_SIZE", "1024x1024").strip()
+        self.openai_image_api_key = (
+            os.getenv("OPENAI_IMAGE_API_KEY", "").strip()
+            or os.getenv("OPENAI_API_KEY", "").strip()
+        )
+        self.stable_diffusion_api_key = os.getenv("STABLE_DIFFUSION_API_KEY", "").strip()
+        self.stable_diffusion_api_url = os.getenv("STABLE_DIFFUSION_API_URL", "").strip()
 
         self._restore_voice_preferences()
 
@@ -2958,6 +2974,286 @@ Máximo 400 caracteres, sem bullet points."""
         except Exception as e:
             return f"Erro ao executar comando de PC: {e}"
 
+    def generate_image(self, prompt: str, size: str = None, quantity: int = 1) -> dict:
+        """Generate image using DALL-E or Stable Diffusion"""
+        if not self.image_generation_enabled:
+            return {"error": "Image generation is disabled. Set IMAGE_GENERATION_ENABLED=true"}
+        
+        size = size or self.image_size
+        valid_sizes = ["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]
+        if size not in valid_sizes:
+            size = "1024x1024"
+        
+        try:
+            if self.image_provider == "openai":
+                return self._generate_image_dalle(prompt, size, quantity)
+            elif self.image_provider == "stable-diffusion":
+                return self._generate_image_stable_diffusion(prompt, size, quantity)
+            else:
+                return {"error": f"Unknown image provider: {self.image_provider}"}
+        except Exception as e:
+            return {"error": f"Image generation failed: {str(e)}"}
+
+    def _generate_image_dalle(self, prompt: str, size: str, quantity: int) -> dict:
+        """Generate image using DALL-E 3 API"""
+        if not self.openai_image_api_key:
+            return {"error": "OPENAI_IMAGE_API_KEY not configured"}
+        
+        headers = {
+            "Authorization": f"Bearer {self.openai_image_api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self.image_model,
+            "prompt": prompt.strip(),
+            "n": min(quantity, 4),  # DALL-E max 4 per request
+            "size": size,
+            "quality": "standard",
+            "response_format": "url"
+        }
+        
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/images/generations",
+                json=payload,
+                headers=headers,
+                timeout=60
+            )
+            
+            if response.status_code != 200:
+                return {"error": f"OpenAI API error: {response.text}"}
+            
+            data = response.json()
+            images = [{"url": img.get("url"), "prompt": prompt} for img in data.get("data", [])]
+            
+            # Save to knowledge base
+            self.save_learned_fact(
+                "image_generation",
+                f"Generated {len(images)} images from prompt: {prompt}",
+                source="image_generation"
+            )
+            
+            return {"success": True, "images": images, "provider": "dalle-3", "prompt": prompt}
+        
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Failed to reach OpenAI API: {str(e)}"}
+
+    def _generate_image_stable_diffusion(self, prompt: str, size: str, quantity: int) -> dict:
+        """Generate image using Stable Diffusion API"""
+        if not self.stable_diffusion_api_key or not self.stable_diffusion_api_url:
+            return {"error": "STABLE_DIFFUSION_API_KEY or STABLE_DIFFUSION_API_URL not configured"}
+        
+        try:
+            width, height = map(int, size.split("x"))
+            
+            payload = {
+                "prompt": prompt.strip(),
+                "negative_prompt": "blurry, distorted, ugly",
+                "num_inference_steps": 20,
+                "guidance_scale": 7.5,
+                "width": width,
+                "height": height,
+                "num_images_per_prompt": min(quantity, 4)
+            }
+            
+            headers = {"Authorization": f"Bearer {self.stable_diffusion_api_key}"}
+            
+            response = requests.post(
+                f"{self.stable_diffusion_api_url}/v1/text2img",
+                json=payload,
+                headers=headers,
+                timeout=120
+            )
+            
+            if response.status_code != 200:
+                return {"error": f"Stable Diffusion API error: {response.text}"}
+            
+            data = response.json()
+            images = [{"url": img.get("url"), "prompt": prompt} for img in data.get("images", [])]
+            
+            self.save_learned_fact(
+                "image_generation",
+                f"Generated {len(images)} images from prompt: {prompt}",
+                source="stable_diffusion"
+            )
+            
+            return {"success": True, "images": images, "provider": "stable_diffusion", "prompt": prompt}
+        
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Failed to reach Stable Diffusion API: {str(e)}"}
+
+    def analyze_code(self, code: str, language: str = None) -> dict:
+        """Analyze code for quality, security, and performance issues"""
+        if not self.code_analysis_enabled:
+            return {"error": "Code analysis is disabled"}
+        
+        if not code or len(code.strip()) < 5:
+            return {"error": "Code too short to analyze"}
+        
+        try:
+            # Determine language if not specified
+            if not language:
+                language = self._detect_code_language(code)
+            
+            # Build analysis prompt
+            analysis_prompt = f"""Analyze this {language} code for:
+1. Code quality (readability, maintainability, style)
+2. Security vulnerabilities (SQL injection, XSS, buffer overflows, etc.)
+3. Performance issues (algorithmic complexity, memory leaks, inefficiencies)
+4. Best practices compliance
+5. Potential bugs
+
+Code:
+```{language}
+{code}
+```
+
+Provide structured feedback with:
+- quality_score (1-10)
+- security_issues (list)
+- performance_notes (list)
+- best_practices (list)
+- suggested_improvements (list)"""
+            
+            # Get analysis from LLM
+            response = self.ask(analysis_prompt, system="You are a code review expert. Provide detailed analysis.")
+            
+            self.save_learned_fact(
+                f"code_analysis_{language}",
+                f"Analyzed {language} code snippet",
+                source="code_analysis"
+            )
+            
+            return {
+                "success": True,
+                "language": language,
+                "analysis": response,
+                "code_preview": code[:100] + "..." if len(code) > 100 else code
+            }
+        
+        except Exception as e:
+            return {"error": f"Code analysis failed: {str(e)}"}
+
+    def generate_code(self, description: str, language: str = "python", framework: str = None) -> dict:
+        """Generate code from natural language description"""
+        if not description or len(description.strip()) < 5:
+            return {"error": "Description too short"}
+        
+        try:
+            framework_hint = f" using {framework}" if framework else ""
+            
+            generation_prompt = f"""Generate clean, well-documented {language} code{framework_hint} for:
+{description.strip()}
+
+Requirements:
+- Include error handling
+- Add docstrings/comments
+- Follow {language} best practices
+- Make it production-ready
+- Add type hints if applicable
+
+Wrap the code in:
+```{language}
+[YOUR CODE HERE]
+```"""
+            
+            response = self.ask(
+                generation_prompt,
+                system=f"You are an expert {language} programmer. Generate complete, working code."
+            )
+            
+            self.save_learned_fact(
+                f"generated_code_{language}",
+                f"Generated {language} code: {description[:50]}",
+                source="code_generation"
+            )
+            
+            return {
+                "success": True,
+                "language": language,
+                "framework": framework,
+                "code": response,
+                "description": description
+            }
+        
+        except Exception as e:
+            return {"error": f"Code generation failed: {str(e)}"}
+
+    def generate_app_template(self, framework: str, description: str) -> dict:
+        """Generate complete app template for web frameworks"""
+        valid_frameworks = ["react", "vue", "flask", "django", "fastapi", "nextjs"]
+        framework = framework.lower().strip()
+        
+        if framework not in valid_frameworks:
+            return {"error": f"Unsupported framework. Choose from: {', '.join(valid_frameworks)}"}
+        
+        if not description or len(description.strip()) < 10:
+            return {"error": "Description too short"}
+        
+        try:
+            template_prompt = f"""Create a complete, production-ready {framework} application template for:
+{description.strip()}
+
+Include:
+1. Project structure (directory layout)
+2. Main application files
+3. Configuration setup
+4. Dependencies (requirements.txt or package.json)
+5. README with setup instructions
+6. Basic error handling and logging
+
+Format as a structured JSON with:
+{{"
+  "framework": "{framework}",
+  "files": {{"filename": "content", ...}},
+  "dependencies": [...],
+  "setup_steps": [...],
+  "notes": "..."
+}}"""
+            
+            response = self.ask(
+                template_prompt,
+                system=f"You are an expert {framework} developer. Generate complete app scaffolding."
+            )
+            
+            self.save_learned_fact(
+                f"app_template_{framework}",
+                f"Generated {framework} template: {description[:50]}",
+                source="app_generation"
+            )
+            
+            return {
+                "success": True,
+                "framework": framework,
+                "template": response,
+                "description": description
+            }
+        
+        except Exception as e:
+            return {"error": f"App template generation failed: {str(e)}"}
+
+    def _detect_code_language(self, code: str) -> str:
+        """Detect programming language from code snippet"""
+        code_lower = code.lower()
+        
+        indicators = {
+            "python": ["def ", "import ", "class ", "print(", ":"],
+            "javascript": ["function ", "const ", "let ", "=>", "console.log"],
+            "java": ["public class ", "public static void", "String[] args"],
+            "csharp": ["using ", "public class ", "namespace "],
+            "cpp": ["#include ", "std::", "int main", "void "],
+            "go": ["package main", "func ", "import "],
+            "rust": ["fn ", "let ", "impl "],
+            "sql": ["SELECT ", "FROM ", "WHERE ", "INSERT "],
+        }
+        
+        scores = {}
+        for lang, keywords in indicators.items():
+            scores[lang] = sum(1 for kw in keywords if kw in code_lower)
+        
+        detected = max(scores, key=scores.get) if scores else "plaintext"
+        return detected if scores.get(detected, 0) > 0 else "plaintext"
+
     def execute_shortcut_action(self, action: str) -> str:
         step = action.strip()
         if not step:
@@ -3428,6 +3724,89 @@ Máximo 400 caracteres, sem bullet points."""
                     lines.append(f"[{category}] {topic}: {content[:100]}...")
                 return "\n".join(lines)
             return "Use: buscar kb <termo>"
+
+        # ── Image Generation ─────────────────────────────────────────────
+        if normalized.startswith("gerar imagem ") or normalized.startswith("criar imagem ") or normalized.startswith("desenhar "):
+            prompt = self.extract_after_first(text, ["gerar imagem ", "criar imagem ", "desenhar "]) or ""
+            if not prompt.strip():
+                return "Use: gerar imagem <descrição>"
+            result = self.generate_image(prompt.strip())
+            if "error" in result:
+                return f"❌ {result['error']}"
+            if result.get("success") and result.get("images"):
+                lines = [f"🎨 Gerada(s) {len(result['images'])} imagem(ns):"]
+                for i, img in enumerate(result["images"], 1):
+                    lines.append(f"  {i}. {img.get('url', 'Local file')}")
+                return "\n".join(lines)
+            return "Imagem gerada, mas sem URL retornada."
+
+        # ── Code Analysis ───────────────────────────────────────────────
+        if normalized.startswith("analisar código ") or normalized.startswith("revisar código "):
+            code_desc = self.extract_after_first(text, ["analisar código ", "revisar código "]) or ""
+            if not code_desc.strip():
+                return "Use: analisar código <código_ou_descrição>"
+            result = self.analyze_code(code_desc.strip())
+            if "error" in result:
+                return f"❌ {result['error']}"
+            lines = [f"📋 Análise de Código ({result.get('language', 'unknown')}):"]
+            lines.append(result.get("analysis", "Sem análise disponível"))
+            return "\n".join(lines)
+
+        # ── Code Generation ────────────────────────────────────────────
+        if normalized.startswith("gerar código ") or normalized.startswith("escrever código ") or normalized.startswith("programar "):
+            desc = self.extract_after_first(
+                text,
+                ["gerar código ", "escrever código ", "programar "]
+            ) or ""
+            if not desc.strip():
+                return "Use: gerar código <descrição>"
+            
+            # Tenta detectar linguagem se especificada
+            language = "python"
+            if "python" in normalized:
+                language = "python"
+            elif "javascript" in normalized or "js" in normalized:
+                language = "javascript"
+            elif "java" in normalized:
+                language = "java"
+            elif "csharp" in normalized or "c#" in normalized:
+                language = "csharp"
+            elif "go" in normalized:
+                language = "go"
+            elif "rust" in normalized:
+                language = "rust"
+            elif "sql" in normalized:
+                language = "sql"
+            
+            result = self.generate_code(desc.strip(), language=language)
+            if "error" in result:
+                return f"❌ {result['error']}"
+            lines = [f"💻 Código Gerado ({result.get('language', 'unknown')}):"]
+            code_preview = result.get("code", "")[:500]
+            lines.append(f"```\n{code_preview}\n```")
+            if len(result.get("code", "")) > 500:
+                lines.append("(Código truncado, veja o arquivo completo)")
+            return "\n".join(lines)
+
+        # ── App Template Generation ────────────────────────────────────
+        if normalized.startswith("criar app ") or normalized.startswith("gerar app ") or normalized.startswith("app "):
+            desc = self.extract_after_first(text, ["criar app ", "gerar app ", "app "]) or ""
+            if not desc.strip():
+                return "Use: criar app <framework> <descrição>\nFrameworks: react, vue, flask, django, fastapi, nextjs"
+            
+            parts = desc.strip().split(" ", 1)
+            framework = parts[0].lower().strip()
+            app_desc = parts[1] if len(parts) > 1 else "um app simples"
+            
+            result = self.generate_app_template(framework, app_desc)
+            if "error" in result:
+                return f"❌ {result['error']}"
+            lines = [f"🚀 Template de App ({result.get('framework', 'unknown')}):"]
+            template = result.get("template", "")[:300]
+            lines.append(template)
+            if len(result.get("template", "")) > 300:
+                lines.append("(Template truncado)")
+            return "\n".join(lines)
 
         return None
 
