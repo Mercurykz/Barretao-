@@ -305,14 +305,16 @@ if __name__ == "__main__":
     public_url: str | None = None
     tunnel_err: str | None = None
 
+    FIXED_PUBLIC_URL = os.getenv("BARRETAO_PUBLIC_URL", "https://barretao.aiv4.com")
+
     print(f"\n🌐 Hub rodando em:")
     print(f"   PC:     {scheme}://localhost:{port}/app/")
     print(f"   Rede:   {scheme}://{local_ip}:{port}/app/")
-    print(f"\n📱 No celular (mesma rede Wi-Fi):")
-    print(f"   Abra:   {scheme}://{local_ip}:{port}")
+    print(f"\n📱 No celular — use sempre esta URL fixa:")
+    print(f"   🔗  {FIXED_PUBLIC_URL}/app/")
+    print(f"   (Cloudflare Tunnel permanente — funciona dentro e fora de casa)\n")
     if use_ssl:
-        print(f"   ⚠️  Aparecerá aviso 'site não seguro' — clique em 'Avançado' → 'Continuar'")
-        print(f"   🎤  Após aceitar, o MICROFONE funcionará normalmente\n")
+        pass  # SSL do Cloudflare já cobre o acesso externo
     else:
         print(f"   Depois: Menu → Adicionar à tela inicial\n")
 
@@ -325,9 +327,8 @@ if __name__ == "__main__":
         origin_url = f"{scheme}://127.0.0.1:{port}"
         tunnel_proc, public_url, tunnel_err = _start_cloudflare_tunnel(origin_url)
         if public_url:
-            print("\n🌍 Acesso externo ativado (Cloudflare Tunnel):")
+            print("\n🌍 Túnel temporário também ativo (Cloudflare Quick Tunnel):")
             print(f"   Público: {public_url}/app/")
-            print("   Use este link no celular dentro e fora de casa.")
         elif tunnel_err:
             print(f"\n⚠️  Túnel público: {tunnel_err}")
 
