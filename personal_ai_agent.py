@@ -930,6 +930,10 @@ class PersonalAIAgent:
             os.getenv("OPENAI_IMAGE_API_KEY", "").strip()
             or os.getenv("OPENAI_API_KEY", "").strip()
         )
+        self.gemini_image_api_key = (
+            os.getenv("GEMINI_IMAGE_API_KEY", "").strip()
+            or os.getenv("GEMINI_API_KEY", "").strip()
+        )
         self.stable_diffusion_api_key = os.getenv("STABLE_DIFFUSION_API_KEY", "").strip()
         self.stable_diffusion_api_url = os.getenv("STABLE_DIFFUSION_API_URL", "").strip()
 
@@ -2975,7 +2979,7 @@ Máximo 400 caracteres, sem bullet points."""
             return f"Erro ao executar comando de PC: {e}"
 
     def generate_image(self, prompt: str, size: str = None, quantity: int = 1) -> dict:
-        """Generate image using DALL-E or Stable Diffusion"""
+        """Generate image via Nano Banana (Gemini), DALL-E or Stable Diffusion"""
         if not self.image_generation_enabled:
             return {"error": "Image generation is disabled. Set IMAGE_GENERATION_ENABLED=true"}
         
@@ -2985,7 +2989,9 @@ Máximo 400 caracteres, sem bullet points."""
             size = "1024x1024"
         
         try:
-            if self.image_provider == "openai":
+            if self.image_provider in {"gemini", "nanobanana", "nano-banana"}:
+                return self._generate_image_gemini(prompt, quantity)
+            elif self.image_provider == "openai":
                 return self._generate_image_dalle(prompt, size, quantity)
             elif self.image_provider == "stable-diffusion":
                 return self._generate_image_stable_diffusion(prompt, size, quantity)
@@ -2993,6 +2999,60 @@ Máximo 400 caracteres, sem bullet points."""
                 return {"error": f"Unknown image provider: {self.image_provider}"}
         except Exception as e:
             return {"error": f"Image generation failed: {str(e)}"}
+
+    def _generate_image_gemini(self, prompt: str, quantity: int = 1) -> dict:
+        """Generate image using Google Gemini (Nano Banana) image generation API"""
+        if not self.gemini_image_api_key:
+            return {"error": "GEMINI_IMAGE_API_KEY not configured. Add it to .env"}
+        
+        try:
+            import google.generativeai as genai
+            import base64
+
+            genai.configure(api_key=self.gemini_image_api_key)
+            model = genai.GenerativeModel(self.image_model)
+
+            images_out = []
+            for _ in range(min(quantity, 4)):
+                response = model.generate_content(
+                    prompt.strip(),
+                    generation_config=genai.types.GenerationConfig(
+                        response_modalities=["image", "text"]
+                    ),
+                )
+                for candidate in response.candidates:
+                    for part in candidate.content.parts:
+                        if hasattr(part, "inline_data") and part.inline_data:
+                            img_b64 = base64.b64encode(part.inline_data.data).decode("utf-8")
+                            mime = part.inline_data.mime_type or "image/png"
+                            images_out.append({
+                                "base64": img_b64,
+                                "mime_type": mime,
+                                "prompt": prompt,
+                                "data_url": f"data:{mime};base64,{img_b64}"
+                            })
+
+            if not images_out:
+                return {"error": "Gemini returned no images. Check your API key and model availability."}
+
+            self.save_learned_fact(
+                "image_generation",
+                f"Generated {len(images_out)} image(s) via Nano Banana (Gemini): {prompt[:60]}",
+                source="nano_banana"
+            )
+
+            return {
+                "success": True,
+                "images": images_out,
+                "provider": "nano_banana",
+                "model": self.image_model,
+                "prompt": prompt
+            }
+
+        except ImportError:
+            return {"error": "google-generativeai not installed. Run: pip install google-generativeai"}
+        except Exception as e:
+            return {"error": f"Nano Banana (Gemini) image generation failed: {str(e)}"}
 
     def _generate_image_dalle(self, prompt: str, size: str, quantity: int) -> dict:
         """Generate image using DALL-E 3 API"""
