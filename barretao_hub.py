@@ -412,7 +412,7 @@ def command(
     payload: CommandRequest,
     authorization: Optional[str] = Header(default=None),
 ) -> CommandResponse:
-    require_token(authorization, api_token)
+    require_auth(authorization)  # aceita session token OU api_token estático
 
     text = payload.text.strip()
     if not text:
@@ -431,7 +431,7 @@ def command(
 
 @app.get("/briefing", response_model=CommandResponse)
 def briefing(authorization: Optional[str] = Header(default=None)) -> CommandResponse:
-    require_token(authorization, api_token)
+    require_auth(authorization)  # aceita session token OU api_token estático
     try:
         return CommandResponse(ok=True, answer=agent.daily_briefing())
     except Exception as e:
