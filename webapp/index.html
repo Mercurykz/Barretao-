@@ -195,6 +195,20 @@
     .modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
     @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
     .modal h2{font-size:16px;margin-bottom:18px;text-align:center;font-weight:700}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .modal-header h3{font-size:17px;font-weight:700}
+    .close-btn{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px}
+    .close-btn:hover{background:var(--border)}
+    /* Install guide */
+    .itab{background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--text2);
+      padding:6px 12px;border-radius:20px;cursor:pointer;font-size:13px;font-family:inherit}
+    .itab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .itab-content{animation:su .2s ease}
+    .itab-content.hidden{display:none}
+    .install-step{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+    .install-step:last-of-type{border-bottom:none}
+    .step-num{min-width:24px;height:24px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;color:#fff;padding:11px 22px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
     .field{margin-bottom:14px}
     .field label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
     .field input{
@@ -274,6 +288,7 @@
         <div class="chip" onclick="sendChip('meus eventos de hoje')">Eventos de hoje</div>
         <div class="chip" onclick="sendChip('pesquisar notícias de hoje')">Pesquisar</div>
         <div class="chip" onclick="sendChip('qual a previsão do tempo?')">Previsão do tempo</div>
+        <div class="chip" id="install-guide-chip" onclick="openInstallGuide()">📲 Instalar no dispositivo</div>
       </div>
       <div class="brand-note">Barretão Hub · IA local · Privacidade em primeiro lugar</div>
     </div>
@@ -288,6 +303,90 @@
 
 <!-- Settings -->
 <div class="overlay hidden" id="settings-overlay">
+<!-- Install Guide Modal -->
+<div class="overlay hidden" id="install-overlay" style="z-index:2000">
+  <div class="modal" style="max-height:88dvh;overflow-y:auto">
+    <div class="modal-header">
+      <h3>📲 Instalar o Barretão</h3>
+      <button class="close-btn" onclick="closeInstallGuide()">✕</button>
+    </div>
+    <div style="padding:0 4px">
+      <p style="color:var(--text2);margin-bottom:16px;font-size:14px">Instale como app nativo — sem abrir o navegador.</p>
+
+      <!-- Tabs -->
+      <div id="install-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+        <button class="itab active" onclick="showTab('android')">🤖 Android</button>
+        <button class="itab" onclick="showTab('ios')">🍏 iPhone/iPad</button>
+        <button class="itab" onclick="showTab('pc')">🖥️ PC/Mac</button>
+        <button class="itab" onclick="showTab('console')">🎮 Console</button>
+        <button class="itab" onclick="showTab('car')">🚗 Carro</button>
+      </div>
+
+      <!-- Android -->
+      <div class="itab-content" id="tab-android">
+        <div class="install-step"><span class="step-num">1</span><span>Abra <a href="https://barretao.aiv4.com/app/" target="_blank">barretao.aiv4.com/app/</a> no <strong>Chrome</strong></span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Toque no botão <strong>📲 Instalar</strong> que aparecer no rodapé</span></div>
+        <div class="install-step"><span class="step-num">3</span><span>Se não aparecer: Menu ⋮ → <strong>Adicionar à tela inicial</strong></span></div>
+        <div class="install-step"><span class="step-num">4</span><span>Confirme → 🍕 fica no seu launcher como app!</span></div>
+        <div id="native-install-btn" style="display:none;margin-top:12px">
+          <button class="btn-primary" onclick="triggerNativeInstall()">📥 Instalar agora</button>
+        </div>
+      </div>
+
+      <!-- iOS -->
+      <div class="itab-content hidden" id="tab-ios">
+        <div class="install-step"><span class="step-num">1</span><span>Abra <a href="https://barretao.aiv4.com/app/" target="_blank">barretao.aiv4.com/app/</a> no <strong>Safari</strong></span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Toque no ícone de <strong>Compartilhar</strong> 📤 (barra inferior)</span></div>
+        <div class="install-step"><span class="step-num">3</span><span>Role e toque em <strong>Adicionar à Tela de Início</strong></span></div>
+        <div class="install-step"><span class="step-num">4</span><span>Confirme → 🍕 fica no seu iPhone como app!</span></div>
+        <div style="margin-top:12px;padding:10px;background:rgba(255,200,0,.12);border-radius:10px;font-size:13px;color:var(--text2)">
+          ⚠️ Use <strong>Safari</strong> — Chrome no iOS não permite instalar PWA.
+        </div>
+      </div>
+
+      <!-- PC -->
+      <div class="itab-content hidden" id="tab-pc">
+        <div style="margin-bottom:12px;font-weight:600;color:var(--accent-2)">Windows (Edge ou Chrome)</div>
+        <div class="install-step"><span class="step-num">1</span><span>Abra <a href="https://barretao.aiv4.com/app/" target="_blank">barretao.aiv4.com/app/</a></span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Clique no ícone de instalar na <strong>barra de endereços</strong> 💻</span></div>
+        <div class="install-step"><span class="step-num">3</span><span>Ou: Menu ⋮ → <strong>Instalar Barretão</strong></span></div>
+        <div class="install-step"><span class="step-num">4</span><span>O app abre numa janela própria sem barra do navegador 🎉</span></div>
+        <div id="native-install-btn-pc" style="display:none;margin-top:12px">
+          <button class="btn-primary" onclick="triggerNativeInstall()">📥 Instalar no PC agora</button>
+        </div>
+      </div>
+
+      <!-- Console -->
+      <div class="itab-content hidden" id="tab-console">
+        <div style="margin-bottom:12px;font-weight:600;color:var(--accent-2)">PlayStation / Xbox</div>
+        <div class="install-step"><span class="step-num">1</span><span>Abra o <strong>navegador</strong> do console</span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Acesse <strong>barretao.aiv4.com/app/</strong></span></div>
+        <div class="install-step"><span class="step-num">3</span><span>Adicione como favorito ou à tela inicial (PS5)</span></div>
+        <div style="margin-top:12px;padding:10px;background:rgba(100,150,255,.12);border-radius:10px;font-size:13px;color:var(--text2)">
+          🎮 PS5 e Xbox Series suportam navegação completa.
+          Microfone pode não funcionar dependendo do navegador do console.
+        </div>
+      </div>
+
+      <!-- Car -->
+      <div class="itab-content hidden" id="tab-car">
+        <div style="margin-bottom:12px;font-weight:600;color:var(--accent-2)">Carro com Android Auto / tela touchscreen</div>
+        <div class="install-step"><span class="step-num">1</span><span>Conecte o celular → abra o <strong>Android Auto</strong></span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Instale o app no celular (aba Android) → abre direto pelo Auto</span></div>
+        <div style="margin-top:8px;font-weight:600;color:var(--accent-2)">Carro com browser (Tesla, telas Android)</div>
+        <div class="install-step"><span class="step-num">1</span><span>Abra <strong>barretao.aiv4.com/app/</strong> no browser do carro</span></div>
+        <div class="install-step"><span class="step-num">2</span><span>Use por voz 🎤 — o Barretão já suporta microfone e fala!</span></div>
+        <div style="margin-top:12px;padding:10px;background:rgba(100,200,100,.1);border-radius:10px;font-size:13px;color:var(--text2)">
+          🚗 Tesla Model 3/Y/S/X: o browser Chromium suporta PWA completo.
+        </div>
+      </div>
+
+      <div style="margin-top:20px;text-align:center;color:var(--text2);font-size:13px">
+        URL do app: <a href="https://barretao.aiv4.com/app/" target="_blank" style="color:var(--accent-2)">barretao.aiv4.com</a>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="modal">
     <h2>⚙️ Configurações</h2>
     <div class="field">
@@ -892,15 +991,44 @@ function speak(text, onEnd) {
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); deferredPrompt = e;
-  // Show an install chip
+  // Show native install button inside the guide
+  ['native-install-btn','native-install-btn-pc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  });
+  // Show chip on empty state
   const chips = document.querySelector('.chips');
   if (chips && !document.getElementById('install-chip')) {
     const chip = document.createElement('div');
     chip.className = 'chip'; chip.id = 'install-chip';
     chip.textContent = '📲 Instalar app';
     chip.onclick = () => { deferredPrompt.prompt(); deferredPrompt = null; chip.remove(); };
-    chips.appendChild(chip);
+    chips.prepend(chip);
   }
+});
+
+function openInstallGuide() {
+  document.getElementById('install-overlay').classList.remove('hidden');
+  // Auto-detect platform tab
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) showTab('android');
+  else if (/iphone|ipad|ipod/i.test(ua)) showTab('ios');
+  else showTab('pc');
+}
+function closeInstallGuide() {
+  document.getElementById('install-overlay').classList.add('hidden');
+}
+function showTab(tab) {
+  document.querySelectorAll('.itab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.itab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  event.target.classList.add('active');
+}
+function triggerNativeInstall() {
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; closeInstallGuide(); }
+}
+document.getElementById('install-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('install-overlay')) closeInstallGuide();
 });
 
 // ── Service Worker ────────────────────────────────────────────────────────

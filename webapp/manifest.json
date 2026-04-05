@@ -1,29 +1,59 @@
 {
   "name": "Barretão Assistant",
   "short_name": "Barretão",
-  "description": "Assistente pessoal com IA local e foco em produtividade",
+  "description": "Assistente pessoal com IA — converse, crie imagens, controle seu PC e muito mais.",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",
-  "background_color": "#12162b",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#0a0f1f",
   "theme_color": "#12162b",
   "orientation": "portrait-primary",
   "lang": "pt-BR",
+  "id": "/app/",
   "icons": [
+    {
+      "src": "/app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "/app/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "lifestyle"],
   "shortcuts": [
     {
       "name": "Bom dia",
       "short_name": "Briefing",
       "description": "Abrir briefing do dia",
-      "url": "/app/?action=briefing"
+      "url": "/app/?action=briefing",
+      "icons": [{"src": "/app/icon-192.png", "sizes": "192x192"}]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Barretão Assistant"
     }
   ]
 }
