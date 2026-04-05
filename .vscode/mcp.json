@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "barretao": {
+      "type": "stdio",
+      "command": "C:\\Users\\Administrador\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "args": ["c:\\Users\\Administrador\\Desktop\\Barretão\\barretao_mcp.py"],
+      "env": {
+        "HUB_API_URL": "http://localhost:8787",
+        "HUB_API_TOKEN": "Jd5UXpEBVy1DH9xjDMjEAz56BEgqqPrho383q_dS9ms"
+      }
+    }
+  }
+}
