@@ -1,0 +1,395 @@
+{
+  "version": 2,
+  "skills": {
+    "accessibility": {
+      "name": "accessibility",
+      "source": "local",
+      "contentHash": "706129400c8c91a9264582940b36007116faffcaf27bb0780bdab87337b4f881",
+      "installedAt": "2026-04-05T17:23:04.589Z",
+      "updatedAt": "2026-04-05T17:25:04.452Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "codenavi": {
+      "name": "codenavi",
+      "source": "local",
+      "contentHash": "23ac05b7f2d8df8311129d41432eba248bdcf14e9ace3f17c581976f7d888ada",
+      "installedAt": "2026-04-05T17:25:45.124Z",
+      "updatedAt": "2026-04-05T17:25:52.768Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "coding-guidelines": {
+      "name": "coding-guidelines",
+      "source": "local",
+      "contentHash": "28a414c715d3c41aae28a25e2f109813ec3f246f76b5567c1e7d6a128cd289ff",
+      "installedAt": "2026-04-05T17:26:17.115Z",
+      "updatedAt": "2026-04-05T17:30:03.286Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "best-practices": {
+      "name": "best-practices",
+      "source": "local",
+      "contentHash": "2abba650ba22a819e67f8c2fb09d0f5f33a24d66d945ee2ef824751bc97151ce",
+      "installedAt": "2026-04-05T17:28:06.372Z",
+      "updatedAt": "2026-04-05T17:32:51.913Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "cursor-subagent-creator": {
+      "name": "cursor-subagent-creator",
+      "source": "local",
+      "contentHash": "658a170d783a694e638814bed35a738184795da2d0f0b36489cac94a478cd8d7",
+      "installedAt": "2026-04-05T17:29:12.907Z",
+      "updatedAt": "2026-04-05T17:29:16.566Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "docs-writer": {
+      "name": "docs-writer",
+      "source": "local",
+      "contentHash": "c49827c59d2e27d313731dfd36314cfde0e8dbf15be0e8f813d2f8b751546b0c",
+      "installedAt": "2026-04-05T17:30:09.497Z",
+      "updatedAt": "2026-04-05T17:30:18.717Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "confluence-assistant": {
+      "name": "confluence-assistant",
+      "source": "local",
+      "contentHash": "b9f019173a7d864db1d0a9eca13ee920d294806ea4c5cabfb626ccaedbaaeae7",
+      "installedAt": "2026-04-05T17:30:13.786Z",
+      "updatedAt": "2026-04-05T17:34:38.577Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "gh-address-comments": {
+      "name": "gh-address-comments",
+      "source": "local",
+      "contentHash": "a1808fb136b7118a7bdac65415e9a40a7982953f8b3339c97087fc0807865d88",
+      "installedAt": "2026-04-05T17:30:24.115Z",
+      "updatedAt": "2026-04-05T17:34:38.604Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "jira-assistant": {
+      "name": "jira-assistant",
+      "source": "local",
+      "contentHash": "fa63880889d2206548e33489a0ac1aa849c4e6ab879ea769c2715521a8231c8a",
+      "installedAt": "2026-04-05T17:30:37.626Z",
+      "updatedAt": "2026-04-05T17:34:38.609Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "nestjs-modular-monolith": {
+      "name": "nestjs-modular-monolith",
+      "source": "local",
+      "contentHash": "0bf9fee4b6a151866c38204557b13452feefb315b7d982a36c79125bcc3d076a",
+      "installedAt": "2026-04-05T17:30:45.260Z",
+      "updatedAt": "2026-04-05T17:34:38.623Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "react-native-expert": {
+      "name": "react-native-expert",
+      "source": "local",
+      "contentHash": "9da108258c0a93cd04b57d94a5a7788e6c37c704ca4322ca9b6bedce8e3ff683",
+      "installedAt": "2026-04-05T17:30:50.460Z",
+      "updatedAt": "2026-04-05T17:34:38.677Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "shopify-developer": {
+      "name": "shopify-developer",
+      "source": "local",
+      "contentHash": "10dd4806c0061bb9e89914557f6aec6badcef893e601293711ba3e8993527e9f",
+      "installedAt": "2026-04-05T17:30:55.713Z",
+      "updatedAt": "2026-04-05T17:34:38.727Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "tlc-spec-driven": {
+      "name": "tlc-spec-driven",
+      "source": "local",
+      "contentHash": "69867b0e19be1fb556d2e697f0f18f1de0363d1aa2de9d36754d5b107156357c",
+      "installedAt": "2026-04-05T17:31:00.310Z",
+      "updatedAt": "2026-04-05T17:34:38.743Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "figma": {
+      "name": "figma",
+      "source": "local",
+      "contentHash": "5da2000639e7aee302556408a161168b8955758da0da3305842e14a93a40a7b7",
+      "installedAt": "2026-04-05T17:31:11.809Z",
+      "updatedAt": "2026-04-05T17:34:38.584Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "figma-implement-design": {
+      "name": "figma-implement-design",
+      "source": "local",
+      "contentHash": "6177778eac45026cf58d1f86447fa730e39389e54a99df2c5f35cd6905371b1d",
+      "installedAt": "2026-04-05T17:31:18.975Z",
+      "updatedAt": "2026-04-05T17:34:38.589Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "frontend-design": {
+      "name": "frontend-design",
+      "source": "local",
+      "contentHash": "b20162c8d6bcdd9137c4afceaeb4f9dce2c1ba3ccb57a96a3228b8cb33104ec4",
+      "installedAt": "2026-04-05T17:31:25.384Z",
+      "updatedAt": "2026-04-05T17:34:38.599Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "web-design-guidelines": {
+      "name": "web-design-guidelines",
+      "source": "local",
+      "contentHash": "213a23fff251b12ddfec648bda148bf10704ef6617e162eb9329cc83963dd138",
+      "installedAt": "2026-04-05T17:31:30.959Z",
+      "updatedAt": "2026-04-05T17:34:38.749Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "security-best-practices": {
+      "name": "security-best-practices",
+      "source": "local",
+      "contentHash": "6fec09f7e43bb297ad6097e13469e85aa5b5d671a839b4f7e7871ef8eaa76c4e",
+      "installedAt": "2026-04-05T17:31:41.540Z",
+      "updatedAt": "2026-04-05T17:34:38.690Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "security-ownership-map": {
+      "name": "security-ownership-map",
+      "source": "local",
+      "contentHash": "d6231f21029bc14fc776dbef909f631a6b39d7d1b46b11b25dbfe51c51dd7141",
+      "installedAt": "2026-04-05T17:31:47.372Z",
+      "updatedAt": "2026-04-05T17:34:38.699Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "security-threat-model": {
+      "name": "security-threat-model",
+      "source": "local",
+      "contentHash": "9f4cf3c7971c6d84a4657c2c0c395a4c7febbac5a2361950922fc150fcef9599",
+      "installedAt": "2026-04-05T17:31:52.708Z",
+      "updatedAt": "2026-04-05T17:34:38.705Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "playwright-skill": {
+      "name": "playwright-skill",
+      "source": "local",
+      "contentHash": "9c45020d33af9ac2d44c89721f154c94bd73b9d8590117597b9a26920ff9cecc",
+      "installedAt": "2026-04-05T17:32:11.103Z",
+      "updatedAt": "2026-04-05T17:34:38.630Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "learning-opportunities": {
+      "name": "learning-opportunities",
+      "source": "local",
+      "contentHash": "47c4d62eebf29a61477c1b611c6ae360b028e1e23e09df1f6a33b5ff32b020f7",
+      "installedAt": "2026-04-05T17:32:22.912Z",
+      "updatedAt": "2026-04-05T17:34:38.614Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "sentry": {
+      "name": "sentry",
+      "source": "local",
+      "contentHash": "aa0e533aff9a319b0aef86ad3e543f61b812bf159c27fc9ebb1c7ad97d5db937",
+      "installedAt": "2026-04-05T17:32:31.907Z",
+      "updatedAt": "2026-04-05T17:34:38.711Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "react-best-practices": {
+      "name": "react-best-practices",
+      "source": "local",
+      "contentHash": "e96f99e13dc2acc75efc1793aee08fe244802a97a4e190af38bd5a871a5c9636",
+      "installedAt": "2026-04-05T17:32:48.960Z",
+      "updatedAt": "2026-04-05T17:34:38.669Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "seo": {
+      "name": "seo",
+      "source": "local",
+      "contentHash": "fc9897a3923b5e23e00545ac67f4c8c2b6903113bd5f046cda259c98a0f3cd40",
+      "installedAt": "2026-04-05T17:32:56.947Z",
+      "updatedAt": "2026-04-05T17:34:38.715Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    },
+    "web-quality-audit": {
+      "name": "web-quality-audit",
+      "source": "local",
+      "contentHash": "8af5bd3453984bdcef903709b6ef0606b12ae1badb6dd5b5b382b930d2594d7c",
+      "installedAt": "2026-04-05T17:33:03.046Z",
+      "updatedAt": "2026-04-05T17:34:38.755Z",
+      "agents": [
+        "cursor",
+        "claude-code",
+        "windsurf",
+        "github-copilot"
+      ],
+      "method": "copy",
+      "global": false
+    }
+  }
+}
