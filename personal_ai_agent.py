@@ -3040,31 +3040,31 @@ Máximo 400 caracteres, sem bullet points."""
             return {"error": "GEMINI_IMAGE_API_KEY not configured. Add it to .env"}
         
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types as genai_types
             import base64
 
-            genai.configure(api_key=self.gemini_image_api_key)
-            model = genai.GenerativeModel(self.image_model)
+            client = genai.Client(api_key=self.gemini_image_api_key)
 
             images_out = []
             for _ in range(min(quantity, 4)):
-                response = model.generate_content(
-                    prompt.strip(),
-                    generation_config=genai.types.GenerationConfig(
-                        response_modalities=["image", "text"]
+                response = client.models.generate_content(
+                    model=self.image_model,
+                    contents=prompt.strip(),
+                    config=genai_types.GenerateContentConfig(
+                        response_modalities=["IMAGE", "TEXT"]
                     ),
                 )
-                for candidate in response.candidates:
-                    for part in candidate.content.parts:
-                        if hasattr(part, "inline_data") and part.inline_data:
-                            img_b64 = base64.b64encode(part.inline_data.data).decode("utf-8")
-                            mime = part.inline_data.mime_type or "image/png"
-                            images_out.append({
-                                "base64": img_b64,
-                                "mime_type": mime,
-                                "prompt": prompt,
-                                "data_url": f"data:{mime};base64,{img_b64}"
-                            })
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data:
+                        img_b64 = base64.b64encode(part.inline_data.data).decode("utf-8")
+                        mime = part.inline_data.mime_type or "image/png"
+                        images_out.append({
+                            "base64": img_b64,
+                            "mime_type": mime,
+                            "prompt": prompt,
+                            "data_url": f"data:{mime};base64,{img_b64}"
+                        })
 
             if not images_out:
                 return {"error": "Gemini returned no images. Check your API key and model availability."}
@@ -3084,7 +3084,7 @@ Máximo 400 caracteres, sem bullet points."""
             }
 
         except ImportError:
-            return {"error": "google-generativeai not installed. Run: pip install google-generativeai"}
+            return {"error": "google-genai not installed. Run: pip install google-genai"}
         except Exception as e:
             return {"error": f"Nano Banana (Gemini) image generation failed: {str(e)}"}
 

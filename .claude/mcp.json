@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "barretao": {
-      "command": "C:\\Users\\Administrador\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "command": "c:\\Users\\Administrador\\Desktop\\Barretão\\.venv311\\Scripts\\python.exe",
       "args": ["c:\\Users\\Administrador\\Desktop\\Barretão\\barretao_mcp.py"],
       "env": {
         "HUB_API_URL": "http://localhost:8787",
