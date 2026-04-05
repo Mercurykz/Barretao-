@@ -1,4 +1,5 @@
 import os
+import sys
 import importlib
 import pathlib
 import socket
@@ -11,6 +12,12 @@ import time
 import re
 import shutil
 from typing import Optional
+
+# Fix emoji output on Windows terminals
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 from personal_ai_agent import PersonalAIAgent
 
