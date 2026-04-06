@@ -278,3 +278,26 @@ def delete_integration(user_id: str, name: str) -> bool:
     with _conn() as con:
         cur = con.execute("DELETE FROM integrations WHERE name=? AND user_id=?", (name, user_id))
     return cur.rowcount > 0
+
+
+# ── Autonomous helpers ────────────────────────────────────────────────────────
+
+def get_all_users() -> list[dict]:
+    """Returns all registered users (id, username, display_name)."""
+    with _conn() as con:
+        rows = con.execute(
+            "SELECT id, username, display_name FROM users ORDER BY created_at"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_all_online_devices() -> list[dict]:
+    """Returns all devices that sent a heartbeat in the last 5 minutes."""
+    cutoff = (datetime.datetime.utcnow() - datetime.timedelta(minutes=5)).isoformat()
+    with _conn() as con:
+        rows = con.execute(
+            "SELECT id, user_id, name, type, last_seen FROM devices "
+            "WHERE last_seen > ? ORDER BY last_seen DESC",
+            (cutoff,),
+        ).fetchall()
+    return [dict(r) for r in rows]

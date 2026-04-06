@@ -3573,6 +3573,7 @@ Format as a structured JSON with:
                     subj = _decode(msg.get("Subject", ""))
                     frm  = _decode(msg.get("From", ""))
                     date = msg.get("Date", "")
+                    mid  = msg.get("Message-ID", "").strip()
 
                     # Extract text/plain snippet
                     snippet = ""
@@ -3593,6 +3594,7 @@ Format as a structured JSON with:
                         "subject": subj,
                         "date": date,
                         "snippet": snippet.replace("\n", " ").strip(),
+                        "id": mid or f"{frm}|{subj}",
                     })
                 except Exception:
                     continue
@@ -3683,6 +3685,177 @@ Format as a structured JSON with:
         except Exception:
             pass
         return tags
+
+    # ── Autonomous agent methods ─────────────────────────────────────────────
+
+    def get_upcoming_events_summary(self) -> str | None:
+        """Return a reminder string for personal_events in the next 48h, or None."""
+        try:
+            from datetime import timedelta
+            now = datetime.now()
+            today = now.date()
+            day_after = today + timedelta(days=2)
+            rows = self.conn.execute(
+                "SELECT event_date, title FROM personal_events "
+                "WHERE event_date >= ? AND event_date < ? ORDER BY event_date ASC",
+                (today.isoformat(), day_after.isoformat()),
+            ).fetchall()
+            if not rows:
+                return None
+            msgs = []
+            for event_date, title in rows:
+                from datetime import timedelta as _td
+                ed = datetime.strptime(event_date, "%Y-%m-%d").date()
+                if ed == today:
+                    msgs.append(f"• Hoje: {title}")
+                else:
+                    msgs.append(f"• Amanhã: {title}")
+            return ("📅 Lembretes:\n" + "\n".join(msgs)) if msgs else None
+        except Exception:
+            return None
+
+    def get_current_routine_reminder(self) -> str | None:
+        """Return today's weekly routine tasks, or None."""
+        try:
+            weekday = datetime.now().weekday()  # 0=Mon … 6=Sun
+            rows = self.conn.execute(
+                "SELECT title FROM weekly_routines WHERE weekday=? ORDER BY id ASC",
+                (weekday,),
+            ).fetchall()
+            if not rows:
+                return None
+            day_names = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+            titles = [r[0] for r in rows]
+            return f"📋 Rotina de {day_names[weekday]}: {', '.join(titles)}"
+        except Exception:
+            return None
+
+    def autonomous_tick(self) -> str | None:
+        """
+        Called by the background loop every ~10 min.
+        Composes a proactive message from: events, routines, and an LLM thought.
+        Returns a string to push to the user, or None if nothing to say.
+        """
+        try:
+            now = datetime.now()
+            # Silent hours: 22:00 – 07:00
+            if now.hour >= 22 or now.hour < 7:
+                return None
+
+            parts: list[str] = []
+
+            # 1. Upcoming events (always check)
+            ev = self.get_upcoming_events_summary()
+            if ev:
+                parts.append(ev)
+
+            # 2. Routine reminder (morning window 07:00–09:00 only)
+            if 7 <= now.hour < 9:
+                rt = self.get_current_routine_reminder()
+                if rt:
+                    parts.append(rt)
+
+            # 3. LLM-generated proactive thought
+            try:
+                facts = self.get_memory_tags(limit=6)
+                facts_text = ", ".join(t["text"] for t in facts) if facts else "nenhum"
+                hour_label = now.strftime("%H:%M")
+                day_label = ["segunda", "terça", "quarta", "quinta",
+                              "sexta", "sábado", "domingo"][now.weekday()]
+                prompt = (
+                    f"Você é um assistente pessoal autônomo chamado AIV4. "
+                    f"São {hour_label} de {day_label}. "
+                    f"O que você já aprendeu sobre o usuário: {facts_text}. "
+                    f"Gere UMA observação proativa, curta e útil (máximo 1 frase). "
+                    f"Se não há nada relevante agora, responda exatamente: SKIP"
+                )
+                resp = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": self.model, "prompt": prompt, "stream": False},
+                    timeout=20,
+                )
+                if resp.ok:
+                    thought = resp.json().get("response", "").strip()
+                    if thought and thought.upper() != "SKIP" and len(thought) < 280:
+                        parts.append(f"💭 {thought}")
+            except Exception:
+                pass  # Ollama offline → deliver other parts anyway
+
+            return "\n\n".join(parts) if parts else None
+        except Exception:
+            return None
+
+    def autonomous_email_check(
+        self,
+        email_addr: str,
+        password: str,
+        seen_ids: set,
+    ) -> tuple[str | None, set]:
+        """
+        Autonomous email scanner. Fetches inbox, finds emails NOT in seen_ids,
+        uses LLM to decide if they are worth mentioning, and returns a proactive
+        summary + the updated seen set.
+        Returns (message_or_None, new_seen_set).
+        """
+        try:
+            now = datetime.now()
+            if now.hour < 7 or now.hour >= 22:
+                return None, seen_ids
+
+            emails = self.fetch_emails_imap(email_addr=email_addr, password=password, limit=15)
+
+            if not emails or (len(emails) == 1 and "error" in emails[0]):
+                return None, seen_ids
+
+            # Filter to only new emails (not yet seen this session)
+            new_emails: list[dict] = []
+            new_seen = set(seen_ids)
+            for em in emails:
+                eid = em.get("id", "") or f"{em.get('from','')}|{em.get('subject','')}"
+                if eid not in new_seen:
+                    new_emails.append(em)
+                    new_seen.add(eid)
+
+            if not new_emails:
+                return None, new_seen
+
+            # Ask LLM: are any of these worth a proactive alert?
+            lines = [f"Você é um assistente pessoal. Analise estes {len(new_emails)} e-mail(s) novos:"]
+            for i, em in enumerate(new_emails, 1):
+                lines.append(f"{i}. De: {em['from']}")
+                lines.append(f"   Assunto: {em['subject']}")
+                if em.get("snippet"):
+                    lines.append(f"   Trecho: {em['snippet'][:120]}")
+
+            lines.append(
+                "\nResponda APENAS se houver e-mails urgentes, importantes ou que precisem de ação. "
+                "Se sim, faça um resumo curto em português (máx 3 bullet points). "
+                "Se nenhum for relevante, responda exatamente: SKIP"
+            )
+
+            try:
+                resp = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": self.model, "prompt": "\n".join(lines), "stream": False},
+                    timeout=25,
+                )
+                if resp.ok:
+                    thought = resp.json().get("response", "").strip()
+                    if thought and thought.upper() != "SKIP" and len(thought) > 10:
+                        header = f"📧 {len(new_emails)} e-mail(s) novo(s):"
+                        return f"{header}\n{thought}", new_seen
+            except Exception:
+                # Ollama offline: report raw list without LLM filter
+                if new_emails:
+                    bullet = "\n".join(
+                        f"• {em['from'][:40]} — {em['subject'][:50]}"
+                        for em in new_emails[:5]
+                    )
+                    return f"📧 {len(new_emails)} e-mail(s) novo(s):\n{bullet}", new_seen
+
+            return None, new_seen
+        except Exception:
+            return None, seen_ids
 
     def handle_local_command(self, command: str) -> str | None:
         text = command.strip()

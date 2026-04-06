@@ -13,6 +13,7 @@ import re
 import shutil
 import asyncio
 import asyncio.proactor_events
+from contextlib import asynccontextmanager
 from typing import Optional
 
 # ── Suppress harmless WinError 10054 (browser closed connection) ──────────────
@@ -212,6 +213,92 @@ def _start_cloudflare_tunnel(origin_url: str) -> tuple[subprocess.Popen | None, 
     return proc, None, "túnel iniciado, mas URL pública não foi detectada automaticamente."
 
 
+# ── Autonomous agent loop ────────────────────────────────────────────────────
+_auto_enabled:  bool                     = os.getenv("AUTONOMOUS_MODE", "true").lower() == "true"
+_auto_last_run: datetime.datetime | None = None
+_auto_last_msg: str | None               = None
+# Tracks which (user_id, device_id, slot) combos already received a thought today
+_auto_sent: set[tuple[str, str, str]] = set()
+# Per-user seen email IDs (Message-ID) — resets daily
+_auto_email_seen: dict[str, set] = {}
+# Email check runs every 3rd tick (≈ 30 min), general tick every 10 min
+_auto_email_tick: int = 0
+
+
+async def _autonomous_loop() -> None:
+    """Background task: agent thinks proactively every 10 min, checks emails every 30 min."""
+    global _auto_last_run, _auto_last_msg, _auto_sent, _auto_email_seen, _auto_email_tick
+    await asyncio.sleep(60)          # 1-min warm-up after startup
+    last_date: str = ""
+    while True:
+        try:
+            if _auto_enabled:
+                today = datetime.date.today().isoformat()
+                if today != last_date:   # reset de-dup sets each calendar day
+                    _auto_sent.clear()
+                    _auto_email_seen.clear()
+                    last_date = today
+
+                _auto_email_tick += 1
+                check_emails = (_auto_email_tick % 3 == 0)  # every 3rd tick = 30 min
+
+                # ── General proactive thought ──────────────────────────────
+                msg = agent.autonomous_tick()
+                _auto_last_run = datetime.datetime.now()
+
+                if msg:
+                    _auto_last_msg = msg
+                    online = auth.get_all_online_devices()
+                    for device in online:
+                        uid  = device["user_id"]
+                        did  = device["id"]
+                        slot = datetime.datetime.now().strftime("%Y-%m-%d-%H")
+                        key  = (uid, did, slot)
+                        if key not in _auto_sent:
+                            _auto_sent.add(key)
+                            auth.queue_command(uid, did, f"[PROATIVO] {msg}")
+
+                # ── Autonomous email check (per-user, every 30 min) ────────
+                if check_emails:
+                    users = auth.get_all_users()
+                    online = auth.get_all_online_devices()
+                    online_by_user: dict[str, list[dict]] = {}
+                    for d in online:
+                        online_by_user.setdefault(d["user_id"], []).append(d)
+
+                    for user in users:
+                        uid = user["id"]
+                        if uid not in online_by_user:
+                            continue   # user has no online device right now
+                        gmail_int = auth.get_integration(uid, "gmail")
+                        if not gmail_int:
+                            continue   # no Gmail linked for this user
+                        cfg = gmail_int["config"]
+                        seen = _auto_email_seen.get(uid, set())
+                        email_msg, new_seen = agent.autonomous_email_check(
+                            email_addr=cfg.get("email", ""),
+                            password=cfg.get("app_password", ""),
+                            seen_ids=seen,
+                        )
+                        _auto_email_seen[uid] = new_seen
+                        if email_msg:
+                            for device in online_by_user[uid]:
+                                auth.queue_command(uid, device["id"], f"[PROATIVO] {email_msg}")
+
+        except Exception as exc:
+            print(f"⚠️  Autonomous loop error: {exc}")
+        await asyncio.sleep(600)     # tick every 10 minutes
+
+
+@asynccontextmanager
+async def _lifespan(app_):
+    task = asyncio.create_task(_autonomous_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+
+
 class CommandRequest(BaseModel):
     text: str
     source: str = "external"
@@ -233,7 +320,7 @@ def require_token(auth_header: Optional[str], expected_token: str) -> None:
         raise HTTPException(status_code=403, detail="Invalid token")
 
 
-app = FastAPI(title="Barretão Hub", version="2.0.0")
+app = FastAPI(title="Barretão Hub", version="2.1.0", lifespan=_lifespan)
 hub_enable_voice = os.getenv("HUB_ENABLE_VOICE", "false").strip().lower() == "true"
 agent = PersonalAIAgent(enable_voice=hub_enable_voice)
 api_token = os.getenv("HUB_API_TOKEN", "").strip()
@@ -526,6 +613,40 @@ def api_emails(authorization: Optional[str] = Header(default=None)) -> dict:
     if emails and "error" in emails[0]:
         raise HTTPException(status_code=502, detail=emails[0]["error"])
     return {"ok": True, "emails": emails, "count": len(emails)}
+
+
+# ── Autonomous endpoints ──────────────────────────────────────────────────────
+@app.get("/autonomous/status")
+def api_auto_status(authorization: Optional[str] = Header(default=None)) -> dict:
+    """Returns the current state of the autonomous agent loop."""
+    require_auth(authorization)
+    return {
+        "ok": True,
+        "enabled": _auto_enabled,
+        "last_run": _auto_last_run.isoformat() if _auto_last_run else None,
+        "last_message": _auto_last_msg,
+    }
+
+
+@app.post("/autonomous/run")
+def api_auto_run(authorization: Optional[str] = Header(default=None)) -> dict:
+    """Manually trigger one autonomous tick right now."""
+    user = require_auth(authorization)
+    msg = agent.autonomous_tick()
+    if msg:
+        devices = auth.get_devices(user["id"])
+        for d in devices:
+            auth.queue_command(user["id"], d["id"], f"[PROATIVO] {msg}")
+    return {"ok": True, "triggered": bool(msg), "message": msg}
+
+
+@app.post("/autonomous/toggle")
+def api_auto_toggle(authorization: Optional[str] = Header(default=None)) -> dict:
+    """Enable or disable the autonomous loop at runtime."""
+    global _auto_enabled
+    require_auth(authorization)
+    _auto_enabled = not _auto_enabled
+    return {"ok": True, "enabled": _auto_enabled}
 
 
 @app.post("/command", response_model=CommandResponse)
