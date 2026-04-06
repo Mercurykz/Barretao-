@@ -11,6 +11,12 @@ import queue
 import time
 import re
 import shutil
+try:
+    import psutil as _psutil
+    _PSUTIL_OK = True
+except ImportError:
+    _psutil = None
+    _PSUTIL_OK = False
 import asyncio
 import asyncio.proactor_events
 from contextlib import asynccontextmanager
@@ -28,6 +34,9 @@ if sys.platform == "win32":
 
     asyncio.proactor_events._ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
 # ─────────────────────────────────────────────────────────────────────────────
+
+import time as _time
+_APP_START = _time.time()
 
 import barretao_auth as auth
 
@@ -538,6 +547,29 @@ def download_cert():
 @app.get("/health")
 def health() -> dict:
     return {"ok": True, "service": "barretao-hub", "version": "2.0.0"}
+
+
+@app.get("/status")
+def api_status(authorization: Optional[str] = Header(default=None)) -> dict:
+    require_auth(authorization)
+    cpu = round(_psutil.cpu_percent(interval=0.1), 1) if _PSUTIL_OK else 0.0
+    mem = _psutil.virtual_memory() if _PSUTIL_OK else None
+    ram_used = round(mem.used / 1024**3, 1) if mem else 0.0
+    ram_total = round(mem.total / 1024**3, 1) if mem else 0.0
+    uptime = int(_time.time() - _APP_START)
+    provider = getattr(agent, "llm_provider", "ollama")
+    model = getattr(agent, "model", getattr(agent, "ollama_model", "—"))
+    discord_on = bool(getattr(agent, "discord_enabled", False))
+    return {
+        "ok": True,
+        "cpu_percent": cpu,
+        "ram_used_gb": ram_used,
+        "ram_total_gb": ram_total,
+        "uptime_seconds": uptime,
+        "model": model,
+        "provider": provider,
+        "discord_enabled": discord_on,
+    }
 
 
 # ── Stats endpoint ─────────────────────────────────────────────────────────
