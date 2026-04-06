@@ -627,6 +627,12 @@ class LocalOllamaClient:
         self.provider = provider.strip().lower() or "ollama"
         self.api_key = api_key.strip()
         self.requests = importlib.import_module("requests")
+        # Inference quality params
+        self.num_predict = int(os.getenv("MAX_TOKENS", "700"))
+        self.top_p = float(os.getenv("TOP_P", "0.9"))
+        self.top_k = int(os.getenv("TOP_K", "40"))
+        self.repeat_penalty = float(os.getenv("REPEAT_PENALTY", "1.1"))
+        self.num_ctx = int(os.getenv("NUM_CTX", "4096"))
 
     def _messages_to_text(self, messages: list[dict[str, str]]) -> str:
         parts: list[str] = []
@@ -675,6 +681,7 @@ class LocalOllamaClient:
                 "model": self.model,
                 "messages": messages,
                 "temperature": self.temperature,
+                "max_tokens": self.num_predict,
             }
             headers = {"Content-Type": "application/json"}
             if self.api_key:
@@ -697,7 +704,12 @@ class LocalOllamaClient:
                         "parts": [{"text": self._messages_to_text(messages)}],
                     }
                 ],
-                "generationConfig": {"temperature": self.temperature},
+                "generationConfig": {
+                    "temperature": self.temperature,
+                    "maxOutputTokens": self.num_predict,
+                    "topP": self.top_p,
+                    "topK": self.top_k,
+                },
             }
 
             discovered_models = self._discover_gemini_models(params)
@@ -753,7 +765,14 @@ class LocalOllamaClient:
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": self.temperature},
+            "options": {
+                "temperature": self.temperature,
+                "top_p": self.top_p,
+                "top_k": self.top_k,
+                "repeat_penalty": self.repeat_penalty,
+                "num_predict": self.num_predict,
+                "num_ctx": self.num_ctx,
+            },
         }
         response = self.requests.post(url, json=payload, timeout=180)
         response.raise_for_status()
@@ -955,6 +974,19 @@ class PersonalAIAgent:
         self._restore_voice_preferences()
 
         self.system_prompt = self.build_system_prompt()
+
+        # Auto-seed KB em background se estiver vazio
+        try:
+            _kb_count = self.conn.execute("SELECT COUNT(*) FROM knowledge_base").fetchone()[0]
+            if _kb_count < 20:
+                import threading as _t_mod
+                _seed_thread = _t_mod.Thread(
+                    target=self.seed_knowledge_base_auto, daemon=True, name="kb-seed"
+                )
+                _seed_thread.start()
+                print(f"🌱 KB com apenas {_kb_count} entradas — seedando 70+ tópicos em background...")
+        except Exception:
+            pass
 
     def _refresh_model_pool(self) -> None:
         pool: list[LocalOllamaClient] = [self.client]
@@ -1164,42 +1196,57 @@ class PersonalAIAgent:
         profile_ctx = self.format_user_profile_context() if hasattr(self, "conn") else ""
 
         # ── Identidade base (arquitetura Jarvis) ───────────────────────────
-        base = f"""Você é {self.agent_name}, um assistente pessoal avançado, autônomo e adaptativo — inspirado no conceito Jarvis.
+        base = f"""Você é {self.agent_name}, um assistente de IA pessoal avançado — preciso, autônomo e direto ao ponto.
 
 IDENTIDADE:
 - Nome: {self.agent_name}
-- Personalidade: Inteligente, direto, proativo, levemente conversacional, confiável e eficiente
-- Idioma: Português do Brasil
-- Estilo: Respostas claras, organizadas e orientadas à ação
+- Caráter: Inteligente, conciso, proativo, confiável, sem rodeios
+- Idioma: Português do Brasil (sempre)
 
-CAPACIDADES PRINCIPAIS:
-1. Automação e controle — PC, scripts PowerShell, Wake-on-LAN, dispositivos
-2. Gestão de informação — resumos, análises, filtragem de conteúdo
-3. Criação e desenvolvimento — geração de código, apps completos, revisão, otimização
-4. Memória persistente — aprende preferências, hábitos e histórico do usuário
-5. Organização pessoal — rotinas, lembretes, metas, planejamento
-6. Geração de conteúdo — textos, imagens (Nano Banana/Gemini), documentos
+COMO VOCÊ PENSA (process interno, não mostre ao usuário):
+1. Identifique a real intenção (nem sempre é literal)
+2. Verifique se sabe a resposta com certeza — se não, diga claramente
+3. Forme a resposta máxima MAIS CURTA que seja completa e útil
+4. Corte qualquer palavra que não adicione informação
 
-MÓDULOS ATIVOS:
-- Memória curto prazo: histórico da conversa atual
-- Memória longo prazo: banco SQLite com perfil, fatos aprendidos, notas, KB
-- Decisão: avalia tarefas, define prioridades, sugere automações proativas
-- Execução: comandos locais, APIs externas, geração de imagens e código
-- Aprendizado: ajusta comportamento com base no feedback do usuário
+REGRA DE OURO — CONCISÃO ABSOLUTA:
+- Perguntas simples: 1 a 3 frases. Ponto final.
+- Perguntas técnicas ou complexas: máximo 7 linhas
+- Código: apenas o código funcional + comentários essenciais
+- NUNCA comece com "Claro!", "Com certeza!", "Ótima pergunta!", "Olá!" — vá direto
+- NUNCA repita a pergunta do usuário antes de responder
+- NUNCA use markdown decorativo (**, ##, __, ---) a menos que o usuário peça
+- NUNCA termine com "Espero ter ajudado", "Qualquer dúvida...", "Fique à vontade"
+- Se a resposta for sim ou não: responda sim/não + razão em 1 frase
 
-REGRAS DE COMPORTAMENTO:
-- Seja proativo: sugira melhorias e automações quando perceber oportunidade
-- Antecipe necessidades com base no histórico do usuário
-- Peça confirmação antes de ações críticas (desligar PC, apagar dados, etc.)
-- Simplifique tarefas complexas em etapas acionáveis
-- Explique decisões quando necessário
-- Nunca invente informações — diga claramente quando não souber
+DOMINIOS DE CONHECIMENTO (use ativamente):
+- Ciências exatas: Física (Newton, quantum, relatividade), Química, Biologia, Matemática, Astronomia
+- Ciências humanas: História mundial e brasileira, Filosofia, Psicologia, Geografia
+- Tecnologia: Python, JavaScript, SQL, APIs, Docker, Git, Linux, algoritmos, IA/ML, Cloud
+- Economia e Direito: Macroeconomia, investimentos, CLT, CF/88, CDC
+- Saúde: Nutrição, fisiologia, sono, neurocognição
+- Cultura: Literatura brasileira, música, artes, cinema
 
-FORMATO DE RESPOSTA:
-- Respostas curtas para perguntas simples
-- Para tarefas complexas: resumo → execução → sugestões adicionais
-- Sem markdown decorativo (**, ##, __, etc.) a menos que o usuário peça
-- Escreva de forma natural, limpa e direta"""
+CAPACIDADES ATIVAS:
+- Automação: PowerShell, scripts, WoL, controle de PC e dispositivos
+- Desenvolvimento: geração, revisão e explicação de código
+- Memória: KB com 70+ tópicos seedados + perfil persistente em SQLite
+- Integrações: Gmail, Google Calendar, Home Assistant, Telegram, GitHub, Notion
+- Busca web, geração de imagens (Nano Banana/Gemini/DALL-E)
+
+FORMATO POR TIPO:
+- "O que é X?" → definição em 1-2 frases
+- "Como faço X?" → passos numerados (máx 5, concisos)
+- "Escreva código para X" → só o código + 1 linha de contexto
+- "Explique X" → conceito central + 1-2 detalhes essenciais
+- Comparações → 2-4 pontos por opção, sem floreio
+- Ações críticas (deletar, desligar) → peça confirmação antes
+
+QUALIDADE INTELECTUAL:
+- Raciocínio: apresente a lógica quando não for óbvio
+- Precisão: prefira dados e fatos a opiniões vagas
+- Honestidade: "não sei" é melhor que invenção
+- Proatividade: se perceber que há algo mais importante que o pedido literal, mencione brevemente"""
 
         # ── Contexto do perfil, se disponível ─────────────────────────────
         if profile_ctx:
@@ -2404,7 +2451,44 @@ Máximo 400 caracteres, sem bullet points."""
         # Adiciona KB context se disponível
         if kb_context:
             context.append({"role": "system", "content": kb_context})
-        
+
+        # Hint de formato adaptativo por tipo de mensagem
+        _msg_low = user_message.lower()
+        _msg_words = len(user_message.split())
+        _is_code_req = any(w in _msg_low for w in [
+            "código", "script", "função", "programa", "python", "javascript",
+            "typescript", "java ", "sql ", "bash", "def ", "import ", "faize em",
+            "faça em", "cria em", "escreva em", "implemente",
+        ])
+        _is_factual = _msg_words <= 10 or any(w in _msg_low for w in [
+            "o que é", "o que são", "quem é", "quem foi", "quando", "onde fica",
+            "qual é", "quantos", "o que significa", "defina", "o que é",
+        ])
+        _is_list_req = any(w in _msg_low for w in [
+            "liste", "me dê", "quais são", "exemplos de", "tipos de", "cite",
+        ])
+        if _is_code_req:
+            _fmt = (
+                "INSTRUÇÃO DE FORMATO: Resposta deve conter o código funcional. "
+                "Máximo 3 linhas de explicação. Nada mais."
+            )
+        elif _is_factual:
+            _fmt = (
+                "INSTRUÇÃO DE FORMATO: Resposta direta. 1 a 3 frases. "
+                "Sem intro, sem conclusão, sem listas."
+            )
+        elif _is_list_req:
+            _fmt = (
+                "INSTRUÇÃO DE FORMATO: Use lista. Máximo 7 itens. "
+                "1 linha por item. Sem parágrafo introdutório."
+            )
+        else:
+            _fmt = (
+                "INSTRUÇÃO DE FORMATO: Máximo 6 linhas no total. "
+                "Use tópicos só se necessário. Sem prefixo nem conclusão."
+            )
+        context.append({"role": "system", "content": _fmt})
+
         context.extend(self.history[-12:])
 
         answer = self._clean_response_text(self._chat_with_models(context, purpose="chat"))
