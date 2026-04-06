@@ -35,8 +35,7 @@ if sys.platform == "win32":
     asyncio.proactor_events._ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
 # ─────────────────────────────────────────────────────────────────────────────
 
-import time as _time
-_APP_START = _time.time()
+_APP_START = time.time()
 
 import barretao_auth as auth
 
@@ -556,7 +555,7 @@ def api_status(authorization: Optional[str] = Header(default=None)) -> dict:
     mem = _psutil.virtual_memory() if _PSUTIL_OK else None
     ram_used = round(mem.used / 1024**3, 1) if mem else 0.0
     ram_total = round(mem.total / 1024**3, 1) if mem else 0.0
-    uptime = int(_time.time() - _APP_START)
+    uptime = int(time.time() - _APP_START)
     provider = getattr(agent, "llm_provider", "ollama")
     model = getattr(agent, "model", getattr(agent, "ollama_model", "—"))
     discord_on = bool(getattr(agent, "discord_enabled", False))
