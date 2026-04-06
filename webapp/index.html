@@ -2360,7 +2360,6 @@ async function loadMemoryPanel() {
             return `<div class="mem-item">
               <span class="mem-tag">[${tagLabel}]</span>
               <span class="mem-text">${text}</span>
-              <button class="mem-del" title="Remover">✕</button>
             </div>`;
           }).join('');
     }
@@ -2698,23 +2697,24 @@ function closeSettings() {
 document.getElementById('settings-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('settings-overlay')) closeSettings();
 });
-document.getElementById('btn-settings').onclick = openSettings;
+const _btnSettings = document.getElementById('btn-settings');
+if (_btnSettings) _btnSettings.onclick = openSettings;
 
 // ── Status ────────────────────────────────────────────────────────────────
 async function checkStatus() {
   const dot  = document.getElementById('status-dot');
   const text = document.getElementById('status-text');
   if (!CFG.url) {
-    dot.className  = 'dot offline';
-    text.textContent = 'Configure o servidor ⚙️';
+    if (dot) dot.className  = 'dot offline';
+    if (text) text.textContent = 'Configure o servidor ⚙️';
     return;
   }
   // Tenta URL configurada
   try {
     const r = await fetch(CFG.url + '/health', { signal: AbortSignal.timeout(6000) });
     if (r.ok) {
-      dot.className  = 'dot online';
-      text.textContent = 'Online ✓';
+      if (dot) dot.className  = 'dot online';
+      if (text) text.textContent = 'Online ✓';
       return;
     }
   } catch (_) {}
@@ -2725,8 +2725,8 @@ async function checkStatus() {
       if (r2.ok) {
         CFG.url = PUBLIC_HUB;
         localStorage.setItem('brt_url', PUBLIC_HUB);
-        dot.className  = 'dot online';
-        text.textContent = 'Online ✓ (reconectado)';
+        if (dot) dot.className  = 'dot online';
+        if (text) text.textContent = 'Online ✓ (reconectado)';
         // Reinicia auth com o URL correto
         await initAuth();
         return;
@@ -2734,8 +2734,8 @@ async function checkStatus() {
     } catch (_) {}
   }
   // Realmente offline
-  dot.className  = 'dot offline';
-  text.textContent = 'Sem conexão';
+  if (dot) dot.className  = 'dot offline';
+  if (text) text.textContent = 'Sem conexão';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -2840,11 +2840,15 @@ async function sendCommand(text, _done) {
     const answer = data.answer || data.detail || 'Sem resposta.';
     addMessage(answer, 'agent');
     // Waveform on response
-    const _words = (data.answer || data.text || '').split(' ').length;
-    showWaveform();
-    setTimeout(removeWaveform, 1500 + _words * 280);
-    if (CFG.tts) speak(answer);
-    else if (CFG.automic) startMic();
+    if (CFG.tts) {
+      const _words = (data.answer || data.text || '').split(' ').length;
+      showWaveform();
+      setTimeout(removeWaveform, 1500 + _words * 280);
+      speak(answer);
+    } else {
+      setRingState('idle');
+      if (CFG.automic) startMic();
+    }
     setOnline();
   } catch (err) {
     hideTyping();
@@ -2880,16 +2884,22 @@ async function getBriefing() {
 }
 
 function setOnline() {
-  document.getElementById('status-dot').className = 'dot online';
-  document.getElementById('status-text').textContent = 'Online ✓';
+  const _dot = document.getElementById('status-dot');
+  const _txt = document.getElementById('status-text');
+  if (_dot) _dot.className = 'dot online';
+  if (_txt) _txt.textContent = 'Online ✓';
 }
 function setOffline() {
-  document.getElementById('status-dot').className = 'dot offline';
-  document.getElementById('status-text').textContent = 'Sem conexão';
+  const _dot = document.getElementById('status-dot');
+  const _txt = document.getElementById('status-text');
+  if (_dot) _dot.className = 'dot offline';
+  if (_txt) _txt.textContent = 'Sem conexão';
 }
 
-document.getElementById('btn-devices').onclick  = openDevices;
-document.getElementById('btn-briefing').onclick = getBriefing;
+const _btnDevices = document.getElementById('btn-devices');
+if (_btnDevices) _btnDevices.onclick = openDevices;
+const _btnBriefing = document.getElementById('btn-briefing');
+if (_btnBriefing) _btnBriefing.onclick = getBriefing;
 
 // ── Send ──────────────────────────────────────────────────────────────────
 // ── Interactive Cortex Input ──────────────────────────────────────────────
@@ -4156,7 +4166,7 @@ setTimeout(loadHomeData, 1500);
 if (!CFG.url) CFG.url = PUBLIC_HUB;
 checkStatus(); // verifica conexão imediatamente
 initAuth();
-loadShortcuts();
+// loadShortcuts() is called by onLoggedIn() — no need here
 setInterval(checkStatus, 30000);
 setInterval(() => heartbeat(false), 30000);
 </script>
