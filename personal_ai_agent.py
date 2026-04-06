@@ -2249,8 +2249,16 @@ Máximo 400 caracteres, sem bullet points."""
         # Injeta contexto do Knowledge Base se relevante
         kb_context = self._inject_kb_context(user_message)
 
+        _now = datetime.now()
+        _dias_pt = ['segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado','domingo']
+        _meses_pt = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+        _datetime_ctx = (
+            f"DATA E HORA ATUAL: {_dias_pt[_now.weekday()]}, {_now.day} de {_meses_pt[_now.month-1]} de {_now.year}, {_now.strftime('%H:%M')} "
+            f"(fuso: America/Sao_Paulo). Sempre use esta informação ao responder sobre data, hora ou dia da semana."
+        )
         context = [
             {"role": "system", "content": self.system_prompt},
+            {"role": "system", "content": _datetime_ctx},
             {"role": "system", "content": self.build_memory_context()},
         ]
         
