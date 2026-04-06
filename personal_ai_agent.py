@@ -4148,6 +4148,84 @@ Format as a structured JSON with:
             "  /notion criar <id> <T\u00edtulo>  — criar p\u00e1gina"
         )
 
+    # ── Web Search (DuckDuckGo, sem API key) ─────────────────────────────────
+
+    def web_search(self, query: str, max_results: int = 6) -> str:
+        """Search the web via DuckDuckGo Instant Answer + HTML scrape fallback."""
+        import urllib.parse, html as _html
+        q_enc = urllib.parse.quote_plus(query)
+        lines: list[str] = [f"🔍 Pesquisa web: **{query}**\n"]
+
+        # 1) DuckDuckGo Instant Answer API (quick facts, no scraping)
+        try:
+            r = requests.get(
+                f"https://api.duckduckgo.com/?q={q_enc}&format=json&no_html=1&skip_disambig=1",
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=10,
+            )
+            data = r.json()
+            if data.get("AbstractText"):
+                lines.append(f"📖 {data['AbstractText']}")
+                if data.get("AbstractURL"):
+                    lines.append(f"   🔗 {data['AbstractURL']}")
+                lines.append("")
+            for topic in data.get("RelatedTopics", [])[:4]:
+                if isinstance(topic, dict) and topic.get("Text"):
+                    lines.append(f"• {topic['Text'][:120]}")
+        except Exception:
+            pass
+
+        # 2) DuckDuckGo HTML search for real web results
+        try:
+            r2 = requests.get(
+                f"https://html.duckduckgo.com/html/?q={q_enc}",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Accept-Language": "pt-BR,pt;q=0.9",
+                },
+                timeout=12,
+            )
+            text = r2.text
+            import re as _re
+            # Extract result titles and URLs from DDG HTML
+            hits = _re.findall(
+                r'class="result__a"[^>]*href="([^"]+)"[^>]*>([^<]+)</a>',
+                text,
+            )
+            added = 0
+            for href, title in hits[:max_results]:
+                title_clean = _html.unescape(title).strip()
+                if title_clean and len(title_clean) > 4:
+                    lines.append(f"🌐 **{title_clean}**")
+                    # DDG wraps URLs; extract real URL
+                    real = _re.search(r"uddg=([^&]+)", href)
+                    if real:
+                        lines.append(f"   {urllib.parse.unquote(real.group(1))}")
+                    added += 1
+                    if added >= max_results:
+                        break
+        except Exception as e:
+            lines.append(f"_(scrape DDG: {e})_")
+
+        return "\n".join(lines) if len(lines) > 1 else f"❌ Sem resultados para '{query}'."
+
+    # ── Autonomous multi-step plan ────────────────────────────────────────────
+
+    def autonomous_plan(self, goal: str, max_steps: int = 5) -> str:
+        """Break a goal into steps, execute each, return combined result."""
+        plan_prompt = (
+            f"Você é um agente autônomo. Objetivo: {goal}\n"
+            f"Divida em até {max_steps} passos simples e execute cada um. "
+            "Para cada passo, execute um comando ou responda diretamente. "
+            "Formato: PASSO N: [ação] → [resultado]\n"
+            "Ao final, escreva CONCLUSÃO: [resumo do que foi feito]."
+        )
+        try:
+            result = self.answer_command(plan_prompt, allow_confirmation=False)
+            return result
+        except Exception as e:
+            return f"❌ Erro no plano autônomo: {e}"
+
     def search_memory_fts(self, query: str) -> str:
         """LIKE-based search across learned_facts, notes, knowledge_base, personal_events."""
         if not query.strip():

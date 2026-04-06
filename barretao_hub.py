@@ -839,6 +839,132 @@ def briefing(authorization: Optional[str] = Header(default=None)) -> CommandResp
         return CommandResponse(ok=True, answer=f"❌ Erro ao gerar briefing: {e}")
 
 
+# ── Web Search (DuckDuckGo, sem API key) ─────────────────────────────────────
+@app.get("/search")
+def api_search(
+    q: str = "",
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="q is required")
+    result = agent.web_search(q.strip())
+    return {"ok": True, "query": q, "text": result}
+
+
+# ── HASS full states (dashboard) ──────────────────────────────────────────────
+@app.get("/hass/states")
+def api_hass_states(
+    domain: Optional[str] = None,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    if not agent.hass_enabled:
+        ha_int = auth.get_integration(user["id"], "home_assistant")
+        if ha_int:
+            agent.hass_url = ha_int["config"].get("url", "")
+            agent.hass_token = ha_int["config"].get("token", "")
+            agent.hass_enabled = bool(agent.hass_url and agent.hass_token)
+    if not agent.hass_enabled:
+        raise HTTPException(status_code=404, detail="Home Assistant não configurado")
+    import requests as _req
+    headers = {"Authorization": f"Bearer {agent.hass_token}"}
+    try:
+        r = _req.get(f"{agent.hass_url}/api/states", headers=headers, timeout=12)
+        r.raise_for_status()
+        states = r.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Erro HA: {e}")
+    if domain:
+        states = [s for s in states if s.get("entity_id", "").startswith(f"{domain}.")]
+    return {"ok": True, "states": states, "count": len(states)}
+
+
+# ── Schedule management (persistente em memória; persiste via lista) ───────────
+_schedules: list[dict] = []
+_schedule_id_counter: int = 0
+
+class ScheduleRequest(BaseModel):
+    cron: str
+    prompt: str
+    label: str = ""
+
+@app.get("/schedule")
+def api_schedule_list(authorization: Optional[str] = Header(default=None)) -> dict:
+    require_auth(authorization)
+    return {"ok": True, "schedules": _schedules}
+
+@app.post("/schedule")
+def api_schedule_add(
+    payload: ScheduleRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    global _schedule_id_counter
+    require_auth(authorization)
+    _schedule_id_counter += 1
+    item = {
+        "id": _schedule_id_counter,
+        "cron": payload.cron,
+        "prompt": payload.prompt,
+        "label": payload.label or payload.prompt[:50],
+        "last_run": None,
+        "enabled": True,
+    }
+    _schedules.append(item)
+    return {"ok": True, "schedule": item}
+
+@app.delete("/schedule/{sid}")
+def api_schedule_delete(
+    sid: int,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    global _schedules
+    require_auth(authorization)
+    _schedules = [s for s in _schedules if s["id"] != sid]
+    return {"ok": True}
+
+@app.post("/schedule/{sid}/toggle")
+def api_schedule_toggle(
+    sid: int,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    for s in _schedules:
+        if s["id"] == sid:
+            s["enabled"] = not s["enabled"]
+            return {"ok": True, "schedule": s}
+    raise HTTPException(status_code=404, detail="Schedule não encontrado")
+
+
+# ── Autonomous multi-step plan ────────────────────────────────────────────────
+class PlanRequest(BaseModel):
+    goal: str
+    steps: int = 5
+
+@app.post("/agent/plan")
+def api_agent_plan(
+    payload: PlanRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    try:
+        result = agent.autonomous_plan(payload.goal, max_steps=payload.steps)
+    except Exception as e:
+        result = f"❌ Erro no plano: {e}"
+    return {"ok": True, "result": result}
+
+
+# ── Memory search endpoint ────────────────────────────────────────────────────
+@app.get("/memory/search")
+def api_memory_search(
+    q: str = "",
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    result = agent.search_memory_fts(q.strip()) if q.strip() else ""
+    return {"ok": True, "query": q, "text": result}
+
+
 if __name__ == "__main__":
     uvicorn = importlib.import_module("uvicorn")
 

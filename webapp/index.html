@@ -1243,7 +1243,268 @@
 .mem-del { background: none; border: none; color: rgba(255,255,255,.2); cursor: pointer; font-size: 13px; padding: 0; transition: .15s; flex-shrink: 0; }
 .mem-del:hover { color: var(--accent2); }
 .mem-empty { padding: 16px 14px; font-size: 12px; color: var(--text2); text-align: center; }
-  </style>
+
+  /* ══════════════════════════════════════════════════════
+     SPA PAGES — brt-v24
+     ══════════════════════════════════════════════════════ */
+
+  /* ── Casa / HA Dashboard ── */
+  .casa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+  @media(min-width:480px){.casa-grid{grid-template-columns:repeat(3,1fr)}}
+  .ent-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    cursor:pointer;transition:.2s;position:relative;
+  }
+  .ent-card.on{border-color:rgba(0,255,153,.4);background:rgba(0,255,153,.07)}
+  .ent-card.on .ent-icon{filter:drop-shadow(0 0 8px rgba(0,255,153,.6))}
+  .ent-card:active{transform:scale(.95)}
+  .ent-icon{font-size:28px;line-height:1;transition:.3s}
+  .ent-name{font-size:11px;color:var(--text2);text-align:center;line-height:1.3;word-break:break-word;font-family:'Courier New',monospace}
+  .ent-state{font-size:10px;font-weight:700;color:var(--text2)}
+  .ent-card.on .ent-state{color:var(--green)}
+  .casa-domain-label{
+    font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;
+    padding:8px 14px 2px;font-family:'Courier New',monospace;
+  }
+  .casa-topbar{
+    display:flex;align-items:center;gap:8px;padding:10px 14px;
+    border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .casa-topbar h3{flex:1;font-size:15px;font-weight:700}
+  .casa-btn-all-off{
+    background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);
+    border-radius:8px;padding:6px 12px;color:var(--accent2);font-size:12px;
+    font-weight:700;cursor:pointer;transition:.2s;font-family:inherit;
+  }
+  .casa-btn-all-off:hover{background:rgba(255,45,85,.22)}
+  .casa-domain-section{margin-bottom:4px}
+  .casa-empty{text-align:center;padding:60px 20px;color:var(--text2);font-size:14px;line-height:2}
+  .casa-skeleton{
+    background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:14px;
+    height:100px;animation:sk-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes sk-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+  .casa-filter-bar{
+    display:flex;gap:6px;padding:8px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;
+  }
+  .casa-filter-bar::-webkit-scrollbar{display:none}
+  .cf-btn{
+    white-space:nowrap;border:1px solid var(--border);border-radius:20px;
+    padding:4px 12px;font-size:11px;color:var(--text2);cursor:pointer;
+    background:rgba(255,255,255,.03);transition:.15s;font-family:inherit;
+  }
+  .cf-btn.active{background:rgba(0,180,255,.15);border-color:rgba(0,207,255,.4);color:var(--accent)}
+  .cf-btn:hover{background:rgba(0,180,255,.1)}
+
+  /* ── Voz / Voice ── */
+  #voz-panel{align-items:center;padding:20px;gap:16px}
+  .voz-mic-wrap{
+    position:relative;width:140px;height:140px;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .voz-ring{
+    position:absolute;inset:0;border-radius:50%;border:2px solid rgba(0,207,255,.3);
+    transition:.3s;
+  }
+  .voz-mic-wrap.listening .voz-ring{
+    border-color:var(--accent);animation:voz-pulse 1s ease-in-out infinite;
+    box-shadow:0 0 40px rgba(0,207,255,.4);
+  }
+  .voz-mic-wrap.listening .voz-ring:nth-child(2){
+    inset:-12px;border-color:rgba(0,207,255,.2);animation-delay:.2s;
+  }
+  .voz-mic-wrap.listening .voz-ring:nth-child(3){
+    inset:-24px;border-color:rgba(0,207,255,.1);animation-delay:.4s;
+  }
+  @keyframes voz-pulse{
+    0%,100%{transform:scale(1);opacity:.8}
+    50%{transform:scale(1.04);opacity:1}
+  }
+  .voz-mic-btn{
+    width:88px;height:88px;border-radius:50%;
+    background:linear-gradient(140deg,var(--accent),var(--accent-2));
+    border:none;cursor:pointer;font-size:36px;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 30px rgba(0,207,255,.35);transition:.2s;
+    position:relative;z-index:2;
+  }
+  .voz-mic-btn:active{transform:scale(.93)}
+  .voz-mic-wrap.listening .voz-mic-btn{
+    background:linear-gradient(140deg,var(--accent2),#ff6b00);
+    box-shadow:0 0 40px rgba(255,45,85,.5);
+  }
+  .voz-status{font-size:14px;color:var(--text2);text-align:center;font-family:'Courier New',monospace;min-height:22px}
+  .voz-transcript{
+    width:100%;background:rgba(0,5,16,.9);border:1px solid var(--border);
+    border-radius:12px;padding:14px;font-size:14px;line-height:1.6;
+    min-height:60px;color:var(--text);
+  }
+  .voz-response{
+    width:100%;background:rgba(0,207,255,.06);border:1px solid rgba(0,207,255,.2);
+    border-radius:12px;padding:14px;font-size:14px;line-height:1.6;
+    color:var(--text);display:none;
+  }
+  .voz-response.show{display:block}
+  .voz-tts-btn{
+    background:rgba(0,180,255,.1);border:1px solid rgba(0,180,255,.25);
+    border-radius:10px;padding:8px 16px;color:var(--accent);font-size:13px;
+    cursor:pointer;font-family:inherit;transition:.2s;display:none;
+  }
+  .voz-tts-btn.show{display:inline-flex;align-items:center;gap:6px}
+  .voz-tts-btn:hover{background:rgba(0,180,255,.2)}
+  .voz-history{width:100%;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+  .voz-hist-item{
+    padding:10px 12px;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;font-size:13px;color:var(--text2);
+  }
+  .voz-hist-item .vh-user{color:var(--accent);font-weight:700;margin-bottom:4px;font-size:11px}
+  .voz-hist-item .vh-ai{color:var(--text);line-height:1.5}
+  .voz-lang-select{
+    background:rgba(255,255,255,.05);border:1px solid var(--border);
+    border-radius:8px;padding:5px 10px;color:var(--text2);font-size:12px;
+    font-family:inherit;cursor:pointer;
+  }
+  .voz-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+
+  /* ── Pesquisar ── */
+  #pesquisar-panel{padding:14px;gap:12px}
+  .search-bar{
+    display:flex;gap:8px;
+  }
+  .search-input{
+    flex:1;background:rgba(0,5,16,.9);border:1px solid var(--border);
+    border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;
+    outline:none;font-family:inherit;transition:.2s;
+  }
+  .search-input:focus{border-color:var(--accent)}
+  .search-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    border:none;border-radius:12px;padding:12px 18px;color:#fff;
+    font-size:18px;cursor:pointer;flex-shrink:0;transition:.2s;
+  }
+  .search-btn:active{transform:scale(.94)}
+  .search-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+  .search-cats::-webkit-scrollbar{display:none}
+  .sc-cat{
+    white-space:nowrap;border:1px solid var(--border);border-radius:20px;
+    padding:4px 12px;font-size:11px;color:var(--text2);cursor:pointer;
+    background:rgba(255,255,255,.03);transition:.15s;font-family:inherit;
+  }
+  .sc-cat.active,.sc-cat:hover{background:rgba(0,180,255,.12);border-color:rgba(0,207,255,.3);color:var(--accent)}
+  .search-results{display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1}
+  .search-result-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;
+  }
+  .search-result-card .sr-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px}
+  .search-result-card .sr-url{font-size:11px;color:var(--accent);margin-bottom:6px;word-break:break-all;font-family:'Courier New',monospace}
+  .search-result-card .sr-text{font-size:12px;color:var(--text2);line-height:1.5;white-space:pre-wrap}
+  .search-loading{text-align:center;padding:40px;color:var(--text2);font-size:14px}
+  .search-empty{text-align:center;padding:60px 20px;color:var(--text2);font-size:14px;line-height:2}
+  .search-memory-section{margin-top:10px}
+  .search-memory-title{font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;font-family:'Courier New',monospace}
+
+  /* ── Mais / More ── */
+  #mais-panel{padding:14px;gap:12px;overflow-y:auto}
+  .mais-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:400px){.mais-grid{grid-template-columns:repeat(3,1fr)}}
+  .mais-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:20px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    cursor:pointer;transition:.22s;text-align:center;
+  }
+  .mais-card:hover{border-color:rgba(0,207,255,.3);background:rgba(0,180,255,.07);transform:translateY(-2px)}
+  .mais-card:active{transform:scale(.95)}
+  .mais-icon{font-size:32px;line-height:1}
+  .mais-label{font-size:12px;font-weight:700;color:var(--text)}
+  .mais-desc{font-size:10px;color:var(--text2);line-height:1.4}
+
+  /* ── Sub-panels (slide in from Mais) ── */
+  .sub-panel{
+    position:absolute;inset:0;z-index:50;
+    background:linear-gradient(180deg,#0c1020 0%,var(--bg) 100%);
+    display:none;flex-direction:column;
+    overflow:hidden;
+  }
+  .sub-panel.open{display:flex;animation:sp-slide .22s ease}
+  @keyframes sp-slide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  .sub-topbar{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);flex-shrink:0;
+  }
+  .sub-back{
+    background:rgba(255,255,255,.06);border:1px solid var(--border);
+    border-radius:10px;padding:6px 12px;color:var(--text2);
+    font-size:14px;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;gap:4px;font-family:inherit;
+  }
+  .sub-back:hover{background:rgba(255,255,255,.14);color:var(--text)}
+  .sub-topbar h3{flex:1;font-size:15px;font-weight:700}
+  .sub-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+  .sub-action-btn{
+    background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.15);
+    border-radius:12px;padding:12px 14px;color:var(--text);
+    font-size:13px;cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;gap:10px;transition:.2s;text-align:left;width:100%;
+  }
+  .sub-action-btn:hover{background:rgba(0,180,255,.14);border-color:rgba(0,207,255,.35);transform:translateX(3px)}
+  .sub-input-row{display:flex;gap:8px}
+  .sub-input{
+    flex:1;background:rgba(0,5,16,.9);border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;
+    outline:none;font-family:inherit;transition:.2s;
+  }
+  .sub-input:focus{border-color:var(--accent)}
+  .sub-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    border:none;border-radius:10px;padding:10px 16px;color:#fff;
+    font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;
+  }
+  .sub-result{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px;font-size:13px;line-height:1.7;color:var(--text);
+    white-space:pre-wrap;display:none;
+  }
+  .sub-result.show{display:block}
+  .sub-list{display:flex;flex-direction:column;gap:8px}
+  .sub-list-item{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;display:flex;align-items:center;gap:10px;
+  }
+  .sub-list-item .sli-icon{font-size:18px;flex-shrink:0}
+  .sub-list-item .sli-main{flex:1;min-width:0}
+  .sli-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sli-sub{font-size:11px;color:var(--text2);margin-top:2px}
+  .sli-actions{display:flex;gap:4px;flex-shrink:0}
+  .sli-btn{
+    background:rgba(255,255,255,.06);border:1px solid var(--border);
+    border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer;color:var(--text2);
+    transition:.15s;font-family:inherit;
+  }
+  .sli-btn:hover{background:rgba(0,180,255,.15);color:var(--accent)}
+  .sli-btn.danger:hover{background:rgba(255,45,85,.15);color:var(--accent2)}
+
+  /* ── Automações ── */
+  .auto-toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px;
+  }
+  .auto-toggle-info .ati-label{font-size:14px;font-weight:700;color:var(--text)}
+  .auto-toggle-info .ati-desc{font-size:12px;color:var(--text2);margin-top:3px}
+  .schedule-form{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .schedule-form label{font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;font-family:'Courier New',monospace}
+  .schedule-form input,.schedule-form textarea{
+    background:rgba(0,5,16,.9);border:1px solid var(--border);border-radius:8px;
+    padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;
+  }
+  .schedule-form input:focus,.schedule-form textarea:focus{border-color:var(--accent)}
+  .schedule-form textarea{min-height:60px;resize:vertical}
+</style>
 </head>
 <body>
 <div id="cin-intro">
@@ -1281,9 +1542,10 @@
   <!-- ── Tab Bar ── -->
   <div id="hud-tabbar">
     <div class="hud-tab active" data-tab="chat" onclick="switchTab('chat')">💬 Chat</div>
-    <div class="hud-tab" data-tab="hud" onclick="switchTab('hud')">🏠 HUD</div>
-    <div class="hud-tab" data-tab="memory" onclick="switchTab('memory')">🧠 Memória</div>
-    <div class="hud-tab" data-tab="settings" onclick="openSettings()">⚙️</div>
+    <div class="hud-tab" data-tab="casa" onclick="switchTab('casa')">🏠 Casa</div>
+    <div class="hud-tab" data-tab="voz" onclick="switchTab('voz')">🎤 Voz</div>
+    <div class="hud-tab" data-tab="pesquisar" onclick="switchTab('pesquisar')">🔍 Buscar</div>
+    <div class="hud-tab" data-tab="mais" onclick="switchTab('mais')">⋯ Mais</div>
   </div>
 
   <div id="chat-panel" class="hud-panel active">
@@ -1609,9 +1871,9 @@
             <span>Gmail</span>
             <span class="aiv4-int-badge" id="int-gmail-badge" style="display:none">✓</span>
           </div>
-          <div class="aiv4-int-item" id="int-hass" onclick="openHassModal()">
+          <div class="aiv4-int-item" id="int-hass" onclick="switchTab('casa')">
             <div class="aiv4-int-icon">🏠</div>
-            <span>Home Assist.</span>
+            <span>Casa</span>
             <span class="aiv4-int-badge" id="int-hass-badge" style="display:none">✓</span>
           </div>
           <div class="aiv4-int-item" id="int-telegram" onclick="sendChip('status do telegram bot')">
@@ -1624,13 +1886,13 @@
           <div class="aiv4-int-item" onclick="openDevices()">
             <div class="aiv4-int-icon">🖥️</div><span>PC Control</span>
           </div>
-          <div class="aiv4-int-item" onclick="sendChip('/calendar')">
+          <div class="aiv4-int-item" onclick="switchTab('mais');setTimeout(()=>openSubPanel('calendar'),100)">
             <div class="aiv4-int-icon">📅</div><span>Calendar</span>
           </div>
-          <div class="aiv4-int-item" onclick="sendChip('/github repos')">
+          <div class="aiv4-int-item" onclick="switchTab('mais');setTimeout(()=>openSubPanel('programar'),100)">
             <div class="aiv4-int-icon">🐙</div><span>GitHub</span>
           </div>
-          <div class="aiv4-int-item" onclick="sendChip('/notion buscar')">
+          <div class="aiv4-int-item" onclick="switchTab('mais');setTimeout(()=>openSubPanel('notas'),100)">
             <div class="aiv4-int-icon">📓</div><span>Notion</span>
           </div>
         </div>
@@ -1835,6 +2097,339 @@
 <div id="mouse-glow"></div>
 
 <!-- Gmail Connect Modal -->
+<!-- ══ CASA PANEL ═══════════════════════════════════════════════════════════ -->
+<div id="casa-panel" class="hud-panel" style="flex-direction:column;overflow:hidden">
+  <div class="casa-topbar">
+    <h3>🏠 Casa Inteligente</h3>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="casa-btn-all-off" onclick="hassAllOff()">🔴 Desligar Tudo</button>
+      <button class="sub-back" style="font-size:12px" onclick="openHassModal()">⚙️ Config</button>
+    </div>
+  </div>
+  <div class="casa-filter-bar" id="casa-filter-bar">
+    <button class="cf-btn active" onclick="casaFilter(this,'all')">Todos</button>
+    <button class="cf-btn" onclick="casaFilter(this,'light')">💡 Luzes</button>
+    <button class="cf-btn" onclick="casaFilter(this,'switch')">🔌 Tomadas</button>
+    <button class="cf-btn" onclick="casaFilter(this,'climate')">🌡️ Clima</button>
+    <button class="cf-btn" onclick="casaFilter(this,'cover')">🪟 Persianas</button>
+    <button class="cf-btn" onclick="casaFilter(this,'media_player')">🎵 Mídia</button>
+    <button class="cf-btn" onclick="casaFilter(this,'sensor')">📡 Sensores</button>
+  </div>
+  <div id="casa-body" style="flex:1;overflow-y:auto">
+    <div class="casa-empty" id="casa-empty">
+      <div style="font-size:48px;margin-bottom:12px">🏠</div>
+      <div style="font-size:16px;color:var(--text)">Home Assistant não conectado</div>
+      <div style="margin-top:8px;font-size:13px">Configure nas Integrações</div>
+      <button class="sub-btn" style="margin-top:16px" onclick="openHassModal()">Conectar HA</button>
+    </div>
+    <div id="casa-grid" class="casa-grid" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ VOZ PANEL ════════════════════════════════════════════════════════════ -->
+<div id="voz-panel" class="hud-panel" style="flex-direction:column;overflow:hidden">
+  <div class="casa-topbar">
+    <h3>🎤 Interface de Voz</h3>
+    <div class="voz-controls">
+      <select id="voz-lang" class="voz-lang-select" onchange="vozLangChange(this.value)">
+        <option value="pt-BR" selected>🇧🇷 PT-BR</option>
+        <option value="en-US">🇺🇸 EN-US</option>
+        <option value="es-ES">🇪🇸 ES</option>
+      </select>
+      <label class="switch" title="TTS auto-play">
+        <input type="checkbox" id="voz-tts-auto" checked>
+        <span class="slider"></span>
+      </label>
+      <span style="font-size:11px;color:var(--text2)">TTS</span>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px">
+    <div class="voz-mic-wrap" id="voz-mic-wrap" onclick="vozToggle()">
+      <div class="voz-ring"></div>
+      <div class="voz-ring"></div>
+      <div class="voz-ring"></div>
+      <button class="voz-mic-btn" id="voz-mic-btn">🎤</button>
+    </div>
+    <div class="voz-status" id="voz-status">Toque para falar com AIV4</div>
+    <div class="voz-transcript" id="voz-transcript" style="display:none"></div>
+    <div class="voz-response" id="voz-response"></div>
+    <button class="voz-tts-btn" id="voz-tts-btn" onclick="vozSpeakLast()">🔊 Repetir resposta</button>
+    <div style="width:100%;border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px;font-family:'Courier New',monospace">Histórico de voz</div>
+      <div class="voz-history" id="voz-history"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PESQUISAR PANEL ══════════════════════════════════════════════════════ -->
+<div id="pesquisar-panel" class="hud-panel" style="flex-direction:column;overflow:hidden">
+  <div class="casa-topbar">
+    <h3>🔍 Pesquisar</h3>
+  </div>
+  <div id="pesquisar-body" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
+    <div class="search-bar">
+      <input class="search-input" id="search-q" placeholder="Pesquisar web, memória, código..." 
+             onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="search-btn" onclick="doSearch()">🔍</button>
+    </div>
+    <div class="search-cats">
+      <button class="sc-cat active" onclick="searchCat(this,'web')">🌐 Web</button>
+      <button class="sc-cat" onclick="searchCat(this,'memoria')">🧠 Memória</button>
+      <button class="sc-cat" onclick="searchCat(this,'ambos')">⚡ Tudo</button>
+    </div>
+    <div id="search-results">
+      <div class="search-empty">
+        <div style="font-size:48px;margin-bottom:12px">🔍</div>
+        <div>Pesquise a web ou sua memória pessoal</div>
+        <div style="font-size:12px;margin-top:8px;color:var(--text2)">Powered by DuckDuckGo + RAG local</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIS PANEL ════════════════════════════════════════════════════════════ -->
+<div id="mais-panel" class="hud-panel" style="flex-direction:column;overflow:hidden;position:relative">
+  <div class="casa-topbar">
+    <h3>⋯ Mais recursos</h3>
+    <button class="sub-back" style="font-size:12px" onclick="openSettings()">⚙️ Config</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px">
+    <div class="mais-grid">
+      <div class="mais-card" onclick="openSubPanel('programar')">
+        <div class="mais-icon">🐙</div>
+        <div class="mais-label">GitHub</div>
+        <div class="mais-desc">Repos, issues, código</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('notas')">
+        <div class="mais-icon">📓</div>
+        <div class="mais-label">Notion</div>
+        <div class="mais-desc">Notas e workspace</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('pc')">
+        <div class="mais-icon">🖥️</div>
+        <div class="mais-label">Controlar PC</div>
+        <div class="mais-desc">Ações no computador</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('automacoes')">
+        <div class="mais-icon">⚙️</div>
+        <div class="mais-label">Automações</div>
+        <div class="mais-desc">Cron + agente autônomo</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('memoria')">
+        <div class="mais-icon">🧠</div>
+        <div class="mais-label">Memória</div>
+        <div class="mais-desc">Buscar o que aprendi</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('calendar')">
+        <div class="mais-icon">📅</div>
+        <div class="mais-label">Calendário</div>
+        <div class="mais-desc">Agenda e eventos</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('gmail')">
+        <div class="mais-icon">📧</div>
+        <div class="mais-label">Gmail</div>
+        <div class="mais-desc">Emails e resumos</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('planner')">
+        <div class="mais-icon">🤖</div>
+        <div class="mais-label">Agente IA</div>
+        <div class="mais-desc">Plano multi-step</div>
+      </div>
+      <div class="mais-card" onclick="openSubPanel('hud')">
+        <div class="mais-icon">📊</div>
+        <div class="mais-label">Dashboard</div>
+        <div class="mais-desc">Status do sistema</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GitHub sub-panel ── -->
+  <div class="sub-panel" id="sp-programar">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('programar')">← Voltar</button>
+      <h3>🐙 GitHub</h3>
+      <button class="sli-btn" onclick="ghLoad('repos')">↺</button>
+    </div>
+    <div class="sub-body">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="sub-action-btn" onclick="ghLoad('repos')"><span>📁</span> Meus Repositórios</button>
+        <button class="sub-action-btn" onclick="ghLoad('issues')"><span>🚨</span> Issues Abertas</button>
+        <button class="sub-action-btn" onclick="ghLoad('eu')"><span>👤</span> Meu Perfil</button>
+      </div>
+      <div class="sub-input-row">
+        <input class="sub-input" id="gh-repo-input" placeholder="owner/repo (para issues do repo)">
+        <button class="sub-btn" onclick="ghLoad('issues-repo')">Issues</button>
+      </div>
+      <div id="gh-issue-form" style="display:none;flex-direction:column;gap:8px">
+        <input class="sub-input" id="gh-new-repo" placeholder="owner/repo">
+        <input class="sub-input" id="gh-new-title" placeholder="Título da issue">
+        <button class="sub-btn" onclick="ghCreateIssue()">Criar Issue</button>
+      </div>
+      <button class="sub-action-btn" onclick="document.getElementById('gh-issue-form').style.display=document.getElementById('gh-issue-form').style.display==='flex'?'none':'flex'">
+        <span>➕</span> Nova Issue
+      </button>
+      <div class="sub-result" id="gh-result"></div>
+    </div>
+  </div>
+
+  <!-- ── Notion sub-panel ── -->
+  <div class="sub-panel" id="sp-notas">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('notas')">← Voltar</button>
+      <h3>📓 Notion</h3>
+    </div>
+    <div class="sub-body">
+      <div class="sub-input-row">
+        <input class="sub-input" id="notion-q" placeholder="Buscar no workspace Notion...">
+        <button class="sub-btn" onclick="notionSearch()">🔍</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="sub-action-btn" onclick="notionSearchCmd('')"><span>📚</span> Páginas recentes</button>
+      </div>
+      <div class="sub-result" id="notion-result"></div>
+    </div>
+  </div>
+
+  <!-- ── PC Control sub-panel ── -->
+  <div class="sub-panel" id="sp-pc">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('pc')">← Voltar</button>
+      <h3>🖥️ Controlar PC</h3>
+    </div>
+    <div class="sub-body">
+      <div class="mais-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="mais-card" onclick="pcCmd('bloquear tela')"><div class="mais-icon">🔒</div><div class="mais-label">Bloquear</div></div>
+        <div class="mais-card" onclick="pcCmd('desligar computador')"><div class="mais-icon">⏻</div><div class="mais-label">Desligar</div></div>
+        <div class="mais-card" onclick="pcCmd('reiniciar computador')"><div class="mais-icon">🔄</div><div class="mais-label">Reiniciar</div></div>
+        <div class="mais-card" onclick="pcCmd('silenciar o computador')"><div class="mais-icon">🔇</div><div class="mais-label">Silenciar</div></div>
+        <div class="mais-card" onclick="pcCmd('volume ao máximo')"><div class="mais-icon">🔊</div><div class="mais-label">Vol. Max</div></div>
+        <div class="mais-card" onclick="pcCmd('tirar screenshot')"><div class="mais-icon">📸</div><div class="mais-label">Screenshot</div></div>
+        <div class="mais-card" onclick="pcCmd('abrir YouTube')"><div class="mais-icon">▶️</div><div class="mais-label">YouTube</div></div>
+        <div class="mais-card" onclick="pcCmd('abrir Spotify')"><div class="mais-icon">🎵</div><div class="mais-label">Spotify</div></div>
+        <div class="mais-card" onclick="pcCmd('abrir terminal')"><div class="mais-icon">⌨️</div><div class="mais-label">Terminal</div></div>
+      </div>
+      <div class="sub-input-row" style="margin-top:4px">
+        <input class="sub-input" id="pc-cmd-input" placeholder="Comando personalizado...">
+        <button class="sub-btn" onclick="pcCmdCustom()">▶</button>
+      </div>
+      <div class="sub-result" id="pc-result"></div>
+    </div>
+  </div>
+
+  <!-- ── Automações sub-panel ── -->
+  <div class="sub-panel" id="sp-automacoes">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('automacoes')">← Voltar</button>
+      <h3>⚙️ Automações</h3>
+    </div>
+    <div class="sub-body">
+      <div class="auto-toggle-row">
+        <div class="auto-toggle-info">
+          <div class="ati-label">🤖 Agente Autônomo</div>
+          <div class="ati-desc">AIV4 pensa proativamente a cada 10 min</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="auto-toggle" onchange="autoToggle()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="sub-action-btn" onclick="autoRunNow()">⚡ Executar agora</button>
+      <div class="auto-toggle-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">📋 Nova Rotina Agendada</div>
+        <div class="schedule-form" style="width:100%;background:transparent;border:none;padding:0">
+          <label>Horário (ex: 08:00, 12:30)</label>
+          <input class="sub-input" id="sched-cron" placeholder="08:00">
+          <label>Prompt / Tarefa</label>
+          <textarea class="sub-input" id="sched-prompt" placeholder="Resumir meus emails e me contar as novidades"></textarea>
+          <input class="sub-input" id="sched-label" placeholder="Nome da rotina (opcional)">
+          <button class="sub-btn" onclick="schedAdd()">Criar Rotina</button>
+        </div>
+      </div>
+      <div id="sched-list" class="sub-list"></div>
+      <div class="sub-result" id="auto-result"></div>
+    </div>
+  </div>
+
+  <!-- ── Memória sub-panel ── -->
+  <div class="sub-panel" id="sp-memoria">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('memoria')">← Voltar</button>
+      <h3>🧠 Memória Neural</h3>
+    </div>
+    <div class="sub-body">
+      <div class="sub-input-row">
+        <input class="sub-input" id="mem-q" placeholder="Buscar na memória...">
+        <button class="sub-btn" onclick="memSearch()">🔍</button>
+      </div>
+      <div class="sub-result" id="mem-result"></div>
+      <div class="sub-list" id="mem-tags"></div>
+    </div>
+  </div>
+
+  <!-- ── Calendário sub-panel ── -->
+  <div class="sub-panel" id="sp-calendar">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('calendar')">← Voltar</button>
+      <h3>📅 Calendário</h3>
+      <button class="sli-btn" onclick="calLoad(7)">7d</button>
+      <button class="sli-btn" onclick="calLoad(30)">30d</button>
+    </div>
+    <div class="sub-body">
+      <div class="sub-result show" id="cal-result" style="display:block">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- ── Gmail sub-panel ── -->
+  <div class="sub-panel" id="sp-gmail">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('gmail')">← Voltar</button>
+      <h3>📧 Gmail</h3>
+      <button class="sli-btn" onclick="openGmailModal()">⚙️</button>
+    </div>
+    <div class="sub-body">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="sub-action-btn" onclick="cmdAndShow('resumir meus emails','gmail-result')"><span>📋</span> Resumir Emails</button>
+        <button class="sub-action-btn" onclick="loadEmails()"><span>📥</span> Ver Emails</button>
+      </div>
+      <div class="sub-result" id="gmail-result"></div>
+      <div id="gmail-sp-list" class="sub-list"></div>
+    </div>
+  </div>
+
+  <!-- ── Planner / Agente multi-step ── -->
+  <div class="sub-panel" id="sp-planner">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('planner')">← Voltar</button>
+      <h3>🤖 Agente Autônomo</h3>
+    </div>
+    <div class="sub-body">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6">
+        Descreva um objetivo e a AIV4 cria um plano de ação e executa passo a passo.
+      </div>
+      <textarea class="sub-input" id="plan-goal" placeholder="Ex: Pesquisar tendências de IA para 2026 e criar um resumo em Notion" style="min-height:80px;resize:vertical"></textarea>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="font-size:11px;color:var(--text2)">Passos:</label>
+        <input class="sub-input" id="plan-steps" type="number" value="5" min="2" max="10" style="width:70px">
+        <button class="sub-btn" onclick="runPlan()" style="flex:1">🚀 Executar Plano</button>
+      </div>
+      <div class="sub-result" id="plan-result"></div>
+    </div>
+  </div>
+
+  <!-- ── HUD sub-panel ── -->
+  <div class="sub-panel" id="sp-hud">
+    <div class="sub-topbar">
+      <button class="sub-back" onclick="closeSubPanel('hud')">← Voltar</button>
+      <h3>📊 Dashboard</h3>
+      <button class="sli-btn" onclick="hudRefresh()">↺</button>
+    </div>
+    <div class="sub-body" id="hud-sp-body">
+      <div class="sub-result show" id="hud-sp-result" style="display:block">Carregando...</div>
+    </div>
+  </div>
+</div>
+
+
 <div id="gmail-overlay" class="hidden">
   <div class="gmail-modal">
     <h3>📧 Conectar Gmail</h3>
@@ -4166,6 +4761,588 @@ function initHomeAnimations() {
 }
 setTimeout(initHomeAnimations, 700);
 setTimeout(loadHomeData, 1500);
+
+
+// ════════════════════════════════════════════════════════════════
+//  SPA NAVIGATION  — brt-v24
+// ════════════════════════════════════════════════════════════════
+let _currentTab = 'chat';
+let _currentSubPanel = null;
+
+// Override existing switchTab to handle new tabs
+const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
+function switchTab(name) {
+  _currentTab = name;
+  document.querySelectorAll('.hud-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  // Show/hide chat input area
+  const chatInput = document.getElementById('input-area');
+  const chatHeader = document.querySelector('header');
+  const showChat = name === 'chat';
+  if (chatInput) chatInput.style.display = showChat ? '' : 'none';
+  if (chatHeader) chatHeader.style.display = showChat ? '' : 'none';
+  // Show/hide panels
+  const panelIds = ['chat-panel','hud-panel','memory-panel','casa-panel','voz-panel','pesquisar-panel','mais-panel'];
+  panelIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const match = id === name + '-panel' || (name === 'chat' && id === 'chat-panel');
+      el.classList.toggle('active', match);
+    }
+  });
+  // Special inits
+  if (name === 'casa') casaLoad();
+  if (name === 'pesquisar') document.getElementById('search-q')?.focus();
+  if (name === 'mais') {
+    autoLoadStatus();
+    schedLoad();
+  }
+}
+
+// ── CASA / HOME ASSISTANT ──────────────────────────────────────
+let _casaEntities = [];
+let _casaFilter = 'all';
+let _casaLoaded = false;
+
+const ENTITY_ICONS = {
+  'light': '💡', 'switch': '🔌', 'climate': '🌡️', 'cover': '🪟',
+  'media_player': '🎵', 'fan': '💨', 'lock': '🔐', 'binary_sensor': '📡',
+  'sensor': '📊', 'camera': '📷', 'automation': '⚙️', 'script': '📝',
+  'scene': '🎭', 'input_boolean': '🔵', 'vacuum': '🤖', 'humidifier': '💧',
+};
+const DOMAIN_LABELS = {
+  'light':'Luzes','switch':'Tomadas / Interruptores','climate':'Climatização',
+  'cover':'Persianas / Cortinas','media_player':'Reprodutores de Mídia',
+  'fan':'Ventiladores','lock':'Fechaduras','binary_sensor':'Sensores',
+  'sensor':'Sensores de Dados','camera':'Câmeras','scene':'Cenas',
+  'automation':'Automações','script':'Scripts','input_boolean':'Interruptores Virtuais',
+};
+
+async function casaLoad(force=false) {
+  if (_casaLoaded && !force) return;
+  const grid = document.getElementById('casa-grid');
+  const empty = document.getElementById('casa-empty');
+  if (!grid) return;
+  grid.innerHTML = '<div class="casa-skeleton"></div>'.repeat(6);
+  grid.style.display = 'grid';
+  if (empty) empty.style.display = 'none';
+  try {
+    const r = await apiFetch('/hass/states');
+    if (!r.ok) throw new Error(r.detail || 'HA não conectado');
+    _casaEntities = r.states || [];
+    _casaLoaded = true;
+    casaRender();
+  } catch(e) {
+    grid.style.display = 'none';
+    if (empty) { empty.style.display = 'flex'; empty.querySelector('div')?.textContent; }
+  }
+}
+
+function casaFilter(btn, domain) {
+  document.querySelectorAll('.cf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _casaFilter = domain;
+  casaRender();
+}
+
+function casaRender() {
+  const grid = document.getElementById('casa-grid');
+  if (!grid) return;
+  let entities = _casaEntities;
+  if (_casaFilter !== 'all') entities = entities.filter(e => e.entity_id.startsWith(_casaFilter + '.'));
+  // Group by domain
+  const groups = {};
+  for (const e of entities) {
+    const domain = e.entity_id.split('.')[0];
+    if (!groups[domain]) groups[domain] = [];
+    groups[domain].push(e);
+  }
+  const priorityOrder = ['light','switch','climate','cover','media_player','fan','lock','scene','input_boolean'];
+  const sortedDomains = [
+    ...priorityOrder.filter(d => groups[d]),
+    ...Object.keys(groups).filter(d => !priorityOrder.includes(d))
+  ];
+  if (sortedDomains.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2)">Nenhuma entidade encontrada</div>';
+    return;
+  }
+  grid.innerHTML = sortedDomains.map(domain => {
+    const ents = groups[domain];
+    const label = DOMAIN_LABELS[domain] || domain;
+    const icon = ENTITY_ICONS[domain] || '📦';
+    const cards = ents.map(e => {
+      const isOn = ['on','open','playing','home','unlocked','active'].includes(e.state);
+      const isToggleable = ['light','switch','fan','input_boolean','cover'].includes(domain);
+      const name = (e.attributes?.friendly_name || e.entity_id.split('.')[1]).replace(/_/g,' ');
+      let stateLabel = e.state;
+      if (stateLabel === 'on') stateLabel = 'ligado';
+      if (stateLabel === 'off') stateLabel = 'desligado';
+      if (stateLabel === 'unavailable') stateLabel = 'indisponível';
+      const tempStr = e.attributes?.current_temperature ? ` · ${e.attributes.current_temperature}°C` : '';
+      return `<div class="ent-card ${isOn?'on':''}" data-eid="${e.entity_id}" data-domain="${domain}" data-state="${e.state}" onclick="casaToggle(this,'${e.entity_id}','${domain}','${e.state}')">
+        <div class="ent-icon">${icon}</div>
+        <div class="ent-name">${name}</div>
+        <div class="ent-state">${stateLabel}${tempStr}</div>
+      </div>`;
+    }).join('');
+    return `<div class="casa-domain-label" style="grid-column:1/-1">${icon} ${label}</div>${cards}`;
+  }).join('');
+}
+
+async function casaToggle(card, entityId, domain, currentState) {
+  if (['sensor','binary_sensor','camera'].includes(domain)) return;
+  const isOn = ['on','open','playing','unlocked'].includes(currentState);
+  const service = isOn ? 'turn_off' : 'turn_on';
+  card.style.opacity = '0.5';
+  try {
+    await apiFetch(`/hass/${domain}/${service}?entity_id=${encodeURIComponent(entityId)}`, {method:'POST'});
+    const newState = isOn ? 'off' : 'on';
+    card.dataset.state = newState;
+    card.classList.toggle('on', !isOn);
+    const stEl = card.querySelector('.ent-state');
+    if (stEl) stEl.textContent = isOn ? 'desligado' : 'ligado';
+    // Update local cache
+    const ent = _casaEntities.find(e => e.entity_id === entityId);
+    if (ent) ent.state = newState;
+  } catch(e) { showToast('Erro: ' + (e.message||e)); }
+  finally { card.style.opacity = '1'; }
+}
+
+async function hassAllOff() {
+  if (!confirm('Desligar TODOS os dispositivos?')) return;
+  const promises = _casaEntities
+    .filter(e => ['light','switch','fan'].includes(e.entity_id.split('.')[0]) && e.state === 'on')
+    .map(e => apiFetch(`/hass/${e.entity_id.split('.')[0]}/turn_off?entity_id=${encodeURIComponent(e.entity_id)}`, {method:'POST'}).catch(()=>{}));
+  await Promise.all(promises);
+  _casaLoaded = false;
+  casaLoad(true);
+  showToast('Todos os dispositivos desligados 🌑');
+}
+
+// ── VOZ / VOICE ────────────────────────────────────────────────
+let _recognition = null;
+let _listening = false;
+let _vozLang = 'pt-BR';
+let _lastResponse = '';
+
+function vozLangChange(lang) { _vozLang = lang; }
+
+function vozToggle() {
+  if (_listening) vozStop();
+  else vozStart();
+}
+
+function vozStart() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast('Reconhecimento de voz não suportado neste navegador');
+    return;
+  }
+  _recognition = new SpeechRecognition();
+  _recognition.lang = _vozLang;
+  _recognition.continuous = false;
+  _recognition.interimResults = true;
+  _recognition.maxAlternatives = 1;
+
+  const wrap = document.getElementById('voz-mic-wrap');
+  const btn = document.getElementById('voz-mic-btn');
+  const status = document.getElementById('voz-status');
+  const transcript = document.getElementById('voz-transcript');
+
+  _listening = true;
+  wrap?.classList.add('listening');
+  if (btn) btn.textContent = '⏹';
+  if (status) status.textContent = 'Ouvindo...';
+  if (transcript) { transcript.style.display='block'; transcript.textContent=''; }
+  document.getElementById('voz-response')?.classList.remove('show');
+  document.getElementById('voz-tts-btn')?.classList.remove('show');
+
+  _recognition.onresult = (e) => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    if (transcript) transcript.textContent = t;
+  };
+
+  _recognition.onend = async () => {
+    _listening = false;
+    wrap?.classList.remove('listening');
+    if (btn) btn.textContent = '🎤';
+    const text = transcript?.textContent?.trim();
+    if (!text) { if (status) status.textContent = 'Toque para falar com AIV4'; return; }
+    if (status) status.textContent = '🧠 Processando...';
+    setAvatarState('thinking');
+    try {
+      const resp = await sendToAgent(text);
+      _lastResponse = resp;
+      const respEl = document.getElementById('voz-response');
+      if (respEl) { respEl.textContent = resp; respEl.classList.add('show'); }
+      document.getElementById('voz-tts-btn')?.classList.add('show');
+      // Auto-play TTS
+      if (document.getElementById('voz-tts-auto')?.checked) vozSpeak(resp);
+      // Add to history
+      const hist = document.getElementById('voz-history');
+      if (hist) {
+        const item = document.createElement('div');
+        item.className = 'voz-hist-item';
+        item.innerHTML = `<div class="vh-user">Você: ${text}</div><div class="vh-ai">${resp}</div>`;
+        hist.prepend(item);
+      }
+    } catch(e) { showToast('Erro: ' + e.message); }
+    finally { setAvatarState('idle'); if (status) status.textContent = 'Toque para falar com AIV4'; }
+  };
+
+  _recognition.onerror = (e) => {
+    _listening = false;
+    wrap?.classList.remove('listening');
+    if (btn) btn.textContent = '🎤';
+    if (status) status.textContent = 'Erro: ' + (e.error === 'no-speech' ? 'nenhuma fala detectada' : e.error);
+    if (e.error !== 'aborted') setAvatarState('idle');
+  };
+
+  _recognition.start();
+}
+
+function vozStop() {
+  _recognition?.stop();
+}
+
+function vozSpeak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text.replace(/[🎤🔍🧠📊🔌💡🏠🎵⚙️]/gu, ''));
+  utt.lang = _vozLang;
+  utt.rate = 1.05;
+  utt.pitch = 1.0;
+  // Prefer a natural voice
+  const voices = speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith(_vozLang.split('-')[0]) && v.localService) ||
+                    voices.find(v => v.lang.startsWith(_vozLang.split('-')[0]));
+  if (preferred) utt.voice = preferred;
+  setAvatarState('speaking');
+  utt.onend = () => setAvatarState('idle');
+  speechSynthesis.speak(utt);
+}
+
+function vozSpeakLast() { if (_lastResponse) vozSpeak(_lastResponse); }
+
+async function sendToAgent(text) {
+  const r = await apiFetch('/command', { method:'POST', body: JSON.stringify({ text }) });
+  return r.answer || '(sem resposta)';
+}
+
+// ── PESQUISAR / WEB SEARCH ─────────────────────────────────────
+let _searchCat = 'web';
+function searchCat(btn, cat) {
+  document.querySelectorAll('.sc-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _searchCat = cat;
+}
+
+async function doSearch() {
+  const q = document.getElementById('search-q')?.value?.trim();
+  if (!q) return;
+  const results = document.getElementById('search-results');
+  if (results) results.innerHTML = '<div class="search-loading">🔍 Pesquisando...</div>';
+  try {
+    let html = '';
+    if (_searchCat === 'web' || _searchCat === 'ambos') {
+      const r = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+      const text = r.text || '';
+      html += renderSearchText(text, q);
+    }
+    if (_searchCat === 'memoria' || _searchCat === 'ambos') {
+      const r = await apiFetch(`/memory/search?q=${encodeURIComponent(q)}`);
+      const text = r.text || '';
+      if (text) html += `<div class="search-memory-section">
+        <div class="search-memory-title">🧠 Da memória pessoal</div>
+        <div class="search-result-card"><div class="sr-text">${escHtml(text)}</div></div>
+      </div>`;
+    }
+    if (results) results.innerHTML = html || '<div class="search-empty">Sem resultados.</div>';
+  } catch(e) {
+    if (results) results.innerHTML = `<div class="search-empty">Erro: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderSearchText(text, q) {
+  const lines = text.split('
+').filter(l => l.trim());
+  if (!lines.length) return '';
+  let cards = '<div class="search-result-card"><div class="sr-text">';
+  for (const line of lines) {
+    if (line.startsWith('🌐 **')) {
+      if (!cards.endsWith('<div class="search-result-card"><div class="sr-text">'))
+        cards += '</div></div><div class="search-result-card"><div class="sr-text">';
+      cards += `<div class="sr-title">${escHtml(line.replace(/\*\*/g,'').replace('🌐 ',''))}</div>`;
+    } else if (line.startsWith('   http')) {
+      cards += `<div class="sr-url"><a href="${line.trim()}" target="_blank" style="color:inherit">${escHtml(line.trim())}</a></div>`;
+    } else {
+      cards += `${escHtml(line)}<br>`;
+    }
+  }
+  cards += '</div></div>';
+  return cards;
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── MAIS / SUB PANELS ──────────────────────────────────────────
+function openSubPanel(name) {
+  const sp = document.getElementById(`sp-${name}`);
+  if (!sp) return;
+  _currentSubPanel = name;
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('open'));
+  sp.classList.add('open');
+  // Auto-load data
+  if (name === 'calendar') calLoad(7);
+  if (name === 'automacoes') { schedLoad(); autoLoadStatus(); }
+  if (name === 'memoria') { memLoadTags(); }
+  if (name === 'gmail') { loadEmailsSP(); }
+  if (name === 'hud') hudRefresh();
+}
+
+function closeSubPanel(name) {
+  document.getElementById(`sp-${name}`)?.classList.remove('open');
+  _currentSubPanel = null;
+}
+
+// Helper: show result in a sub-result div
+function showSubResult(id, text, loading=false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('show');
+  el.textContent = loading ? '⏳ Aguarde...' : text;
+}
+
+// Generic: send command and show in div
+async function cmdAndShow(cmd, resultId) {
+  showSubResult(resultId, '', true);
+  try {
+    const r = await apiFetch('/command', { method:'POST', body: JSON.stringify({ text: cmd }) });
+    showSubResult(resultId, r.answer || '(sem resposta)');
+  } catch(e) { showSubResult(resultId, 'Erro: ' + e.message); }
+}
+
+// ── GITHUB ──────────────────────────────────────────────────────
+async function ghLoad(type) {
+  showSubResult('gh-result', '', true);
+  let cmd = '/github repos';
+  if (type === 'issues') cmd = '/github issues';
+  else if (type === 'eu') cmd = '/github eu';
+  else if (type === 'issues-repo') {
+    const repo = document.getElementById('gh-repo-input')?.value?.trim();
+    cmd = repo ? `/github issues ${repo}` : '/github issues';
+  }
+  await cmdAndShow(cmd, 'gh-result');
+}
+
+async function ghCreateIssue() {
+  const repo = document.getElementById('gh-new-repo')?.value?.trim();
+  const title = document.getElementById('gh-new-title')?.value?.trim();
+  if (!repo || !title) { showToast('Preencha repo e título'); return; }
+  await cmdAndShow(`/github criar ${repo} ${title}`, 'gh-result');
+}
+
+// ── NOTION ──────────────────────────────────────────────────────
+async function notionSearch() {
+  const q = document.getElementById('notion-q')?.value?.trim() || '';
+  await notionSearchCmd(q);
+}
+async function notionSearchCmd(q) {
+  showSubResult('notion-result', '', true);
+  await cmdAndShow(`/notion buscar ${q}`, 'notion-result');
+}
+
+// ── PC CONTROL ──────────────────────────────────────────────────
+async function pcCmd(cmd) {
+  showSubResult('pc-result', '', true);
+  await cmdAndShow(cmd, 'pc-result');
+}
+async function pcCmdCustom() {
+  const cmd = document.getElementById('pc-cmd-input')?.value?.trim();
+  if (!cmd) return;
+  await pcCmd(cmd);
+}
+
+// ── AUTOMAÇÕES ──────────────────────────────────────────────────
+async function autoLoadStatus() {
+  try {
+    const r = await apiFetch('/autonomous/status');
+    const toggle = document.getElementById('auto-toggle');
+    if (toggle) toggle.checked = r.enabled;
+  } catch(e) {}
+}
+
+async function autoToggle() {
+  try { await apiFetch('/autonomous/toggle', {method:'POST'}); }
+  catch(e) { showToast('Erro: ' + e.message); }
+}
+
+async function autoRunNow() {
+  showSubResult('auto-result', '', true);
+  try {
+    const r = await apiFetch('/autonomous/run', {method:'POST'});
+    showSubResult('auto-result', r.message || 'Executado (nada para reportar agora).');
+  } catch(e) { showSubResult('auto-result', 'Erro: ' + e.message); }
+}
+
+async function schedAdd() {
+  const cron = document.getElementById('sched-cron')?.value?.trim();
+  const prompt = document.getElementById('sched-prompt')?.value?.trim();
+  const label = document.getElementById('sched-label')?.value?.trim();
+  if (!cron || !prompt) { showToast('Preencha horário e tarefa'); return; }
+  try {
+    await apiFetch('/schedule', { method:'POST', body: JSON.stringify({ cron, prompt, label }) });
+    showToast('Rotina criada ✅');
+    document.getElementById('sched-cron').value = '';
+    document.getElementById('sched-prompt').value = '';
+    document.getElementById('sched-label').value = '';
+    schedLoad();
+  } catch(e) { showToast('Erro: ' + e.message); }
+}
+
+async function schedLoad() {
+  try {
+    const r = await apiFetch('/schedule');
+    const list = document.getElementById('sched-list');
+    if (!list) return;
+    if (!r.schedules?.length) { list.innerHTML = '<div class="sub-list-item" style="color:var(--text2);font-size:13px">Nenhuma rotina agendada ainda.</div>'; return; }
+    list.innerHTML = r.schedules.map(s => `
+      <div class="sub-list-item">
+        <div class="sli-icon">⏰</div>
+        <div class="sli-main">
+          <div class="sli-title">${escHtml(s.label)}</div>
+          <div class="sli-sub">🕐 ${escHtml(s.cron)} · ${s.enabled?'ativo':'pausado'}</div>
+        </div>
+        <div class="sli-actions">
+          <button class="sli-btn" onclick="schedToggle(${s.id})">${s.enabled?'⏸':'▶'}</button>
+          <button class="sli-btn danger" onclick="schedDel(${s.id})">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function schedToggle(id) {
+  await apiFetch(`/schedule/${id}/toggle`, {method:'POST'}).catch(()=>{});
+  schedLoad();
+}
+
+async function schedDel(id) {
+  await apiFetch(`/schedule/${id}`, {method:'DELETE'}).catch(()=>{});
+  schedLoad();
+}
+
+// ── MEMÓRIA ─────────────────────────────────────────────────────
+async function memSearch() {
+  const q = document.getElementById('mem-q')?.value?.trim();
+  if (!q) return;
+  showSubResult('mem-result', '', true);
+  try {
+    const r = await apiFetch(`/memory/search?q=${encodeURIComponent(q)}`);
+    showSubResult('mem-result', r.text || 'Sem resultados na memória.');
+  } catch(e) { showSubResult('mem-result', 'Erro: ' + e.message); }
+}
+
+async function memLoadTags() {
+  try {
+    const r = await apiFetch('/memory');
+    const container = document.getElementById('mem-tags');
+    if (!container || !r.tags?.length) return;
+    container.innerHTML = r.tags.map(t => `
+      <div class="sub-list-item">
+        <div class="sli-icon">🏷️</div>
+        <div class="sli-main">
+          <div class="sli-title">${escHtml(t.tag||t.fact||t)}</div>
+          ${t.category ? `<div class="sli-sub">${escHtml(t.category)}</div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── CALENDÁRIO ──────────────────────────────────────────────────
+async function calLoad(days=7) {
+  showSubResult('cal-result', '⏳ Carregando agenda...', false);
+  try {
+    const r = await apiFetch(`/calendar?days=${days}`);
+    showSubResult('cal-result', r.text || 'Sem eventos.');
+  } catch(e) { showSubResult('cal-result', 'Erro: ' + e.message); }
+}
+
+// ── GMAIL SP ────────────────────────────────────────────────────
+async function loadEmailsSP() {
+  const list = document.getElementById('gmail-sp-list');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Carregando...</div>';
+  try {
+    const r = await apiFetch('/emails');
+    if (!r.emails?.length) { list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Sem emails.</div>'; return; }
+    list.innerHTML = r.emails.map(em => `
+      <div class="sub-list-item">
+        <div class="sli-icon">📧</div>
+        <div class="sli-main">
+          <div class="sli-title">${escHtml(em.subject||'(sem assunto)')}</div>
+          <div class="sli-sub">${escHtml(em.from||'')} · ${escHtml(em.date||'')}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = `<div style="color:var(--accent2);font-size:13px;padding:8px">Erro: ${escHtml(e.message)}</div>`; }
+}
+
+// ── PLANNER ─────────────────────────────────────────────────────
+async function runPlan() {
+  const goal = document.getElementById('plan-goal')?.value?.trim();
+  const steps = parseInt(document.getElementById('plan-steps')?.value) || 5;
+  if (!goal) { showToast('Descreva um objetivo'); return; }
+  showSubResult('plan-result', '🤖 Executando plano autônomo...', false);
+  try {
+    const r = await apiFetch('/agent/plan', { method:'POST', body: JSON.stringify({ goal, steps }) });
+    showSubResult('plan-result', r.result || '(sem resultado)');
+  } catch(e) { showSubResult('plan-result', 'Erro: ' + e.message); }
+}
+
+// ── HUD REFRESH ─────────────────────────────────────────────────
+async function hudRefresh() {
+  showSubResult('hud-sp-result', '⏳ Carregando status...', false);
+  try {
+    const r = await apiFetch('/status');
+    const text = [
+      `🖥️ CPU: ${r.cpu_percent}%`,
+      `💾 RAM: ${r.ram_used_gb}GB / ${r.ram_total_gb}GB`,
+      `🤖 Modelo: ${r.model}`,
+      `⚡ Provedor: ${r.provider}`,
+      `⏱️ Uptime: ${Math.floor((r.uptime_seconds||0)/60)} min`,
+    ].join('
+');
+    showSubResult('hud-sp-result', text);
+  } catch(e) { showSubResult('hud-sp-result', 'Erro: ' + e.message); }
+}
+
+// ── Helper: generic API fetch (uses existing CFG) ─────────────
+async function apiFetch(path, opts={}) {
+  const url = (CFG.url||PUBLIC_HUB) + path;
+  const headers = { 'Content-Type': 'application/json' };
+  if (CFG.token) headers['Authorization'] = `Bearer ${CFG.token}`;
+  const r = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers||{}) } });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.detail || r.statusText);
+  }
+  return r.json();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('proactive-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Load voices for TTS after page load
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+
+// ── Init: check auto status on load ─────────────────────────────
+setTimeout(autoLoadStatus, 2000);
+
 
 // ── Init ──────────────────────────────────────────────────────────────────
 // Garante URL nunca fica vazio
