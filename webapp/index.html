@@ -551,13 +551,13 @@
     .aiv4-int-item.connected{border-color:rgba(0,255,153,.35);background:rgba(0,255,153,.06)}
 
     /* Gmail Modal & Emails panel */
-    #gmail-overlay,#emails-overlay{
+    #gmail-overlay,#emails-overlay,#hass-overlay{
       position:fixed;inset:0;z-index:4000;
       background:rgba(0,0,0,.75);
       display:flex;align-items:flex-end;justify-content:center;
       backdrop-filter:blur(6px);
     }
-    #gmail-overlay.hidden,#emails-overlay.hidden{display:none}
+    #gmail-overlay.hidden,#emails-overlay.hidden,#hass-overlay.hidden{display:none}
     .gmail-modal{
       background:rgba(5,8,24,.98);border-radius:22px 22px 0 0;
       padding:24px 20px 36px;width:100%;max-width:500px;
@@ -604,7 +604,22 @@
     .email-from{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .email-subj{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .email-date{font-size:10px;color:rgba(255,255,255,.25);font-family:'Courier New',monospace;float:right;margin-top:-20px}
-    .email-snip{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .email-snip{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-clamp:2}
+    /* ── Proactive agent messages ────────────────────────────────────────── */
+    .msg.proactive .bubble{
+      background:linear-gradient(135deg,rgba(0,207,255,.08),rgba(120,0,255,.12));
+      border:1px solid rgba(0,207,255,.3);border-left:3px solid var(--accent);position:relative}
+    .msg.proactive .bubble::before{
+      content:'🧠 AIV4 pensou...';
+      display:block;font-size:10px;color:var(--accent);opacity:.7;margin-bottom:6px;letter-spacing:.05em}
+    #proactive-toast{
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:rgba(0,207,255,.15);border:1px solid rgba(0,207,255,.4);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      color:var(--text);padding:10px 18px;border-radius:20px;font-size:13px;
+      z-index:9000;opacity:0;transition:opacity .4s,transform .4s;pointer-events:none;
+      max-width:80vw;text-align:center}
+    #proactive-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
     /* ══════════════════════════════════════════════════════
        🌌 CINEMATIC INTRO
@@ -1299,7 +1314,7 @@
         <div class="aiv4-section-tag">◈ CONTROLE REAL</div>
         <h2>Ações imediatas</h2>
         <div class="aiv4-ctrl-grid">
-          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'ligar luz da sala')">
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'/ha light.turn_on light.sala')">
             <div class="aiv4-ctrl-icon">💡</div>
             <div class="aiv4-ctrl-label">Ligar Luz</div>
             <div class="aiv4-ctrl-status">sala</div>
@@ -1319,10 +1334,10 @@
             <div class="aiv4-ctrl-label">Bloquear PC</div>
             <div class="aiv4-ctrl-status">tela</div>
           </button>
-          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'executar script de backup')">
-            <div class="aiv4-ctrl-icon">⚙️</div>
-            <div class="aiv4-ctrl-label">Script</div>
-            <div class="aiv4-ctrl-status">backup</div>
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'/ha light.turn_off light.sala')">
+            <div class="aiv4-ctrl-icon">🌑</div>
+            <div class="aiv4-ctrl-label">Apagar Luz</div>
+            <div class="aiv4-ctrl-status">sala</div>
           </button>
           <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'volume ao máximo')">
             <div class="aiv4-ctrl-icon">🔊</div>
@@ -1388,11 +1403,14 @@
           <div class="aiv4-cmd-line" onclick="sendChip('criar código python para automação de tarefas')">
             <span class="aiv4-prompt">›</span> AIV4, criar código em Python
           </div>
-          <div class="aiv4-cmd-line" onclick="sendChip('ativar rotina de estudo')">
-            <span class="aiv4-prompt">›</span> AIV4, ativar rotina de estudo
+          <div class="aiv4-cmd-line" onclick="sendChip('/calendar')">
+            <span class="aiv4-prompt">›</span> AIV4, minha agenda da semana
           </div>
           <div class="aiv4-cmd-line" onclick="sendChip('pesquisar notícias de tecnologia hoje')">
             <span class="aiv4-prompt">›</span> AIV4, pesquisar notícias de tech
+          </div>
+          <div class="aiv4-cmd-line" onclick="sendChip('/ha')">
+            <span class="aiv4-prompt">›</span> AIV4, listar dispositivos da casa
           </div>
           <div class="aiv4-cmd-cursor">
             <span class="aiv4-prompt">›</span> <span class="aiv4-cursor-blink">_</span>
@@ -1410,20 +1428,23 @@
             <span>Gmail</span>
             <span class="aiv4-int-badge" id="int-gmail-badge" style="display:none">✓</span>
           </div>
-          <div class="aiv4-int-item" onclick="sendChip('enviar mensagem whatsapp')">
-            <div class="aiv4-int-icon">💬</div><span>WhatsApp</span>
+          <div class="aiv4-int-item" id="int-hass" onclick="openHassModal()">
+            <div class="aiv4-int-icon">🏠</div>
+            <span>Home Assist.</span>
+            <span class="aiv4-int-badge" id="int-hass-badge" style="display:none">✓</span>
+          </div>
+          <div class="aiv4-int-item" id="int-telegram" onclick="sendChip('status do telegram bot')">
+            <div class="aiv4-int-icon">📨</div><span>Telegram</span>
+            <span class="aiv4-int-badge" id="int-telegram-badge" style="display:none">✓</span>
           </div>
           <div class="aiv4-int-item" onclick="sendChip('status do discord')">
             <div class="aiv4-int-icon">🎮</div><span>Discord</span>
           </div>
           <div class="aiv4-int-item" onclick="openDevices()">
-            <div class="aiv4-int-icon">🏠</div><span>IoT</span>
-          </div>
-          <div class="aiv4-int-item" onclick="sendChip('listar integrações de api disponíveis')">
-            <div class="aiv4-int-icon">⚡</div><span>APIs</span>
-          </div>
-          <div class="aiv4-int-item" onclick="openDevices()">
             <div class="aiv4-int-icon">🖥️</div><span>PC Control</span>
+          </div>
+          <div class="aiv4-int-item" onclick="sendChip('/calendar')">
+            <div class="aiv4-int-icon">📅</div><span>Calendar</span>
           </div>
         </div>
       </div>
@@ -1541,6 +1562,9 @@
   </div>
 </div>
 
+<!-- Proactive toast -->
+<div id="proactive-toast"></div>
+
 <!-- Mouse glow -->
 <div id="mouse-glow"></div>
 
@@ -1587,6 +1611,40 @@
       <button class="close-btn" onclick="closeEmailsPanel()">&#x2715;</button>
     </div>
     <div id="emails-list-body"><div class="hint" style="text-align:center;padding:20px">🔄 Carregando...</div></div>
+  </div>
+</div>
+
+<!-- Home Assistant Connect Modal -->
+<div id="hass-overlay" class="hidden">
+  <div class="gmail-modal">
+    <h3>🏠 Conectar Home Assistant</h3>
+    <p class="gm-hint">
+      Insira o URL do seu HA e um <strong>Long-Lived Access Token</strong>.
+      <br>Token: Perfil → Segurança → Long-Lived Access Tokens.
+    </p>
+    <div id="hass-connected-info" style="display:none;padding:10px 12px;background:rgba(0,255,153,.08);border:1px solid rgba(0,255,153,.2);border-radius:10px;margin-bottom:14px;font-size:13px;">
+      <strong style="color:var(--green)">✓ Conectado:</strong>
+      <span id="hass-connected-url" style="color:var(--text2)"></span>
+    </div>
+    <div id="hass-form">
+      <div class="gm-field">
+        <label>URL do Home Assistant</label>
+        <input type="url" id="hass-url" placeholder="http://homeassistant.local:8123" autocomplete="off">
+      </div>
+      <div class="gm-field">
+        <label>Long-Lived Access Token</label>
+        <input type="password" id="hass-token" placeholder="eyJhbGci..." autocomplete="new-password">
+      </div>
+    </div>
+    <div class="gm-status" id="hass-status"></div>
+    <div class="gm-btns" id="hass-btns-connect">
+      <button class="gm-btn-connect" id="hass-connect-btn" onclick="doHassConnect()">Conectar</button>
+      <button class="gm-btn-cancel" onclick="closeHassModal()">Cancelar</button>
+    </div>
+    <div class="gm-btns" id="hass-btns-manage" style="display:none">
+      <button class="aiv4-btn-primary" style="flex:1;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;font-family:inherit" onclick="closeHassModal();sendChip('/ha')">&#x1F3E0; Ver Entidades</button>
+      <button class="gm-btn-disconnect" onclick="doHassDisconnect()">🔓 Desconectar</button>
+    </div>
   </div>
 </div>
 
@@ -2206,6 +2264,31 @@ function addMessage(text, role) {
   if (role === 'agent') {
     setAvatarState('speaking');
     setTimeout(() => setAvatarState('idle'), 2500);
+  }
+}
+
+function addProactiveMessage(text) {
+  // Scroll to chat view
+  const chatSection = document.getElementById('chat-section') || document.getElementById('messages');
+  if (chatSection) chatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const empty = document.getElementById('empty-state');
+  if (empty) { empty.remove(); document.getElementById('messages').classList.add('chat-mode'); }
+  const box = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg agent proactive';
+  div.innerHTML = `<div class="bubble">${escHtml(text).replace(/\n/g, '<br>')}</div><div class="msg-time">${now()}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  setAvatarState('speaking');
+  setTimeout(() => setAvatarState('idle'), 3000);
+
+  // Show toast notification
+  const toast = document.getElementById('proactive-toast');
+  if (toast) {
+    toast.textContent = '🧠 AIV4 tem algo para você';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
   }
 }
 
@@ -3081,6 +3164,15 @@ async function heartbeat(register = false) {
       const d = await r.json();
       if (d.pending_commands && d.pending_commands.length) {
         for (const cmd of d.pending_commands) {
+          // ── Mensagens proativas do agente autônomo ──
+          if (cmd.command.startsWith('[PROATIVO]')) {
+            const msg = cmd.command.replace('[PROATIVO]', '').trim();
+            addProactiveMessage(msg);
+            await authFetch(`/devices/${DEVICE_ID}/ack/${cmd.id}`, {
+              method: 'POST', body: JSON.stringify({ answer: 'visto' }),
+            });
+            continue;
+          }
           // ── Comandos locais do celular (executam no browser) ──
           if (cmd.command === '__lock_screen__') {
             lockScreen();
@@ -3219,6 +3311,19 @@ async function loadHomeData() {
       _gmailConnected = !!d.gmail_connected;
       _gmailEmail = d.gmail_email || '';
       _updateGmailBadge();
+      // ── Load HA badge from integrations ──────────────────────────────────
+      try {
+        const ri = await authFetch('/integrations');
+        if (ri.ok) {
+          const di = await ri.json();
+          const hassInt = (di.integrations || []).find(i => i.name === 'home_assistant');
+          if (hassInt) {
+            _hassConnected = true;
+            _hassUrl = hassInt.config?.url || '';
+            _updateHassBadge();
+          }
+        }
+      } catch (_) {}
       const ev = document.getElementById('stat-emails-val');
       const el = document.getElementById('stat-emails-lbl');
       if (ev && el) {
@@ -3302,6 +3407,86 @@ function openGmailModal() {
     btnC.style.display = 'flex'; btnM.style.display = 'none';
   }
   ov.classList.remove('hidden');
+}
+
+// ── Home Assistant Modal ─────────────────────────────────────────────────
+let _hassConnected = false;
+let _hassUrl = '';
+
+function _updateHassBadge() {
+  const badge = document.getElementById('int-hass-badge');
+  const tile  = document.getElementById('int-hass');
+  if (!badge) return;
+  if (_hassConnected) {
+    badge.style.display = 'inline'; tile?.classList.add('connected');
+  } else {
+    badge.style.display = 'none'; tile?.classList.remove('connected');
+  }
+}
+
+function openHassModal() {
+  const ov   = document.getElementById('hass-overlay');
+  const info = document.getElementById('hass-connected-info');
+  const form = document.getElementById('hass-form');
+  const btnC = document.getElementById('hass-btns-connect');
+  const btnM = document.getElementById('hass-btns-manage');
+  const st   = document.getElementById('hass-status');
+  if (!ov) return;
+  st.className = 'gm-status'; st.textContent = '';
+  if (_hassConnected) {
+    info.style.display = 'block';
+    document.getElementById('hass-connected-url').textContent = _hassUrl;
+    form.style.display = 'none';
+    btnC.style.display = 'none'; btnM.style.display = 'flex';
+  } else {
+    info.style.display = 'none';
+    form.style.display = 'block';
+    btnC.style.display = 'flex'; btnM.style.display = 'none';
+  }
+  ov.classList.remove('hidden');
+}
+
+function closeHassModal() {
+  document.getElementById('hass-overlay')?.classList.add('hidden');
+}
+
+async function doHassConnect() {
+  const btn   = document.getElementById('hass-connect-btn');
+  const st    = document.getElementById('hass-status');
+  const url   = document.getElementById('hass-url').value.trim();
+  const token = document.getElementById('hass-token').value.trim();
+  if (!url || !token) {
+    st.className = 'gm-status err'; st.textContent = 'Preencha URL e token.'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Conectando...';
+  st.className = 'gm-status'; st.textContent = '';
+  try {
+    const r = await authFetch('/integrations/hass/connect', {
+      method: 'POST',
+      body: JSON.stringify({ url, token }),
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      _hassConnected = true; _hassUrl = url;
+      _updateHassBadge();
+      closeHassModal();
+    } else {
+      st.className = 'gm-status err';
+      st.textContent = d.detail || 'Erro ao conectar.';
+    }
+  } catch (e) {
+    st.className = 'gm-status err'; st.textContent = 'Erro de rede: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Conectar';
+  }
+}
+
+async function doHassDisconnect() {
+  if (!confirm('Desconectar Home Assistant?')) return;
+  await authFetch('/integrations/home_assistant', { method: 'DELETE' });
+  _hassConnected = false; _hassUrl = '';
+  _updateHassBadge();
+  closeHassModal();
 }
 
 function closeGmailModal() {
@@ -3392,7 +3577,7 @@ function closeEmailsPanel() {
 
 // Close overlays on backdrop click
 document.addEventListener('DOMContentLoaded', () => {
-  ['gmail-overlay', 'emails-overlay'].forEach(id => {
+  ['gmail-overlay', 'emails-overlay', 'hass-overlay'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', e => { if (e.target === el) el.classList.add('hidden'); });
   });

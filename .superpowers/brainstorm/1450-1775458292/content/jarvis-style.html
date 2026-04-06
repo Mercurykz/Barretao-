@@ -1,0 +1,101 @@
+<style>
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .card { cursor: pointer; border: 2px solid #333; border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+  .card.selected { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0,212,255,0.3); }
+  .card-preview { height: 160px; display: flex; flex-direction: column; padding: 12px; gap: 6px; font-family: monospace; font-size: 11px; position: relative; overflow: hidden; }
+  .card-body { padding: 12px; }
+  .card-body h3 { margin: 0 0 4px; font-size: 14px; }
+  .card-body p { margin: 0; font-size: 12px; color: #888; }
+
+  /* Style A - Iron Man Arc */
+  .style-arc { background: #000; color: #00d4ff; border-top: 1px solid #00d4ff33; }
+  .style-arc .hud-ring { width: 80px; height: 80px; border: 2px solid #00d4ff; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px #00d4ff44; animation: pulse-arc 2s infinite; }
+  .style-arc .hud-bar { height: 3px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); margin: 8px 0; animation: scan 2s linear infinite; }
+  @keyframes pulse-arc { 0%,100%{box-shadow:0 0 10px #00d4ff44} 50%{box-shadow:0 0 30px #00d4ff88} }
+  @keyframes scan { 0%{opacity:0.3} 50%{opacity:1} 100%{opacity:0.3} }
+
+  /* Style B - Matrix Terminal */
+  .style-matrix { background: #0a0a0a; color: #00ff41; font-family: monospace; }
+  .style-matrix .matrix-text { font-size: 10px; line-height: 1.4; opacity: 0.8; }
+  .style-matrix .cursor { display: inline-block; background: #00ff41; width: 8px; height: 12px; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Style C - LCARS Star Trek */
+  .style-lcars { background: #1a0a2e; color: #ff9900; }
+  .style-lcars .lcars-bar { height: 20px; background: #ff9900; border-radius: 10px 0 0 10px; margin-bottom: 8px; }
+  .style-lcars .lcars-panel { border: 1px solid #ff990066; border-radius: 4px; padding: 6px; font-size: 10px; }
+
+  /* Style D - Minimalist Glassmorphism */
+  .style-glass { background: linear-gradient(135deg, #0f0f1a, #1a1a2e); color: #e0e0ff; }
+  .style-glass .glass-panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; backdrop-filter: blur(10px); font-size: 10px; margin-bottom: 6px; }
+  .style-glass .glass-accent { color: #7c3aed; }
+</style>
+
+<h2>Qual estilo visual para o HUD?</h2>
+<p class="subtitle">Escolha o clima que mais combina com o Barretão</p>
+
+<div class="cards">
+  <div class="card" data-choice="arc" onclick="toggleSelect(this)">
+    <div class="card-preview style-arc">
+      <div class="hud-ring">⬡</div>
+      <div class="hud-bar"></div>
+      <div style="display:flex;justify-content:space-between;font-size:9px">
+        <span>SYS: ONLINE</span><span>CPU: 12%</span><span>RAM: 4.2GB</span>
+      </div>
+      <div style="font-size:9px;margin-top:4px;opacity:0.7">▶ BARRETÃO v21 — PRONTO</div>
+    </div>
+    <div class="card-body">
+      <h3>Arc Reactor (Iron Man)</h3>
+      <p>Azul neon, círculos de HUD, glows, estética sci-fi clássica do Jarvis</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="matrix" onclick="toggleSelect(this)">
+    <div class="card-preview style-matrix">
+      <div class="matrix-text">
+        BARRETÃO OS v21.0<br>
+        ══════════════════<br>
+        [OK] Gmail: 3 novos<br>
+        [OK] Clima: 28°C SP<br>
+        [OK] Agenda: livre<br>
+        ──────────────────<br>
+        &gt; aguardando...<span class="cursor"></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Terminal Matrix</h3>
+      <p>Verde escuro, texto monospace, sensação de hacker/terminal avançado</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="lcars" onclick="toggleSelect(this)">
+    <div class="card-preview style-lcars">
+      <div class="lcars-bar" style="width:60%"></div>
+      <div style="display:flex;gap:6px">
+        <div class="lcars-bar" style="width:30px;height:60px;border-radius:10px 0 0 10px;flex-shrink:0"></div>
+        <div>
+          <div class="lcars-panel">SISTEMA ATIVO</div>
+          <div class="lcars-panel" style="margin-top:6px">BARRETÃO · SP · 28°C</div>
+          <div class="lcars-panel" style="margin-top:6px">GMAIL · 3 MSG</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>LCARS (Star Trek)</h3>
+      <p>Laranja/roxo, painéis de computador futurista, visual de nave espacial</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="glass" onclick="toggleSelect(this)">
+    <div class="card-preview style-glass">
+      <div class="glass-panel">🌡 São Paulo · <span class="glass-accent">28°C</span> · Ensolarado</div>
+      <div class="glass-panel">📧 Gmail · <span class="glass-accent">3</span> não lidos</div>
+      <div class="glass-panel">🕐 15:42 · Agenda livre</div>
+      <div style="font-size:9px;opacity:0.5;margin-top:4px">Barretão pronto ▸</div>
+    </div>
+    <div class="card-body">
+      <h3>Glassmorphism Moderno</h3>
+      <p>Limpo, translúcido, roxo/branco, elegante — futurista mas minimalista</p>
+    </div>
+  </div>
+</div>

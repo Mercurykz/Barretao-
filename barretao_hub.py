@@ -347,6 +347,15 @@ class GmailConnectRequest(BaseModel):
     app_password: str
 
 
+class HassConnectRequest(BaseModel):
+    url: str
+    token: str
+
+
+class WebhookFireRequest(BaseModel):
+    payload: dict = {}
+
+
 class DeviceRegisterRequest(BaseModel):
     device_id: str
     name: str
@@ -647,6 +656,125 @@ def api_auto_toggle(authorization: Optional[str] = Header(default=None)) -> dict
     require_auth(authorization)
     _auto_enabled = not _auto_enabled
     return {"ok": True, "enabled": _auto_enabled}
+
+
+# ── Home Assistant endpoints ──────────────────────────────────────────────────────────────────
+@app.post("/integrations/hass/connect")
+def api_hass_connect(
+    payload: HassConnectRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    url = payload.url.rstrip("/")
+    token = payload.token.strip()
+    if not url or not token:
+        raise HTTPException(status_code=400, detail="url e token são obrigatórios")
+    # Quick connectivity test
+    try:
+        import requests as _req
+        r = _req.get(
+            f"{url}/api/",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=8,
+        )
+        if not r.ok:
+            raise HTTPException(status_code=400, detail=f"HA retornou {r.status_code}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Não foi possível conectar ao HA: {e}")
+    auth.save_integration(user["id"], "home_assistant", {"url": url, "token": token})
+    # Update agent live
+    agent.hass_url = url
+    agent.hass_token = token
+    agent.hass_enabled = True
+    return {"ok": True, "message": f"Home Assistant conectado: {url}"}
+
+
+@app.get("/hass/entities")
+def api_hass_entities(
+    domain: Optional[str] = None,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    # Always try to load from stored integration
+    if not agent.hass_enabled:
+        ha_int = auth.get_integration(user["id"], "home_assistant")
+        if ha_int:
+            agent.hass_url = ha_int["config"].get("url", "")
+            agent.hass_token = ha_int["config"].get("token", "")
+            agent.hass_enabled = bool(agent.hass_url and agent.hass_token)
+    if not agent.hass_enabled:
+        raise HTTPException(status_code=404, detail="Home Assistant não configurado")
+    entities = agent.list_hass_entities(domain_filter=domain or "")
+    return {"ok": True, "entities": entities, "count": len(entities)}
+
+
+@app.post("/hass/{domain}/{service}")
+def api_hass_service(
+    domain: str,
+    service: str,
+    entity_id: Optional[str] = None,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    if not agent.hass_enabled:
+        ha_int = auth.get_integration(user["id"], "home_assistant")
+        if ha_int:
+            agent.hass_url = ha_int["config"].get("url", "")
+            agent.hass_token = ha_int["config"].get("token", "")
+            agent.hass_enabled = bool(agent.hass_url and agent.hass_token)
+    if not agent.hass_enabled:
+        raise HTTPException(status_code=404, detail="Home Assistant não configurado")
+    result = agent.run_hass_command(domain, service, entity_id or "")
+    return {"ok": True, "result": result}
+
+
+# ── Google Calendar endpoint ────────────────────────────────────────────────────────────────
+@app.get("/calendar")
+def api_calendar(
+    days: int = 7,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    require_auth(authorization)
+    result = agent.get_calendar_events(days_ahead=days)
+    return {"ok": True, "text": result}
+
+
+# ── Generic reactive webhook ────────────────────────────────────────────────────────────────
+@app.post("/webhook/{source}")
+def api_webhook(
+    source: str,
+    payload: WebhookFireRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    """
+    Generic reactive webhook: POST /webhook/github, /webhook/zapier, etc.
+    Builds a proactive message and queues it to all online devices.
+    Auth is optional — if no session token, accept any call (public webhook).
+    """
+    # Try to get user from auth; fall back to system if public
+    try:
+        user = require_auth(authorization)
+        uid = user["id"]
+    except HTTPException:
+        uid = None
+
+    summary_lines = [f"🔔 Webhook recebido: *{source}*"]
+    for k, v in (payload.payload or {}).items():
+        summary_lines.append(f"  {k}: {str(v)[:80]}")
+    summary = "\n".join(summary_lines[:8])
+
+    # Queue to all online devices
+    online = auth.get_all_online_devices()
+    sent = 0
+    for dev in online:
+        if uid and dev["user_id"] != uid:
+            continue
+        auth.queue_command(dev["user_id"], dev["id"], f"[PROATIVO] {summary}")
+        sent += 1
+
+    return {"ok": True, "source": source, "delivered_to": sent}
 
 
 @app.post("/command", response_model=CommandResponse)

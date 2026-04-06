@@ -900,6 +900,15 @@ class PersonalAIAgent:
         self.discord_enabled = os.getenv("DISCORD_ENABLED", "false").lower() == "true"
         self.discord_trigger = os.getenv("DISCORD_TRIGGER", "!barretao").strip()
         self.discord_token = os.getenv("DISCORD_BOT_TOKEN", "").strip()
+        # ── Telegram ──────────────────────────────────────────────────────────
+        self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+        self.telegram_enabled = bool(self.telegram_token)
+        # ── Home Assistant ────────────────────────────────────────────────────
+        self.hass_url = os.getenv("HASS_URL", "").rstrip("/")
+        self.hass_token = os.getenv("HASS_TOKEN", "").strip()
+        self.hass_enabled = bool(self.hass_url and self.hass_token)
+        # ── Google Calendar (ical secret URL — no OAuth needed) ──────────────
+        self.google_calendar_ical = os.getenv("GOOGLE_CALENDAR_ICAL_URL", "").strip()
         self.user_city = os.getenv("USER_CITY", "").strip()
         self.user_country = os.getenv("USER_COUNTRY", "BR").strip().upper()
         self.auto_city_by_ip = os.getenv("AUTO_CITY_BY_IP", "true").lower() == "true"
@@ -3730,6 +3739,276 @@ Format as a structured JSON with:
         except Exception:
             return None
 
+    # ── Home Assistant ────────────────────────────────────────────────────────
+
+    def run_hass_command(
+        self,
+        domain: str,
+        service: str,
+        entity_id: str = "",
+        extra: dict | None = None,
+    ) -> str:
+        """Call a Home Assistant service via REST API."""
+        if not self.hass_enabled:
+            return (
+                "❌ Home Assistant não configurado. "
+                "Defina HASS_URL e HASS_TOKEN no .env"
+            )
+        headers = {
+            "Authorization": f"Bearer {self.hass_token}",
+            "Content-Type": "application/json",
+        }
+        data: dict = {}
+        if entity_id:
+            data["entity_id"] = entity_id
+        if extra:
+            data.update(extra)
+        try:
+            resp = requests.post(
+                f"{self.hass_url}/api/services/{domain}/{service}",
+                headers=headers,
+                json=data,
+                timeout=10,
+            )
+            if resp.ok:
+                suffix = f" → {entity_id}" if entity_id else ""
+                return f"✅ {domain}.{service}{suffix}"
+            return f"❌ HA erro {resp.status_code}: {resp.text[:150]}"
+        except Exception as e:
+            return f"❌ HA offline / inacessível: {e}"
+
+    def list_hass_entities(self, domain_filter: str = "") -> list[dict]:
+        """Return all HA entities, optionally filtered by domain prefix."""
+        if not self.hass_enabled:
+            return []
+        headers = {"Authorization": f"Bearer {self.hass_token}"}
+        try:
+            resp = requests.get(
+                f"{self.hass_url}/api/states",
+                headers=headers,
+                timeout=10,
+            )
+            if not resp.ok:
+                return []
+            states = resp.json()
+            if domain_filter:
+                states = [
+                    s for s in states
+                    if s["entity_id"].startswith(domain_filter + ".")
+                ]
+            return [
+                {
+                    "entity_id": s["entity_id"],
+                    "state": s["state"],
+                    "name": s.get("attributes", {}).get(
+                        "friendly_name", s["entity_id"]
+                    ),
+                }
+                for s in states
+            ]
+        except Exception:
+            return []
+
+    def get_hass_state(self, entity_id: str) -> str:
+        """Get the current state of one HA entity."""
+        if not self.hass_enabled:
+            return "❌ Home Assistant não configurado."
+        headers = {"Authorization": f"Bearer {self.hass_token}"}
+        try:
+            resp = requests.get(
+                f"{self.hass_url}/api/states/{entity_id}",
+                headers=headers,
+                timeout=10,
+            )
+            if resp.ok:
+                d = resp.json()
+                name = d.get("attributes", {}).get("friendly_name", entity_id)
+                state = d["state"]
+                unit = d.get("attributes", {}).get("unit_of_measurement", "")
+                return f"🏠 {name}: {state}{(' ' + unit) if unit else ''}"
+            return f"❌ Entidade não encontrada: {entity_id}"
+        except Exception as e:
+            return f"❌ HA offline: {e}"
+
+    def _parse_hass_command(self, payload: str) -> str:
+        """Parse `/ha <domain>.<service> [entity_id]` or `/ha <entity_id>`."""
+        parts = payload.strip().split()
+        if not parts:
+            return (
+                "Use: /ha <domínio>.<serviço> [entidade]\n"
+                "Ex:  /ha light.turn_on light.sala\n"
+                "     /ha switch.turn_off switch.ar_condicionado\n"
+                "     /ha (sem args — lista entidades)"
+            )
+        action = parts[0]
+        if "." not in action:
+            return self.get_hass_state(action)
+        domain, service = action.split(".", 1)
+        entity_id = parts[1] if len(parts) > 1 else ""
+        return self.run_hass_command(domain, service, entity_id)
+
+    def _hass_natural(self, entity_hint: str, action: str) -> str:
+        """Match a free-text entity hint to a real HA entity and call turn_on/off."""
+        entities = self.list_hass_entities()
+        hint = entity_hint.strip().lower()
+        matches = [
+            e for e in entities
+            if hint in e["name"].lower() or hint in e["entity_id"].lower()
+        ]
+        if not matches:
+            return (
+                f"❌ Entidade '{entity_hint}' não encontrada no Home Assistant.\n"
+                "Use /ha para listar todas as entidades."
+            )
+        e = matches[0]
+        domain = e["entity_id"].split(".")[0]
+        return self.run_hass_command(domain, action, e["entity_id"])
+
+    # ── Google Calendar (ical) ────────────────────────────────────────────────
+
+    def get_calendar_events(self, days_ahead: int = 7) -> str:
+        """
+        Fetch events from Google Calendar via the secret iCal URL.
+        No OAuth needed — just set GOOGLE_CALENDAR_ICAL_URL in .env.
+        (Google Calendar → Settings → Calendar → Secret address in iCal format)
+        """
+        from datetime import timedelta
+
+        ical_url = self.google_calendar_ical
+        if not ical_url:
+            return (
+                "❌ Defina GOOGLE_CALENDAR_ICAL_URL no .env.\n"
+                "No Google Calendar: ⚙ Configurações → seu calendário → "
+                "Integração do calendário → Endereço secreto no formato iCal."
+            )
+        try:
+            resp = requests.get(ical_url, timeout=15)
+            resp.raise_for_status()
+            # Unfold continued lines (RFC 5545)
+            text = resp.text.replace("\r\n ", "").replace("\r\n", "\n").replace("\r", "\n")
+
+            events: list[dict] = []
+            current: dict = {}
+            in_event = False
+
+            for line in text.split("\n"):
+                line = line.strip()
+                if line == "BEGIN:VEVENT":
+                    in_event = True
+                    current = {}
+                elif line == "END:VEVENT":
+                    in_event = False
+                    if current.get("dtstart") and current.get("summary"):
+                        events.append(current.copy())
+                    current = {}
+                elif in_event and ":" in line:
+                    key, _, val = line.partition(":")
+                    key = key.split(";")[0].strip().upper()
+                    val = val.strip()
+                    if key == "SUMMARY":
+                        current["summary"] = val
+                    elif key in ("DTSTART",):
+                        current["dtstart"] = val[:8]
+                    elif key == "LOCATION":
+                        current["location"] = val[:80]
+                    elif key == "DESCRIPTION":
+                        current["description"] = val[:100]
+
+            today = datetime.now().date()
+            cutoff = today + timedelta(days=days_ahead)
+
+            upcoming: list[tuple] = []
+            for ev in events:
+                try:
+                    ev_date = datetime.strptime(ev["dtstart"][:8], "%Y%m%d").date()
+                    if today <= ev_date <= cutoff:
+                        upcoming.append(
+                            (
+                                ev_date,
+                                ev["summary"],
+                                ev.get("location", ""),
+                                ev.get("description", ""),
+                            )
+                        )
+                except Exception:
+                    pass
+
+            upcoming.sort()
+            if not upcoming:
+                return f"📅 Sem eventos nos próximos {days_ahead} dias."
+
+            out = [f"📅 Próximos {days_ahead} dias ({len(upcoming)} evento(s)):"]
+            for ev_date, summary, loc, desc in upcoming:
+                line_out = f"• {ev_date.strftime('%d/%m')} — {summary}"
+                if loc:
+                    line_out += f" @ {loc}"
+                out.append(line_out)
+                if desc:
+                    out.append(f"  ↳ {desc}")
+            return "\n".join(out)
+
+        except Exception as e:
+            return f"❌ Erro ao buscar calendário Google: {e}"
+
+    # ── Full-text memory search ───────────────────────────────────────────────
+
+    def search_memory_fts(self, query: str) -> str:
+        """LIKE-based search across learned_facts, notes, knowledge_base, personal_events."""
+        if not query.strip():
+            return "Use: /buscar <termo>"
+        q = query.strip()
+        like = f"%{q}%"
+        results: list[str] = []
+
+        try:
+            rows = self.conn.execute(
+                "SELECT category, fact FROM learned_facts WHERE fact LIKE ? "
+                "ORDER BY id DESC LIMIT 5",
+                (like,),
+            ).fetchall()
+            for row in rows:
+                results.append(f"🧠 [{row[0]}] {row[1]}")
+        except Exception:
+            pass
+
+        try:
+            rows = self.conn.execute(
+                "SELECT content, created_at FROM notes WHERE content LIKE ? "
+                "ORDER BY id DESC LIMIT 5",
+                (like,),
+            ).fetchall()
+            for row in rows:
+                results.append(f"📝 {row[0][:120]} ({row[1][:10]})")
+        except Exception:
+            pass
+
+        try:
+            rows = self.conn.execute(
+                "SELECT topic, content FROM knowledge_base "
+                "WHERE topic LIKE ? OR content LIKE ? "
+                "ORDER BY updated_at DESC LIMIT 5",
+                (like, like),
+            ).fetchall()
+            for row in rows:
+                results.append(f"📚 [{row[0]}] {row[1][:120]}")
+        except Exception:
+            pass
+
+        try:
+            rows = self.conn.execute(
+                "SELECT event_date, title FROM personal_events "
+                "WHERE title LIKE ? ORDER BY event_date DESC LIMIT 3",
+                (like,),
+            ).fetchall()
+            for row in rows:
+                results.append(f"📅 {row[0]} — {row[1]}")
+        except Exception:
+            pass
+
+        if not results:
+            return f"🔍 Nenhum resultado para '{q}' na memória."
+        return f"🔍 {len(results)} resultado(s) para '{q}':\n\n" + "\n".join(results)
+
     def autonomous_tick(self) -> str | None:
         """
         Called by the background loop every ~10 min.
@@ -4238,6 +4517,69 @@ Format as a structured JSON with:
         if normalized in email_kws or any(kw in normalized for kw in email_kws):
             return self.summarize_emails_cmd()
 
+        # ── Home Assistant ────────────────────────────────────────────────────
+        if normalized in {"/ha", "/hass"}:
+            if not self.hass_enabled:
+                return (
+                    "❌ Home Assistant não configurado.\n"
+                    "Adicione HASS_URL e HASS_TOKEN ao .env e reinicie."
+                )
+            entities = self.list_hass_entities()
+            if not entities:
+                return "❌ Sem entidades encontradas. Verifique HASS_URL/HASS_TOKEN."
+            lines = [f"🏠 {len(entities)} entidades no Home Assistant:"]
+            for e in entities[:20]:
+                lines.append(f"  • {e['name']}: {e['state']}")
+            if len(entities) > 20:
+                lines.append(f"  … e mais {len(entities) - 20} entidade(s)")
+            return "\n".join(lines)
+
+        if normalized.startswith("/ha ") or normalized.startswith("/hass "):
+            payload = self.extract_after_first(text, ["/ha ", "/hass "]) or ""
+            return self._parse_hass_command(payload)
+
+        # Natural language HA: "ligar luz da sala", "desligar ar condicionado"
+        if self.hass_enabled:
+            _on_kws = ("ligar ", "acender ", "ativar ")
+            _off_kws = ("desligar ", "apagar ", "desativar ")
+            for kw in _on_kws:
+                if normalized.startswith(kw):
+                    hint = normalized[len(kw):].strip()
+                    result = self._hass_natural(hint, "turn_on")
+                    # Only return if HA found the entity (don't steal other commands)
+                    if "❌ Entidade" not in result and "não configurado" not in result:
+                        return result
+            for kw in _off_kws:
+                if normalized.startswith(kw):
+                    hint = normalized[len(kw):].strip()
+                    result = self._hass_natural(hint, "turn_off")
+                    if "❌ Entidade" not in result and "não configurado" not in result:
+                        return result
+
+        # ── Google Calendar ───────────────────────────────────────────────────
+        _cal_kws = {
+            "calendar", "/calendar", "agenda google", "meu calendario",
+            "minha agenda google", "ver calendario", "meu calendário",
+            "minha agenda", "próximos eventos", "proximos eventos",
+        }
+        if normalized in _cal_kws:
+            return self.get_calendar_events(days_ahead=7)
+
+        if normalized.startswith("/calendar "):
+            days_str = self.extract_after_first(text, ["/calendar "]) or "7"
+            try:
+                days = int(days_str.strip())
+            except Exception:
+                days = 7
+            return self.get_calendar_events(days_ahead=days)
+
+        # ── Memory / knowledge search ─────────────────────────────────────────
+        _buscar_pfx = ("/buscar ", "/memoria ", "buscar na memoria ", "buscar ")
+        for _pfx in _buscar_pfx:
+            if normalized.startswith(_pfx):
+                query = self.extract_after_first(text, [_pfx]) or ""
+                return self.search_memory_fts(query)
+
         return None
 
     def wake_mode_loop(self) -> None:
@@ -4402,6 +4744,63 @@ class DiscordRunner:
         client.run(self.agent.discord_token)
 
 
+class TelegramBot:
+    """Long-polling Telegram bot — no extra library needed, uses raw requests."""
+
+    POLL_TIMEOUT = 30  # seconds for getUpdates long-poll
+
+    def __init__(self, agent_name: str) -> None:
+        self.agent = PersonalAIAgent(enable_voice=False)
+        self.agent_name = agent_name
+        self._offset: int = 0
+
+    def start(self) -> None:
+        if not self.agent.telegram_enabled:
+            return
+        thread = threading.Thread(target=self._poll_loop, daemon=True)
+        thread.start()
+        print(f"Telegram bot ativo. Token: {self.agent.telegram_token[:8]}…")
+
+    def _api(self, method: str, **kwargs) -> dict:
+        url = f"https://api.telegram.org/bot{self.agent.telegram_token}/{method}"
+        try:
+            resp = requests.post(url, json=kwargs, timeout=self.POLL_TIMEOUT + 5)
+            return resp.json() if resp.ok else {}
+        except Exception:
+            return {}
+
+    def _send(self, chat_id: int, text: str) -> None:
+        for i in range(0, len(text), 4000):
+            self._api("sendMessage", chat_id=chat_id, text=text[i : i + 4000])
+
+    def _poll_loop(self) -> None:
+        print("Telegram: iniciando long-polling…")
+        while True:
+            try:
+                resp = self._api(
+                    "getUpdates",
+                    offset=self._offset,
+                    timeout=self.POLL_TIMEOUT,
+                    allowed_updates=["message"],
+                )
+                updates = resp.get("result", [])
+                for upd in updates:
+                    self._offset = upd["update_id"] + 1
+                    msg = upd.get("message", {})
+                    text = (msg.get("text") or "").strip()
+                    chat_id = msg.get("chat", {}).get("id")
+                    if not text or not chat_id:
+                        continue
+                    try:
+                        answer = self.agent.answer_command(text, allow_confirmation=False)
+                    except Exception as e:
+                        answer = f"❌ Erro: {e}"
+                    self._send(chat_id, answer)
+            except Exception as exc:
+                print(f"Telegram poll error: {exc}")
+                time.sleep(5)
+
+
 def print_help() -> None:
     print("\nComandos disponíveis:")
     print("  /help               Mostrar ajuda")
@@ -4450,6 +4849,11 @@ def print_help() -> None:
     print("  /proactive on|off   Ativar/desativar modo proativo")
     print("  /proactive check    Ver atalho sugerido agora")
     print("  /discord status     Ver status da integração Discord")
+    print("  /ha                 Listar entidades do Home Assistant")
+    print("  /ha <dom>.<svc> [e] Controlar entidade HA (ex: /ha light.turn_on light.sala)")
+    print("  /calendar [dias]    Ver próximos eventos do Google Calendar")
+    print("  /buscar <termo>     Buscar termo na memória (notas, KB, eventos, fatos)")
+    print("  /telegram status    Ver status do bot Telegram")
     print("  /model status       Ver status dos modelos (primário/secundário)")
     print("  /model refresh      Recarregar modelos disponíveis no Ollama")
     print("  📚 Knowledge Base:")
@@ -4495,6 +4899,7 @@ def main() -> None:
         return
 
     DiscordRunner(agent.agent_name).start()
+    TelegramBot(agent.agent_name).start()
 
     while True:
         if agent.should_prompt_proactive_now():

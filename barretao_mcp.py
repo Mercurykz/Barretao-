@@ -263,6 +263,50 @@ async def list_tools() -> list[types.Tool]:
                 "required": [],
             },
         ),
+        types.Tool(
+            name="barretao_hass",
+            description=(
+                "Controla dispositivos do Home Assistant via Barretão. "
+                "Pode listar entidades, ligar/desligar luzes, interruptores, "
+                "climatização, etc. Requer HASS_URL e HASS_TOKEN no .env."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Ação: list, turn_on, turn_off, toggle, state",
+                    },
+                    "entity_id": {
+                        "type": "string",
+                        "description": "ID da entidade (ex: light.sala, switch.ar)",
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domínio do HA (light, switch, climate, etc.) — usado com list",
+                    },
+                },
+                "required": ["action"],
+            },
+        ),
+        types.Tool(
+            name="barretao_calendar",
+            description=(
+                "Retorna os próximos eventos do Google Calendar via Barretão. "
+                "Não requer OAuth — usa o URL secreto iCal configurado em GOOGLE_CALENDAR_ICAL_URL."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "description": "Quantos dias à frente buscar (padrão: 7)",
+                        "default": 7,
+                    }
+                },
+                "required": [],
+            },
+        ),
     ]
 
 
@@ -382,7 +426,56 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
             )
         except Exception:
             return _text(f"❌ Barretão offline ou inacessível em {HUB_URL}")
+    # ── barretao_hass ───────────────────────────────────────────────────────────
+    if name == "barretao_hass":
+        action    = arguments.get("action", "").strip().lower()
+        entity_id = arguments.get("entity_id", "").strip()
+        domain    = arguments.get("domain", "").strip()
+        if action == "list":
+            try:
+                params = f"?domain={domain}" if domain else ""
+                r = requests.get(f"{HUB_URL}/hass/entities{params}", headers=_headers(), timeout=TIMEOUT)
+                r.raise_for_status()
+                data = r.json()
+                entities = data.get("entities", [])
+                if not entities:
+                    return _text("🏠 Nenhuma entidade encontrada.")
+                lines = [f"🏠 {len(entities)} entidade(s):"]
+                for e in entities[:30]:
+                    lines.append(f"  • {e['name']}: {e['state']} ({e['entity_id']})")
+                return _text("\n".join(lines))
+            except Exception as e:
+                return _text(f"❌ Erro ao listar entidades HA: {e}")
+        if action in ("turn_on", "turn_off", "toggle"):
+            if not entity_id:
+                return _text("Erro: 'entity_id' é obrigatório para controlar entidades.")
+            eid_domain = entity_id.split(".")[0]
+            try:
+                r = requests.post(
+                    f"{HUB_URL}/hass/{eid_domain}/{action}",
+                    params={"entity_id": entity_id},
+                    headers=_headers(),
+                    timeout=TIMEOUT,
+                )
+                data = r.json()
+                return _text(data.get("result", str(data)))
+            except Exception as e:
+                return _text(f"❌ Erro ao controlar HA: {e}")
+        if action == "state":
+            if not entity_id:
+                return _text("Erro: 'entity_id' é obrigatório para verificar estado.")
+            return _text(_post_command(f"/ha {entity_id}"))
+        return _text(f"Ação desconhecida: '{action}'. Use: list, turn_on, turn_off, toggle, state")
 
+    # ── barretao_calendar ─────────────────────────────────────────────────────────
+    if name == "barretao_calendar":
+        days = arguments.get("days", 7)
+        try:
+            r = requests.get(f"{HUB_URL}/calendar?days={days}", headers=_headers(), timeout=TIMEOUT)
+            r.raise_for_status()
+            return _text(r.json().get("text", "Sem dados"))
+        except Exception as e:
+            return _text(f"❌ Erro ao obter calendário: {e}")
     return _text(f"Ferramenta desconhecida: {name}")
 
 

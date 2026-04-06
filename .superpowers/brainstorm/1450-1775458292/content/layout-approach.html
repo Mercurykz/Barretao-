@@ -1,0 +1,159 @@
+<style>
+  :root {
+    --accent: #00cfff; --accent2: #8800ff; --bg: #00000d; --bg2: #030310;
+    --surface: rgba(0,8,24,.88); --border: rgba(0,180,255,.15); --text: #c8e8ff; --green: #00ff99;
+  }
+  .cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .card { cursor: pointer; border: 2px solid #333; border-radius: 12px; overflow: hidden; background: var(--bg2); transition: border-color 0.2s, box-shadow 0.2s; }
+  .card.selected { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,207,255,0.25); }
+  .card-preview {
+    background: linear-gradient(rgba(0,180,255,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,180,255,.03) 1px,transparent 1px), #00000d;
+    background-size: 20px 20px, 20px 20px, 100%;
+    height: 200px; padding: 8px; font-family: 'Courier New', monospace; font-size: 8px; color: var(--text); position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .card-body { padding: 10px 12px 12px; }
+  .card-body h3 { margin: 0 0 3px; font-size: 12px; color: var(--accent); }
+  .card-body p { margin: 0; font-size: 10px; color: #5a8aaa; line-height: 1.4; }
+
+  /* Mock UI elements */
+  .m-statusbar { background: rgba(0,180,255,.08); border: 1px solid rgba(0,180,255,.2); border-radius: 4px; padding: 3px 6px; display: flex; gap: 6px; color: var(--accent); font-size: 7px; flex-shrink: 0; }
+  .m-chat { flex: 1; border: 1px solid rgba(0,180,255,.1); border-radius: 4px; padding: 4px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+  .m-bubble { border-radius: 4px; padding: 3px 5px; font-size: 7px; max-width: 80%; }
+  .m-bubble.user { background: linear-gradient(135deg, #00cfff22, #8800ff22); align-self: flex-end; color: var(--accent); }
+  .m-bubble.bot { background: rgba(0,8,22,.9); border: 1px solid rgba(0,180,255,.1); color: #7ab0cc; }
+  .m-input { background: rgba(0,8,24,.8); border: 1px solid rgba(0,180,255,.2); border-radius: 4px; padding: 3px 6px; color: #3a6a8a; font-size: 7px; flex-shrink: 0; }
+  .m-shortcuts { display: flex; gap: 3px; flex-wrap: wrap; flex-shrink: 0; }
+  .m-shortcut { border: 1px solid rgba(0,180,255,.2); border-radius: 3px; padding: 2px 5px; font-size: 6px; color: var(--accent); }
+  .m-sidebar { width: 60px; flex-shrink: 0; display: flex; flex-direction: column; gap: 3px; }
+  .m-sidebar-panel { border: 1px solid rgba(0,180,255,.15); border-radius: 4px; padding: 3px; font-size: 6px; color: #3a6a8a; flex: 1; }
+  .m-sidebar-panel .title { color: var(--accent); font-size: 6px; margin-bottom: 2px; }
+  .m-badge { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 3px; }
+  .m-row { display: flex; gap: 4px; flex: 1; overflow: hidden; }
+  .m-waveform { display: flex; align-items: center; gap: 1px; height: 12px; justify-content: center; }
+  .m-bar { width: 2px; background: var(--accent); border-radius: 1px; animation: wave 1s ease-in-out infinite; }
+  .m-bar:nth-child(1){height:3px;animation-delay:0s} .m-bar:nth-child(2){height:7px;animation-delay:.1s}
+  .m-bar:nth-child(3){height:11px;animation-delay:.2s} .m-bar:nth-child(4){height:7px;animation-delay:.3s}
+  .m-bar:nth-child(5){height:3px;animation-delay:.4s}
+  @keyframes wave { 0%,100%{transform:scaleY(.4);opacity:.5} 50%{transform:scaleY(1);opacity:1} }
+  .m-ring { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 6px; color: var(--accent); box-shadow: 0 0 6px rgba(0,207,255,.4); flex-shrink: 0; }
+  .m-briefing { border: 1px solid rgba(0,180,255,.15); border-radius: 4px; padding: 3px; flex-shrink: 0; }
+  .m-briefing-row { display: flex; justify-content: space-between; font-size: 6px; padding: 1px 0; }
+  .m-briefing-row .lbl { color: #3a6a8a; }
+  .m-briefing-row .val { color: var(--accent); }
+
+  /* Badge recomendado */
+  .rec-badge { position: absolute; top: 8px; right: 8px; background: var(--accent2); color: white; font-size: 8px; padding: 2px 6px; border-radius: 10px; font-family: sans-serif; z-index: 10; }
+</style>
+
+<h2>Como organizar os elementos na tela?</h2>
+<p class="subtitle">Escolha o layout do HUD</p>
+
+<div class="cards">
+
+  <!-- Opção A: Tudo no chat + status bar -->
+  <div class="card" data-choice="chat-enhanced" onclick="toggleSelect(this)">
+    <div class="card-preview" style="flex-direction:column">
+      <div class="m-statusbar">
+        <span>● SP 28°C</span><span>15:42</span><span>CPU 8%</span><span>3 emails</span>
+      </div>
+      <div class="m-chat">
+        <div class="m-briefing">
+          <div class="m-briefing-row"><span class="lbl">Gmail</span><span class="val">3 msgs</span></div>
+          <div class="m-briefing-row"><span class="lbl">Agenda</span><span class="val">Livre</span></div>
+        </div>
+        <div class="m-bubble bot">Bom dia! Clima 28°C hoje...</div>
+        <div class="m-bubble user">abre Spotify</div>
+        <div class="m-waveform">
+          <div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div>
+        </div>
+      </div>
+      <div class="m-shortcuts">
+        <div class="m-shortcut">🎵</div><div class="m-shortcut">📧</div><div class="m-shortcut">📅</div><div class="m-shortcut">+</div>
+      </div>
+      <div class="m-input">mensagem...</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Chat Aprimorado</h3>
+      <p>Status bar no topo, briefing colapsável acima do chat, shortcuts abaixo, waveform no lugar do texto quando fala. Tudo numa tela só. Mobile-friendly.</p>
+    </div>
+  </div>
+
+  <!-- Opção B: Dashboard + Chat -->
+  <div class="card" data-choice="dashboard-chat" onclick="toggleSelect(this)">
+    <div class="card-preview" style="flex-direction:column" >
+      <div class="rec-badge">★ Recomendado</div>
+      <div class="m-statusbar">
+        <span>● ONLINE</span><span>15:42</span><span>28°C</span>
+      </div>
+      <!-- Tab bar -->
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <div style="border-bottom:1px solid var(--accent);padding:2px 6px;font-size:7px;color:var(--accent)">🏠 HUD</div>
+        <div style="padding:2px 6px;font-size:7px;color:#3a6a8a">💬 Chat</div>
+        <div style="padding:2px 6px;font-size:7px;color:#3a6a8a">🧠 Mem</div>
+      </div>
+      <!-- Dashboard view -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1;overflow:hidden">
+        <div class="m-briefing" style="display:flex;flex-direction:column;gap:2px">
+          <div style="color:var(--accent);font-size:6px">BRIEFING</div>
+          <div class="m-briefing-row"><span class="lbl">Clima</span><span class="val">28°C</span></div>
+          <div class="m-briefing-row"><span class="lbl">Gmail</span><span class="val">3</span></div>
+          <div class="m-briefing-row"><span class="lbl">Agenda</span><span class="val">Livre</span></div>
+        </div>
+        <div style="border:1px solid rgba(0,180,255,.15);border-radius:4px;padding:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <div class="m-ring">AI</div>
+          <div style="font-size:6px;color:var(--green)">ATIVO</div>
+        </div>
+        <div style="border:1px solid rgba(0,180,255,.15);border-radius:4px;padding:3px;grid-column:1/-1">
+          <div style="color:var(--accent);font-size:6px;margin-bottom:2px">ATALHOS</div>
+          <div class="m-shortcuts">
+            <div class="m-shortcut">🎵 Spotify</div><div class="m-shortcut">📧 Mail</div><div class="m-shortcut">📅 Agenda</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Dashboard + Chat (abas)</h3>
+      <p>Aba HUD com todos widgets, aba Chat para conversa, aba Memória. Máxima organização, visual de cockpit. Perfeito no desktop.</p>
+    </div>
+  </div>
+
+  <!-- Opção C: Sidebar + Chat -->
+  <div class="card" data-choice="sidebar-chat" onclick="toggleSelect(this)">
+    <div class="card-preview" style="flex-direction:column">
+      <div class="m-statusbar">
+        <span>● 15:42</span><span>SP 28°C</span><span>CPU 8%</span>
+      </div>
+      <div class="m-row">
+        <div class="m-sidebar">
+          <div class="m-sidebar-panel">
+            <div class="title">BRIEFING</div>
+            <div>☀️ 28°C</div>
+            <div>📧 3</div>
+            <div>📅 Livre</div>
+          </div>
+          <div class="m-sidebar-panel">
+            <div class="title">MEMÓRIA</div>
+            <div style="color:#5a8aaa">academia 18h</div>
+            <div style="color:#5a8aaa">dentista seg</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;flex:1;gap:3px;overflow:hidden">
+          <div class="m-chat">
+            <div class="m-bubble bot">Bom dia!</div>
+            <div class="m-bubble user">e aí</div>
+          </div>
+          <div class="m-shortcuts">
+            <div class="m-shortcut">🎵</div><div class="m-shortcut">📧</div><div class="m-shortcut">+</div>
+          </div>
+          <div class="m-input">mensagem...</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Sidebar + Chat</h3>
+      <p>Sidebar fixa à esquerda com briefing e memórias, chat à direita. Tudo visível ao mesmo tempo. Melhor no desktop/tablet.</p>
+    </div>
+  </div>
+
+</div>

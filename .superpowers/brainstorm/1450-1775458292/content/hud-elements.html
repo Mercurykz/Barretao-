@@ -1,0 +1,173 @@
+<style>
+  :root {
+    --accent: #00cfff;
+    --accent2: #8800ff;
+    --bg: #00000d;
+    --bg2: #030310;
+    --surface: rgba(0,8,24,.88);
+    --border: rgba(0,180,255,.15);
+    --text: #c8e8ff;
+    --green: #00ff99;
+  }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .card { cursor: pointer; border: 2px solid #333; border-radius: 12px; overflow: hidden; background: var(--bg2); transition: border-color 0.2s, box-shadow 0.2s; }
+  .card.selected { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,207,255,0.25); }
+  .card-preview {
+    background:
+      linear-gradient(rgba(0,180,255,.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,180,255,.03) 1px,transparent 1px),
+      #00000d;
+    background-size: 30px 30px, 30px 30px, 100%;
+    height: 140px; padding: 10px; font-family: 'Courier New', monospace; font-size: 10px; color: var(--text); position: relative; overflow: hidden;
+  }
+  .card-body { padding: 10px 12px 12px; }
+  .card-body h3 { margin: 0 0 3px; font-size: 13px; color: var(--accent); }
+  .card-body p { margin: 0; font-size: 11px; color: #5a8aaa; }
+
+  /* Element previews */
+  .hud-statusbar { display: flex; gap: 10px; background: rgba(0,180,255,.06); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 9px; color: var(--accent); }
+  .hud-statusbar span { opacity: 0.8; }
+  .hud-statusbar .dot { color: var(--green); }
+
+  .hud-waveform { display: flex; align-items: center; gap: 2px; height: 30px; margin: 8px 0; }
+  .hud-waveform .bar { width: 3px; background: var(--accent); border-radius: 2px; animation: wave 1s ease-in-out infinite; }
+  .hud-waveform .bar:nth-child(1){height:6px;animation-delay:0s}
+  .hud-waveform .bar:nth-child(2){height:14px;animation-delay:.1s}
+  .hud-waveform .bar:nth-child(3){height:22px;animation-delay:.2s}
+  .hud-waveform .bar:nth-child(4){height:30px;animation-delay:.3s}
+  .hud-waveform .bar:nth-child(5){height:22px;animation-delay:.4s}
+  .hud-waveform .bar:nth-child(6){height:14px;animation-delay:.5s}
+  .hud-waveform .bar:nth-child(7){height:6px;animation-delay:.6s}
+  @keyframes wave { 0%,100%{transform:scaleY(0.4);opacity:0.5} 50%{transform:scaleY(1);opacity:1} }
+
+  .hud-briefing { border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 9px; }
+  .hud-briefing .row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(0,180,255,.07); }
+  .hud-briefing .row:last-child { border: none; }
+  .hud-briefing .label { color: #3a6a8a; }
+  .hud-briefing .val { color: var(--accent); }
+
+  .hud-ring-small { width: 50px; height: 50px; border-radius: 50%; border: 1.5px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--accent); box-shadow: 0 0 12px rgba(0,207,255,.3); animation: pulse 2s infinite; position: relative; }
+  .hud-ring-small::before { content:''; position:absolute; width:42px; height:42px; border-radius:50%; border:1px dashed rgba(0,207,255,.3); animation: spin 4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 8px rgba(0,207,255,.2)} 50%{box-shadow:0 0 20px rgba(0,207,255,.5)} }
+
+  .hud-scanline { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan-h 3s linear infinite; opacity: 0.4; }
+  @keyframes scan-h { 0%{top:0;bottom:auto} 100%{top:100%;bottom:auto} }
+
+  .hud-corner { position: absolute; width: 12px; height: 12px; border-color: var(--accent); border-style: solid; opacity: 0.5; }
+  .c-tl { top:4px; left:4px; border-width:1px 0 0 1px; }
+  .c-tr { top:4px; right:4px; border-width:1px 1px 0 0; }
+  .c-bl { bottom:4px; left:4px; border-width:0 0 1px 1px; }
+  .c-br { bottom:4px; right:4px; border-width:0 1px 1px 0; }
+
+  .hud-memories { font-size: 9px; }
+  .hud-memories .mem { padding: 3px 0; border-bottom: 1px solid rgba(0,180,255,.07); display: flex; gap: 6px; }
+  .hud-memories .mem-tag { color: var(--accent2); opacity: 0.8; flex-shrink: 0; }
+  .hud-memories .mem-txt { color: #7ab0cc; }
+
+  .hud-shortcuts { display: flex; flex-wrap: wrap; gap: 4px; }
+  .hud-shortcut { border: 1px solid var(--border); border-radius: 4px; padding: 3px 7px; font-size: 9px; color: var(--accent); cursor: pointer; }
+</style>
+
+<h2>Quais elementos de HUD adicionar?</h2>
+<p class="subtitle">Selecione tudo que quer ver no painel (pode marcar vários)</p>
+
+<div class="cards" data-multiselect>
+
+  <div class="card" data-choice="statusbar" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div class="hud-corner c-tl"></div><div class="hud-corner c-tr"></div><div class="hud-corner c-bl"></div><div class="hud-corner c-br"></div>
+      <div class="hud-statusbar">
+        <span><span class="dot">●</span> ONLINE</span>
+        <span>CPU 8%</span>
+        <span>RAM 4.1GB</span>
+        <span>15:42</span>
+        <span>SP 28°C</span>
+      </div>
+      <div class="hud-scanline"></div>
+    </div>
+    <div class="card-body">
+      <h3>Status Bar Superior</h3>
+      <p>Hora, clima, CPU/RAM, status do sistema sempre visível no topo</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="waveform" onclick="toggleSelect(this)">
+    <div class="card-preview" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div style="font-size:9px;color:#3a6a8a;margin-bottom:4px">BARRETÃO FALANDO</div>
+      <div class="hud-waveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div style="font-size:8px;color:var(--accent);margin-top:4px">▶ Bom dia! Sua agenda está livre...</div>
+    </div>
+    <div class="card-body">
+      <h3>Waveform de Voz Animado</h3>
+      <p>Visualizador de áudio animado quando o Barretão está falando ou ouvindo</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="briefing" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div style="font-size:8px;color:#3a6a8a;margin-bottom:4px;letter-spacing:1px">BRIEFING DIÁRIO</div>
+      <div class="hud-briefing">
+        <div class="row"><span class="label">Clima SP</span><span class="val">28°C ☀️</span></div>
+        <div class="row"><span class="label">Gmail</span><span class="val">3 não lidos</span></div>
+        <div class="row"><span class="label">Agenda</span><span class="val">Livre hoje</span></div>
+        <div class="row"><span class="label">Lembretes</span><span class="val">0 pendentes</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Painel de Briefing</h3>
+      <p>Widget colapsável com resumo diário: clima, emails, agenda, lembretes</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="ring" onclick="toggleSelect(this)">
+    <div class="card-preview" style="display:flex;align-items:center;justify-content:center;gap:16px">
+      <div class="hud-ring-small">AI</div>
+      <div style="font-size:9px;color:#3a6a8a;line-height:1.6">
+        <div>STATUS: <span style="color:var(--green)">ATIVO</span></div>
+        <div>MODO: <span style="color:var(--accent)">AGUARDANDO</span></div>
+        <div>MODELO: <span style="color:var(--accent)">llama3.1</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Anel de Status (Arc Reactor)</h3>
+      <p>Anel animado no avatar que muda cor/pulso conforme estado (pensando, falando, idle)</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="memories" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div style="font-size:8px;color:#3a6a8a;margin-bottom:4px;letter-spacing:1px">MEMÓRIA RECENTE</div>
+      <div class="hud-memories">
+        <div class="mem"><span class="mem-tag">[fato]</span><span class="mem-txt">academia às 18h toda segunda</span></div>
+        <div class="mem"><span class="mem-tag">[nota]</span><span class="mem-txt">ligar pro dentista semana que vem</span></div>
+        <div class="mem"><span class="mem-tag">[rotina]</span><span class="mem-txt">abre Spotify toda manhã</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Painel de Memórias</h3>
+      <p>Sidebar com fatos, notas e rotinas aprendidas — visível ao lado do chat</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="shortcuts" onclick="toggleSelect(this)">
+    <div class="card-preview" style="display:flex;flex-direction:column;justify-content:center">
+      <div style="font-size:8px;color:#3a6a8a;margin-bottom:8px;letter-spacing:1px">ATALHOS RÁPIDOS</div>
+      <div class="hud-shortcuts">
+        <div class="hud-shortcut">🎵 Spotify</div>
+        <div class="hud-shortcut">📧 Gmail</div>
+        <div class="hud-shortcut">📅 Agenda</div>
+        <div class="hud-shortcut">🏋️ Academia</div>
+        <div class="hud-shortcut">💡 Luzes</div>
+        <div class="hud-shortcut">+ novo</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Botões de Atalho</h3>
+      <p>Grade de botões configuráveis para seus shortcuts favoritos, visível na tela principal</p>
+    </div>
+  </div>
+
+</div>
