@@ -2753,15 +2753,7 @@
 
 <script>
 // ── HUD: Tab Switching ────────────────────────────────────────────────────
-function switchTab(tabName) {
-  document.querySelectorAll('.hud-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.hud-panel').forEach(p => p.classList.remove('active'));
-  const tab = document.querySelector(`.hud-tab[data-tab="${tabName}"]`);
-  const panel = document.getElementById(`${tabName}-panel`);
-  if (tab) tab.classList.add('active');
-  if (panel) panel.classList.add('active');
-  if (tabName === 'memory') loadMemoryPanel();
-}
+// switchTab — defined in SPA NAVIGATION section below (brt-v24+)
 
 // ── HUD: Ring State Machine ────────────────────────────────────────────────
 const _ring = document.getElementById('arc-ring');
@@ -5063,8 +5055,7 @@ async function doSearch() {
 }
 
 function renderSearchText(text, q) {
-  const lines = text.split('
-').filter(l => l.trim());
+  const lines = text.split('\n').filter(l => l.trim());
   if (!lines.length) return '';
   let cards = '<div class="search-result-card"><div class="sr-text">';
   for (const line of lines) {
@@ -5310,8 +5301,7 @@ async function hudRefresh() {
       `🤖 Modelo: ${r.model}`,
       `⚡ Provedor: ${r.provider}`,
       `⏱️ Uptime: ${Math.floor((r.uptime_seconds||0)/60)} min`,
-    ].join('
-');
+    ].join('\n');
     showSubResult('hud-sp-result', text);
   } catch(e) { showSubResult('hud-sp-result', 'Erro: ' + e.message); }
 }
