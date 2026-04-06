@@ -11,6 +11,13 @@ import queue
 import time
 import re
 import shutil
+
+# ── Load .env early so all os.getenv() calls pick it up ──────────────────────
+try:
+    import dotenv as _dotenv
+    _dotenv.load_dotenv(pathlib.Path(__file__).parent / ".env", override=False)
+except Exception:
+    pass
 try:
     import psutil as _psutil
     _PSUTIL_OK = True
@@ -973,7 +980,8 @@ if __name__ == "__main__":
     local_ip = _get_lan_ip()
 
     cert_file, key_file = _ensure_ssl_cert(local_ip)
-    use_ssl = cert_file is not None
+    force_http = os.getenv("FORCE_HTTP", "false").strip().lower() in ("1", "true", "yes")
+    use_ssl = cert_file is not None and not force_http
     scheme  = "https" if use_ssl else "http"
     enable_public_tunnel = os.getenv("PUBLIC_TUNNEL", "false").strip().lower() == "true"
 
