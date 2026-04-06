@@ -307,6 +307,55 @@ async def list_tools() -> list[types.Tool]:
                 "required": [],
             },
         ),
+        types.Tool(
+            name="barretao_github",
+            description=(
+                "Interage com a conta GitHub do usuário via Barretão. "
+                "Suporta listar repos, issues abertas, criar issues e ver perfil."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subcommand": {
+                        "type": "string",
+                        "description": (
+                            "Subcomando: 'repos' (listar repositórios), "
+                            "'issues' (issues atribuídas), "
+                            "'issues owner/repo' (issues de um repo), "
+                            "'criar owner/repo Título' (criar issue), "
+                            "'eu' (perfil do usuário)."
+                        ),
+                        "default": "repos",
+                    }
+                },
+                "required": [],
+            },
+        ),
+        types.Tool(
+            name="barretao_notion",
+            description=(
+                "Interage com o workspace Notion do usuário via Barretão. "
+                "Suporta busca e criação de páginas."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subcommand": {
+                        "type": "string",
+                        "description": (
+                            "Subcomando: 'buscar <query>' (pesquisar workspace), "
+                            "'criar <parent_id> <Título> | <Conteúdo>' (criar página)."
+                        ),
+                        "default": "buscar",
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "Texto para buscar no Notion (alternativa ao subcommand).",
+                    },
+                },
+                "required": [],
+            },
+        ),
     ]
 
 
@@ -476,6 +525,22 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
             return _text(r.json().get("text", "Sem dados"))
         except Exception as e:
             return _text(f"❌ Erro ao obter calendário: {e}")
+
+    # ── barretao_github ───────────────────────────────────────────────────────────
+    if name == "barretao_github":
+        sub = arguments.get("subcommand", "repos").strip()
+        return _text(_post_command(f"/github {sub}"))
+
+    # ── barretao_notion ───────────────────────────────────────────────────────────
+    if name == "barretao_notion":
+        query = arguments.get("query", "")
+        sub = arguments.get("subcommand", "").strip()
+        if query and not sub:
+            sub = f"buscar {query}"
+        elif not sub:
+            sub = "buscar"
+        return _text(_post_command(f"/notion {sub}"))
+
     return _text(f"Ferramenta desconhecida: {name}")
 
 

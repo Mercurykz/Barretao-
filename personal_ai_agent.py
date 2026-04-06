@@ -909,6 +909,12 @@ class PersonalAIAgent:
         self.hass_enabled = bool(self.hass_url and self.hass_token)
         # ── Google Calendar (ical secret URL — no OAuth needed) ──────────────
         self.google_calendar_ical = os.getenv("GOOGLE_CALENDAR_ICAL_URL", "").strip()
+        # GitHub
+        self.github_token = os.getenv("GITHUB_TOKEN", "").strip()
+        self.github_enabled = bool(self.github_token)
+        # Notion
+        self.notion_token = os.getenv("NOTION_TOKEN", "").strip()
+        self.notion_enabled = bool(self.notion_token)
         self.user_city = os.getenv("USER_CITY", "").strip()
         self.user_country = os.getenv("USER_COUNTRY", "BR").strip().upper()
         self.auto_city_by_ip = os.getenv("AUTO_CITY_BY_IP", "true").lower() == "true"
@@ -3952,6 +3958,196 @@ Format as a structured JSON with:
 
     # ── Full-text memory search ───────────────────────────────────────────────
 
+
+    # ── GitHub (REST API, no extra dependency) ────────────────────────────────
+
+    def _gh(self, path: str, method: str = "GET", data: dict | None = None):
+        """Raw GitHub REST API call."""
+        headers = {
+            "Authorization": f"Bearer {self.github_token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        url = f"https://api.github.com{path}"
+        try:
+            if method == "POST":
+                resp = __import__("requests").post(url, headers=headers, json=data or {}, timeout=12)
+            else:
+                resp = __import__("requests").get(url, headers=headers, timeout=12)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def github_cmd(self, subcommand: str) -> str:
+        """Route /github subcommands."""
+        if not self.github_enabled:
+            return (
+                "\u274c GitHub n\u00e3o configurado. "
+                "Defina GITHUB_TOKEN no .env "
+                "(github.com \u2192 Settings \u2192 Developer settings \u2192 Personal access tokens)."
+            )
+        sub = subcommand.strip()
+        parts = sub.split(None, 2)
+        action = parts[0].lower() if parts else ""
+
+        if not action or action in ("repos", "list", "repositorios", "reposit\u00f3rios"):
+            data = self._gh("/user/repos?sort=updated&per_page=20")
+            if isinstance(data, dict) and "error" in data:
+                return f"\u274c GitHub: {data['error']}"
+            lines = ["\U0001f419 Seus reposit\u00f3rios (atualiza\u00e7\u00e3o recente):"]
+            for r in (data or []):
+                stars = r.get("stargazers_count", 0)
+                lang  = r.get("language") or ""
+                priv  = "\U0001f512" if r.get("private") else "\U0001f310"
+                lines.append(f"  {priv} {r['full_name']} [{lang}] \u2605{stars}")
+            return "\n".join(lines) if len(lines) > 1 else "\U0001f419 Sem reposit\u00f3rios encontrados."
+
+        if action in ("issues", "issue"):
+            repo = parts[1] if len(parts) > 1 else ""
+            if not repo or "/" not in repo:
+                data = self._gh("/issues?state=open&per_page=20")
+                if isinstance(data, dict) and "error" in data:
+                    return f"\u274c {data['error']}"
+                if not data:
+                    return "\u2705 Sem issues abertas atribu\u00eddas a voc\u00ea."
+                lines = ["\U0001f6a8 Issues abertas (atribu\u00eddas a voc\u00ea):"]
+                for iss in (data or []):
+                    rn = iss.get("repository", {}).get("full_name", "?")
+                    lines.append(f"  #{iss['number']} [{rn}] {iss['title']}")
+                return "\n".join(lines)
+            data = self._gh(f"/repos/{repo}/issues?state=open&per_page=20")
+            if isinstance(data, dict) and "error" in data:
+                return f"\u274c {data['error']}"
+            if not data:
+                return f"\u2705 Sem issues abertas em {repo}."
+            lines = [f"\U0001f6a8 Issues abertas em {repo}:"]
+            for iss in (data or []):
+                lines.append(f"  #{iss['number']} {iss['title']}")
+            return "\n".join(lines)
+
+        if action in ("criar", "create", "new", "nova"):
+            repo  = parts[1] if len(parts) > 1 else ""
+            title = parts[2] if len(parts) > 2 else ""
+            if not repo or "/" not in repo or not title:
+                return "Use: /github criar <owner/repo> <t\u00edtulo da issue>"
+            data = self._gh(f"/repos/{repo}/issues", method="POST", data={"title": title})
+            if isinstance(data, dict) and "error" in data:
+                return f"\u274c {data['error']}"
+            return f"\u2705 Issue #{data.get('number', '?')} criada — {data.get('html_url', '')}"
+
+        if action in ("eu", "me", "perfil", "status"):
+            data = self._gh("/user")
+            if isinstance(data, dict) and "error" in data:
+                return f"\u274c {data['error']}"
+            return (
+                f"\U0001f419 GitHub: {data.get('name') or data.get('login', '?')} (@{data.get('login', '?')})\n"
+                f"  Repos p\u00fablicos: {data.get('public_repos', 0)} | Seguidores: {data.get('followers', 0)}\n"
+                f"  {data.get('html_url', '')}"
+            )
+
+        return (
+            "Subcomandos:\n"
+            "  /github repos          — seus reposit\u00f3rios\n"
+            "  /github issues         — issues atribu\u00eddas\n"
+            "  /github issues o/repo  — issues de um repo\n"
+            "  /github criar o/repo T\u00edtulo  — criar issue\n"
+            "  /github eu             — seu perfil"
+        )
+
+    # ── Notion (REST API v1, no extra dependency) ─────────────────────────────
+
+    def _notion(self, path: str, method: str = "GET", data: dict | None = None) -> dict:
+        headers = {
+            "Authorization": f"Bearer {self.notion_token}",
+            "Notion-Version": "2022-06-28",
+            "Content-Type": "application/json",
+        }
+        url = f"https://api.notion.com/v1{path}"
+        try:
+            if method == "POST":
+                resp = __import__("requests").post(url, headers=headers, json=data or {}, timeout=12)
+            else:
+                resp = __import__("requests").get(url, headers=headers, timeout=12)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def notion_search(self, query: str) -> str:
+        if not self.notion_enabled:
+            return "\u274c Notion n\u00e3o configurado. Defina NOTION_TOKEN no .env (notion.so/my-integrations)."
+        data = self._notion("/search", method="POST", data={"query": query, "page_size": 10})
+        if "error" in data:
+            return f"\u274c Notion: {data['error']}"
+        results = data.get("results", [])
+        if not results:
+            return f"\U0001f50d Nada encontrado no Notion para '{query}'."
+        lines = [f"\U0001f4da Notion — {len(results)} resultado(s) para '{query}':"]
+        for item in results:
+            title = "Sem t\u00edtulo"
+            for prop in item.get("properties", {}).values():
+                if prop.get("type") == "title":
+                    texts = prop.get("title", [])
+                    if texts:
+                        title = "".join(t.get("plain_text", "") for t in texts)
+                    break
+            if title == "Sem t\u00edtulo":
+                for t in item.get("title", []):
+                    title = t.get("plain_text", title)
+            icon = "\U0001f4da" if item.get("object") == "database" else "\U0001f4c4"
+            lines.append(f"  {icon} {title}")
+            if item.get("url"):
+                lines.append(f"     {item['url']}")
+        return "\n".join(lines)
+
+    def notion_create_page(self, parent_id: str, title: str, content: str = "") -> str:
+        if not self.notion_enabled:
+            return "\u274c Notion n\u00e3o configurado."
+        body: dict = {
+            "parent": {"database_id": parent_id},
+            "properties": {
+                "title": {"title": [{"type": "text", "text": {"content": title}}]}
+            },
+        }
+        if content:
+            body["children"] = [{
+                "object": "block", "type": "paragraph",
+                "paragraph": {"rich_text": [{"type": "text", "text": {"content": content[:2000]}}]},
+            }]
+        data = self._notion("/pages", method="POST", data=body)
+        if "error" in data:
+            return f"\u274c Notion: {data['error']}"
+        return f"\u2705 P\u00e1gina Notion criada: {title}\n   {data.get('url', data.get('id', '?'))}"
+
+    def notion_cmd(self, subcommand: str) -> str:
+        if not self.notion_enabled:
+            return "\u274c Notion n\u00e3o configurado. Defina NOTION_TOKEN no .env."
+        parts  = subcommand.strip().split(None, 1)
+        action = parts[0].lower() if parts else ""
+        rest   = parts[1] if len(parts) > 1 else ""
+
+        if not action or action in ("buscar", "search", "pesquisar"):
+            return self.notion_search(rest or "")
+
+        if action in ("criar", "create", "nova", "new"):
+            sub = rest.split(None, 1)
+            parent_id     = sub[0] if sub else ""
+            title_content = sub[1] if len(sub) > 1 else ""
+            if "|" in title_content:
+                title, body = title_content.split("|", 1)
+            else:
+                title, body = title_content, ""
+            if not parent_id or not title:
+                return "Use: /notion criar <parent_id> <T\u00edtulo> | <Conte\u00fado opcional>"
+            return self.notion_create_page(parent_id.strip(), title.strip(), body.strip())
+
+        return (
+            "Subcomandos Notion:\n"
+            "  /notion buscar <query>       — pesquisar workspace\n"
+            "  /notion criar <id> <T\u00edtulo>  — criar p\u00e1gina"
+        )
+
     def search_memory_fts(self, query: str) -> str:
         """LIKE-based search across learned_facts, notes, knowledge_base, personal_events."""
         if not query.strip():
@@ -4580,6 +4776,25 @@ Format as a structured JSON with:
                 query = self.extract_after_first(text, [_pfx]) or ""
                 return self.search_memory_fts(query)
 
+        # ── GitHub ────────────────────────────────────────────────────────────────────
+        if normalized in {"/github", "github", "meus repositorios", "meus repositórios"}:
+            return self.github_cmd("repos")
+        if normalized.startswith("/github "):
+            sub = self.extract_after_first(text, ["/github "]) or ""
+            return self.github_cmd(sub)
+        if normalized in {"minhas issues", "github issues"}:
+            return self.github_cmd("issues")
+
+        # ── Notion ────────────────────────────────────────────────────────────────────
+        if normalized in {"/notion", "notion"}:
+            return self.notion_cmd("buscar")
+        if normalized.startswith("/notion "):
+            sub = self.extract_after_first(text, ["/notion "]) or ""
+            return self.notion_cmd(sub)
+        if normalized.startswith("notion buscar ") or normalized.startswith("pesquisar notion "):
+            query = self.extract_after_first(text, ["notion buscar ", "pesquisar notion "]) or ""
+            return self.notion_search(query)
+
         return None
 
     def wake_mode_loop(self) -> None:
@@ -4853,6 +5068,12 @@ def print_help() -> None:
     print("  /ha <dom>.<svc> [e] Controlar entidade HA (ex: /ha light.turn_on light.sala)")
     print("  /calendar [dias]    Ver próximos eventos do Google Calendar")
     print("  /buscar <termo>     Buscar termo na memória (notas, KB, eventos, fatos)")
+    print("  /github             Listar seus repositórios GitHub")
+    print("  /github issues      Issues abertas atribuídas a você")
+    print("  /github criar <owner/repo> <título>  Criar issue")
+    print("  /notion             Listar páginas recentes do Notion")
+    print("  /notion buscar <q>  Buscar no workspace Notion")
+    print("  /notion criar <id> <Título> | <conteúdo>  Criar página")
     print("  /telegram status    Ver status do bot Telegram")
     print("  /model status       Ver status dos modelos (primário/secundário)")
     print("  /model refresh      Recarregar modelos disponíveis no Ollama")
