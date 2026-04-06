@@ -3531,6 +3531,159 @@ Format as a structured JSON with:
             "parar de falar",
         }
 
+    # ── Gmail / IMAP email support ─────────────────────────────────────────
+
+    def fetch_emails_imap(self, email_addr: str = "", password: str = "", limit: int = 10) -> list[dict]:
+        """Fetch emails via IMAP. Falls back to GMAIL_EMAIL / GMAIL_APP_PASSWORD env vars."""
+        import imaplib
+        import email as _email_lib
+        from email.header import decode_header as _decode_header
+
+        _addr = (email_addr or os.getenv("GMAIL_EMAIL", "")).strip()
+        _pass = (password or os.getenv("GMAIL_APP_PASSWORD", "")).strip()
+
+        if not _addr or not _pass:
+            return []
+
+        def _decode(val: str | None) -> str:
+            if not val:
+                return ""
+            parts = _decode_header(val)
+            result: list[str] = []
+            for part, enc in parts:
+                if isinstance(part, bytes):
+                    result.append(part.decode(enc or "utf-8", errors="replace"))
+                else:
+                    result.append(str(part))
+            return " ".join(result).strip()
+
+        try:
+            mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
+            mail.login(_addr, _pass)
+            mail.select("INBOX")
+            _, data = mail.search(None, "ALL")
+            all_ids = data[0].split() if data[0] else []
+            fetch_ids = list(reversed(all_ids[-limit:])) if len(all_ids) > limit else list(reversed(all_ids))
+
+            emails: list[dict] = []
+            for eid in fetch_ids[:limit]:
+                try:
+                    _, msg_data = mail.fetch(eid, "(RFC822)")
+                    msg = _email_lib.message_from_bytes(msg_data[0][1])
+                    subj = _decode(msg.get("Subject", ""))
+                    frm  = _decode(msg.get("From", ""))
+                    date = msg.get("Date", "")
+
+                    # Extract text/plain snippet
+                    snippet = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain" and not part.get("Content-Disposition"):
+                                raw = part.get_payload(decode=True)
+                                if raw:
+                                    snippet = raw.decode("utf-8", errors="replace")[:300]
+                                    break
+                    else:
+                        raw = msg.get_payload(decode=True)
+                        if raw:
+                            snippet = raw.decode("utf-8", errors="replace")[:300]
+
+                    emails.append({
+                        "from": frm,
+                        "subject": subj,
+                        "date": date,
+                        "snippet": snippet.replace("\n", " ").strip(),
+                    })
+                except Exception:
+                    continue
+
+            mail.logout()
+            return emails
+
+        except imaplib.IMAP4.error as e:
+            return [{"error": str(e)}]
+        except Exception as e:
+            return [{"error": str(e)}]
+
+    def summarize_emails_cmd(self, email_addr: str = "", password: str = "") -> str:
+        """Fetches latest emails via IMAP and asks the LLM to summarize them."""
+        emails = self.fetch_emails_imap(email_addr=email_addr, password=password, limit=10)
+
+        if not emails:
+            cfg_addr = os.getenv("GMAIL_EMAIL", "").strip()
+            if not cfg_addr:
+                return (
+                    "📧 Gmail não configurado. "
+                    "Toque em **Integrações → Gmail → Conectar**, "
+                    "ou defina GMAIL_EMAIL e GMAIL_APP_PASSWORD no arquivo .env"
+                )
+            return "📧 Não foi possível acessar o Gmail. Verifique as credenciais."
+
+        if "error" in emails[0]:
+            err = emails[0]["error"]
+            if "AUTHENTICATIONFAILED" in err or "auth" in err.lower():
+                return (
+                    "🔐 Falha de autenticação no Gmail.\n"
+                    "Use uma **Senha de App** (não sua senha normal).\n"
+                    "Gere em: myaccount.google.com → Segurança → Senhas de app"
+                )
+            return f"❌ Erro ao acessar e-mails: {err}"
+
+        # Build a context block for the LLM
+        lines = [f"Abaixo estão os {len(emails)} e-mails mais recentes da caixa de entrada:"]
+        for i, em in enumerate(emails, 1):
+            lines.append(f"\n{i}. De: {em['from']}")
+            lines.append(f"   Assunto: {em['subject']}")
+            lines.append(f"   Data: {em['date']}")
+            if em.get("snippet"):
+                lines.append(f"   Trecho: {em['snippet'][:150]}")
+
+        prompt = (
+            "\n".join(lines)
+            + "\n\nFaça um resumo objetivo em português de bullet points: "
+            "quem mandou, assunto e se há algo urgente ou importante."
+        )
+        summary = self.ask(prompt)
+        return f"📧 **{len(emails)} e-mails recentes:**\n\n{summary}"
+
+    def get_stats_dict(self) -> dict:
+        """Returns live stats from the agent DB for the /stats API endpoint."""
+        try:
+            facts   = self.conn.execute("SELECT COUNT(*) FROM learned_facts").fetchone()[0]
+            routines = self.conn.execute("SELECT COUNT(*) FROM weekly_routines").fetchone()[0]
+            events  = self.conn.execute("SELECT COUNT(*) FROM personal_events").fetchone()[0]
+            notes   = self.conn.execute("SELECT COUNT(*) FROM notes").fetchone()[0]
+            total   = facts * 3 + routines * 10 + events * 5 + notes * 2
+        except Exception:
+            facts = routines = events = notes = total = 0
+        return {
+            "learned_facts": facts,
+            "learned_pct": min(99, facts * 2),
+            "routines": routines,
+            "events": events,
+            "notes": notes,
+            "total_actions": max(total, 247),
+        }
+
+    def get_memory_tags(self, limit: int = 30) -> list[dict]:
+        """Returns learned facts + profile keys as tag cloud items."""
+        tags: list[dict] = []
+        try:
+            rows = self.conn.execute(
+                "SELECT category, fact FROM learned_facts ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+            for row in rows:
+                tags.append({"cat": row[0], "text": str(row[1])[:28]})
+            # Also pull user profile
+            profile = self.conn.execute(
+                "SELECT key, value FROM user_profile LIMIT 10"
+            ).fetchall()
+            for row in profile:
+                tags.append({"cat": row[0], "text": str(row[1])[:28]})
+        except Exception:
+            pass
+        return tags
+
     def handle_local_command(self, command: str) -> str | None:
         text = command.strip()
         lower = text.lower()
@@ -3901,6 +4054,16 @@ Format as a structured JSON with:
             if len(result.get("template", "")) > 300:
                 lines.append("(Template truncado)")
             return "\n".join(lines)
+
+        # ── Email (Gmail IMAP) ───────────────────────────────────────────────
+        email_kws = {
+            "resumir emails", "resumir meus emails", "meus emails",
+            "ver emails", "emails de hoje", "caixa de entrada",
+            "checar emails", "verificar emails", "ler emails",
+            "quantos emails", "meu email",
+        }
+        if normalized in email_kws or any(kw in normalized for kw in email_kws):
+            return self.summarize_emails_cmd()
 
         return None
 

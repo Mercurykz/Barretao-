@@ -11,7 +11,22 @@ import queue
 import time
 import re
 import shutil
+import asyncio
+import asyncio.proactor_events
 from typing import Optional
+
+# ── Suppress harmless WinError 10054 (browser closed connection) ──────────────
+if sys.platform == "win32":
+    _orig_call_connection_lost = asyncio.proactor_events._ProactorBasePipeTransport._call_connection_lost
+
+    def _patched_call_connection_lost(self, exc):
+        try:
+            _orig_call_connection_lost(self, exc)
+        except ConnectionResetError:
+            pass  # client closed the connection abruptly — normal, ignore
+
+    asyncio.proactor_events._ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
+# ─────────────────────────────────────────────────────────────────────────────
 
 import barretao_auth as auth
 
@@ -240,10 +255,19 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GmailConnectRequest(BaseModel):
+    email: str
+    app_password: str
+
+
 class DeviceRegisterRequest(BaseModel):
     device_id: str
     name: str
     type: str = "other"  # pc | phone | tablet | console | car | other
+
+
+class DeviceRenameRequest(BaseModel):
+    name: str
 
 
 class DeviceAckRequest(BaseModel):
@@ -361,6 +385,19 @@ def api_send_to_device(
     return {"ok": True, "cmd_id": cmd_id}
 
 
+@app.patch("/devices/{device_id}")
+def api_rename_device(
+    device_id: str,
+    payload: DeviceRenameRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    ok = auth.rename_device(device_id, user["id"], payload.name)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Dispositivo não encontrado.")
+    return {"ok": True}
+
+
 @app.delete("/devices/{device_id}")
 def api_delete_device(
     device_id: str,
@@ -405,6 +442,90 @@ def download_cert():
 @app.get("/health")
 def health() -> dict:
     return {"ok": True, "service": "barretao-hub", "version": "2.0.0"}
+
+
+# ── Stats endpoint ─────────────────────────────────────────────────────────
+@app.get("/stats")
+def api_stats(authorization: Optional[str] = Header(default=None)) -> dict:
+    user = require_auth(authorization)
+    stats = agent.get_stats_dict()
+    devices = auth.get_devices(user["id"])
+    gmail_int = auth.get_integration(user["id"], "gmail")
+    stats["devices"] = len(devices)
+    stats["devices_online"] = sum(1 for d in devices if d.get("is_online"))
+    stats["gmail_connected"] = bool(gmail_int)
+    stats["gmail_email"] = gmail_int["config"].get("email", "") if gmail_int else ""
+    return {"ok": True, **stats}
+
+
+# ── Memory tags endpoint ────────────────────────────────────────────────────
+@app.get("/memory")
+def api_memory(authorization: Optional[str] = Header(default=None)) -> dict:
+    require_auth(authorization)
+    tags = agent.get_memory_tags(limit=30)
+    return {"ok": True, "tags": tags}
+
+
+# ── Integrations endpoints ─────────────────────────────────────────────────
+@app.get("/integrations")
+def api_integrations(authorization: Optional[str] = Header(default=None)) -> dict:
+    user = require_auth(authorization)
+    integrations = auth.list_integrations(user["id"])
+    # Strip sensitive fields from config before returning
+    safe = []
+    for intg in integrations:
+        cfg = dict(intg["config"])
+        if "app_password" in cfg:
+            cfg["app_password"] = "****"
+        safe.append({"name": intg["name"], "config": cfg, "connected_at": intg["connected_at"]})
+    return {"ok": True, "integrations": safe}
+
+
+@app.post("/integrations/gmail/connect")
+def api_gmail_connect(
+    payload: GmailConnectRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    if not payload.email.strip() or not payload.app_password.strip():
+        raise HTTPException(status_code=400, detail="E-mail e senha de app são obrigatórios")
+    # Test the connection first
+    test = agent.fetch_emails_imap(email_addr=payload.email.strip(), password=payload.app_password.strip(), limit=1)
+    if test and isinstance(test, list) and test and "error" in test[0]:
+        raise HTTPException(status_code=400, detail=f"Falha de conexão: {test[0]['error']}")
+    auth.save_integration(user["id"], "gmail", {
+        "email": payload.email.strip(),
+        "app_password": payload.app_password.strip(),
+    })
+    return {"ok": True, "message": f"Gmail {payload.email.strip()} conectado com sucesso!"}
+
+
+@app.delete("/integrations/{name}")
+def api_integration_delete(
+    name: str,
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    user = require_auth(authorization)
+    auth.delete_integration(user["id"], name)
+    return {"ok": True}
+
+
+# ── Emails endpoint ─────────────────────────────────────────────────────────
+@app.get("/emails")
+def api_emails(authorization: Optional[str] = Header(default=None)) -> dict:
+    user = require_auth(authorization)
+    gmail_int = auth.get_integration(user["id"], "gmail")
+    if not gmail_int:
+        raise HTTPException(status_code=404, detail="Gmail não configurado. Conecte em Integrações.")
+    cfg = gmail_int["config"]
+    emails = agent.fetch_emails_imap(
+        email_addr=cfg.get("email", ""),
+        password=cfg.get("app_password", ""),
+        limit=15,
+    )
+    if emails and "error" in emails[0]:
+        raise HTTPException(status_code=502, detail=emails[0]["error"])
+    return {"ok": True, "emails": emails, "count": len(emails)}
 
 
 @app.post("/command", response_model=CommandResponse)
@@ -454,7 +575,7 @@ if __name__ == "__main__":
     public_url: str | None = None
     tunnel_err: str | None = None
 
-    FIXED_PUBLIC_URL = os.getenv("BARRETAO_PUBLIC_URL", "https://barretao.aiv4.com")
+    FIXED_PUBLIC_URL = os.getenv("BARRETAO_PUBLIC_URL", "https://barretao.myaiv4.com")
 
     print(f"\n🌐 Hub rodando em:")
     print(f"   PC:     {scheme}://localhost:{port}/app/")

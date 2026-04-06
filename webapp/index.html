@@ -3,45 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Barretão</title>
+  <title>AIV4</title>
   <link rel="manifest" href="/app/manifest.json">
-  <meta name="theme-color" content="#12162b">
+  <meta name="theme-color" content="#000010">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Barretão">
+  <meta name="apple-mobile-web-app-title" content="AIV4">
   <link rel="apple-touch-icon" href="/app/icon.svg">
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     :root{
-      --bg:#0a0f1f;
-      --bg2:#12162b;
-      --surface:rgba(24, 35, 70, .68);
-      --surface2:rgba(20, 28, 54, .78);
-      --accent:#7c6cff;
-      --accent-2:#5fcbff;
-      --accent2:#ff6b9a;
-      --green:#57d3a8;
-      --text:#ecf1ff;
-      --text2:#9aa9d8;
-      --bubble-user:linear-gradient(135deg, #7c6cff 0%, #5fcbff 100%);
-      --bubble-agent:rgba(31, 44, 86, .88);
-      --border:rgba(170, 187, 255, .16);
-      --shadow:0 18px 40px rgba(4, 8, 25, .35);
+      --bg:#00000d;
+      --bg2:#030310;
+      --surface:rgba(0, 8, 24, .88);
+      --surface2:rgba(0, 5, 16, .95);
+      --accent:#00cfff;
+      --accent-2:#8800ff;
+      --accent2:#ff2d55;
+      --green:#00ff99;
+      --text:#c8e8ff;
+      --text2:#3a6a8a;
+      --bubble-user:linear-gradient(135deg, #00cfff 0%, #8800ff 100%);
+      --bubble-agent:rgba(0, 8, 22, .96);
+      --border:rgba(0, 180, 255, .12);
+      --shadow:0 20px 50px rgba(0, 0, 0, .75);
     }
     html,body{
       height:100%;
-      background:radial-gradient(1300px 800px at 10% -10%, #2a3470 0%, transparent 45%),
-                 radial-gradient(1100px 700px at 110% 10%, #203b6d 0%, transparent 40%),
-                 linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      background:
+        linear-gradient(rgba(0,180,255,.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,180,255,.03) 1px,transparent 1px),
+        radial-gradient(900px 600px at 15% 10%, rgba(0,80,180,.12) 0%, transparent 60%),
+        radial-gradient(700px 500px at 90% 90%, rgba(100,0,200,.10) 0%, transparent 60%),
+        #00000d;
+      background-size:44px 44px,44px 44px,100%,100%,100%;
       color:var(--text);
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
       font-size:16px;
       overflow:hidden
     }
 
-    .bg-orb{position:fixed;border-radius:50%;filter:blur(40px);opacity:.28;z-index:0;pointer-events:none}
-    .orb1{width:240px;height:240px;left:-80px;top:-40px;background:#6f6dff}
-    .orb2{width:280px;height:280px;right:-90px;bottom:110px;background:#3cc4ff}
+    .bg-orb{position:fixed;border-radius:50%;filter:blur(100px);opacity:.10;z-index:0;pointer-events:none}
+    .orb1{width:600px;height:600px;left:-250px;top:-200px;background:#004488}
+    .orb2{width:500px;height:500px;right:-200px;bottom:60px;background:#330088}
 
     /* ── Layout ── */
     #app{display:flex;flex-direction:column;height:100dvh;max-width:760px;margin:0 auto;position:relative;z-index:2}
@@ -68,33 +72,39 @@
       box-shadow:0 8px 24px rgba(5, 10, 28, .22);
     }
     .avatar{
-      width:40px;height:40px;border-radius:50%;
-      background:linear-gradient(140deg, var(--accent), var(--accent-2));
-      display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
-      box-shadow:0 8px 20px rgba(77, 110, 255, .45)
+      width:36px;height:36px;border-radius:8px;
+      background:rgba(0,180,255,.07);
+      border:1px solid rgba(0,180,255,.22);
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:900;font-family:'Courier New',monospace;
+      flex-shrink:0;color:var(--accent);
+      box-shadow:0 0 16px rgba(0,180,255,.12);
+      letter-spacing:-1px;
     }
-    .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .avatar img{display:none}
     .header-info{flex:1;min-width:0}
-    .header-info h1{font-size:15px;font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .status{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;font-weight:600}
+    .header-info h1{font-size:13px;font-weight:900;letter-spacing:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Courier New',monospace;color:var(--accent);text-transform:uppercase}
+    .status{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:4px;font-weight:700;font-family:'Courier New',monospace;letter-spacing:.8px;text-transform:uppercase}
     .dot{width:7px;height:7px;border-radius:50%;background:var(--text2);flex-shrink:0}
     .dot.online{background:var(--green)}
     .dot.offline{background:var(--accent2)}
     .hbtn{
-      background:rgba(255,255,255,.03);
+      background:rgba(0,180,255,.04);
       border:1px solid var(--border);
-      color:var(--text2);font-size:18px;
-      cursor:pointer;padding:6px 8px;border-radius:10px;flex-shrink:0;
+      color:var(--text2);font-size:17px;
+      cursor:pointer;padding:6px 8px;border-radius:8px;flex-shrink:0;
       transition:.18s
     }
-    .hbtn:hover{background:rgba(255,255,255,.09);color:var(--text);transform:translateY(-1px)}
+    .hbtn:hover{background:rgba(0,180,255,.13);color:var(--accent);transform:translateY(-1px);box-shadow:0 0 14px rgba(0,180,255,.15)}
 
     /* ── Messages ── */
     #messages{
-      flex:1;overflow-y:auto;padding:14px 12px;
+      flex:1;overflow-y:auto;padding:0;
       display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;
       background:linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,0))
     }
+    /* padding for chat messages (not for home page) */
+    #messages.chat-mode{padding:14px 12px}
     .section-title{
       margin:4px auto 10px;
       padding:5px 10px;
@@ -127,58 +137,644 @@
     .typing-dots span:nth-child(3){animation-delay:.4s}
     @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
-    /* ── Input area ── */
+    /* ── Input area — Cortex card ── */
     #input-area{
-      padding:9px 10px;background:var(--surface);border-top:1px solid var(--border);
-      display:flex;gap:8px;align-items:flex-end;flex-shrink:0;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px)
+      position:relative;display:flex;flex-direction:column;gap:0;flex-shrink:0;
+      margin:0 8px 10px;
+      background:rgba(255,255,255,.018);
+      border:1px solid rgba(0,180,255,.08);
+      border-radius:16px;
+      backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      box-shadow:0 20px 50px rgba(0,0,0,.55);
+      transition:border-color .3s,box-shadow .3s;
+      overflow:visible;
     }
+    #input-area:focus-within{
+      border-color:rgba(0,180,255,.26);
+      box-shadow:0 20px 50px rgba(0,0,0,.55),0 0 0 1px rgba(0,180,255,.07),0 0 40px rgba(0,180,255,.05);
+    }
+    /* Command palette */
+    #cmd-palette{
+      position:absolute;left:0;right:0;bottom:calc(100% + 8px);
+      background:rgba(0,4,14,.97);border:1px solid rgba(0,180,255,.15);
+      border-radius:12px;overflow:hidden;
+      box-shadow:0 12px 40px rgba(0,0,0,.8);
+      backdrop-filter:blur(24px);animation:fadeUp .15s ease;z-index:300;
+    }
+    #cmd-palette.hidden{display:none}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .cmd-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;cursor:pointer;transition:.12s;
+      border-bottom:1px solid rgba(255,255,255,.03);
+    }
+    .cmd-item:hover,.cmd-item.cmd-active{background:rgba(0,180,255,.10)}
+    .cmd-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+    .cmd-label{font-size:13px;font-weight:700;color:var(--text);font-family:'Courier New',monospace;min-width:82px}
+    .cmd-desc{font-size:11px;color:var(--text2);flex:1}
+    .cmd-prefix{font-size:10px;color:rgba(0,180,255,.5);font-family:'Courier New',monospace;letter-spacing:.5px}
+    .cmd-hint{
+      font-size:10px;color:rgba(255,255,255,.18);padding:7px 14px;
+      border-top:1px solid rgba(255,255,255,.05);display:flex;gap:10px;background:rgba(0,0,0,.3)
+    }
+    .cmd-key{background:rgba(255,255,255,.08);border-radius:4px;padding:1px 6px;font-family:monospace}
+    /* Attachment bar */
+    #attach-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 0;min-height:0}
+    #attach-bar:empty{padding:0}
+    .attach-pill{
+      display:flex;align-items:center;gap:6px;
+      background:rgba(0,180,255,.07);border:1px solid rgba(0,180,255,.15);
+      border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text2);
+      animation:fadeUp .15s ease;
+    }
+    .attach-pill button{
+      background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;
+      font-size:14px;line-height:1;padding:0 0 0 4px;transition:.15s;
+    }
+    .attach-pill button:hover{color:var(--accent2)}
+    /* Textarea */
+    #input-body{padding:12px 14px 6px}
     #msg-input{
-      flex:1;background:rgba(9, 14, 30, .92);border:1px solid var(--border);border-radius:22px;
-      padding:10px 15px;color:var(--text);font-size:15px;resize:none;
-      max-height:120px;outline:none;font-family:inherit;line-height:1.4
+      width:100%;background:transparent;border:none;outline:none;
+      color:var(--text);font-size:15px;resize:none;font-family:inherit;
+      line-height:1.5;max-height:180px;overflow-y:auto;
     }
-    #msg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,108,255,.17)}
-    #msg-input::placeholder{color:var(--text2)}
+    #msg-input::placeholder{color:rgba(255,255,255,.18)}
+    /* Toolbar */
+    #input-toolbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:6px 10px 10px;gap:8px;
+      border-top:1px solid rgba(255,255,255,.04);
+    }
+    #itool-left{display:flex;align-items:center;gap:2px}
+    .itool-btn{
+      background:none;border:none;cursor:pointer;
+      width:34px;height:34px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      color:rgba(255,255,255,.28);transition:.15s;
+    }
+    .itool-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+    .itool-btn.active{color:var(--accent);background:rgba(0,180,255,.10)}
+    /* mic */
     .ibtn{
-      width:44px;height:44px;border-radius:50%;border:1px solid var(--border);cursor:pointer;
-      display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;transition:.15s;
-      box-shadow:0 8px 20px rgba(6, 10, 24, .28)
+      width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.07);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;
+      transition:.15s;background:rgba(255,255,255,.03);color:rgba(255,255,255,.38);
     }
-    #btn-mic{background:rgba(255,255,255,.03);color:var(--text2)}
-    #btn-mic.listening{background:var(--accent2);color:#fff;animation:pulse 1s infinite}
+    #btn-mic.listening{background:var(--accent2);color:#fff;animation:pulse 1s infinite;border-color:var(--accent2)}
     @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-    #btn-send{background:linear-gradient(140deg, var(--accent), var(--accent-2));color:#fff;border:none}
-    #btn-send:active{opacity:.8}
-    #btn-mic:active{opacity:.8}
-    #btn-send:hover,#btn-mic:hover{transform:translateY(-1px)}
+    /* Send button */
+    #btn-send{
+      display:flex;align-items:center;gap:7px;
+      padding:8px 16px;border-radius:10px;border:none;cursor:pointer;
+      font-size:13px;font-weight:700;font-family:inherit;transition:.2s;flex-shrink:0;
+      background:rgba(255,255,255,.05);color:rgba(255,255,255,.28);
+    }
+    #btn-send.ready{background:#ffffff;color:#00000d;box-shadow:0 6px 22px rgba(255,255,255,.12)}
+    #btn-send.ready:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(255,255,255,.2)}
+    #btn-send:active{transform:scale(.97)}
+    /* Thinking bar (floating) */
+    #thinking-bar{
+      position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+      background:rgba(0,4,16,.94);border:1px solid rgba(0,180,255,.12);
+      border-radius:999px;padding:8px 18px 8px 10px;
+      display:flex;align-items:center;gap:10px;
+      box-shadow:0 12px 40px rgba(0,0,0,.7);
+      backdrop-filter:blur(20px);
+      font-size:13px;color:rgba(255,255,255,.55);
+      z-index:500;animation:fadeUp .2s ease;pointer-events:none;
+    }
+    #thinking-bar.hidden{display:none}
+    .think-avatar{
+      width:34px;height:26px;border-radius:7px;
+      background:rgba(0,180,255,.08);border:1px solid rgba(0,180,255,.15);
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:900;font-family:'Courier New',monospace;
+      color:var(--accent);letter-spacing:-1px;flex-shrink:0;
+    }
+    .think-avatar span{color:#ff8800}
+    .think-dots{display:flex;align-items:center;gap:4px;margin-left:4px}
+    .think-dot{
+      width:5px;height:5px;border-radius:50%;background:rgba(0,207,255,.7);
+      animation:think-bounce 1.2s ease-in-out infinite;
+    }
+    .think-dot:nth-child(2){animation-delay:.2s}
+    .think-dot:nth-child(3){animation-delay:.4s}
+    @keyframes think-bounce{
+      0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-6px);opacity:1}
+    }
+    /* Mouse glow */
+    #mouse-glow{
+      position:fixed;width:600px;height:600px;border-radius:50%;
+      background:radial-gradient(circle,rgba(0,180,255,.05),transparent 70%);
+      pointer-events:none;z-index:1;
+      transform:translate(-50%,-50%);opacity:0;transition:opacity .4s;
+      will-change:left,top;
+    }
 
-    /* ── Empty state ── */
+    /* ══════════════════════════════════════════════════════
+       AIV4 HOME — Landing Page completa
+       ══════════════════════════════════════════════════════ */
     #empty-state{
-      flex:1;display:flex;flex-direction:column;align-items:center;
-      justify-content:center;gap:10px;color:var(--text2);text-align:center;padding:30px;
-      position:relative;overflow:hidden
+      flex:1;display:flex;flex-direction:column;align-items:stretch;
+      justify-content:flex-start;gap:0;text-align:left;
+      margin:-14px -12px 0; /* cancel #messages padding → edge-to-edge */
     }
-    #empty-state .big-icon{width:78px;height:78px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 10px 20px rgba(96,120,255,.35))}
-    #empty-state .big-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:1px solid var(--border)}
-    #empty-state h2{font-size:20px;color:var(--text);font-weight:700;letter-spacing:.2px}
-    #empty-state p{font-size:13px;line-height:1.7;max-width:420px}
-    #empty-state::before{
-      content:'';
-      position:absolute;
-      width:220px;height:220px;border-radius:50%;
-      background:radial-gradient(circle at center, rgba(120,116,255,.2), transparent 70%);
-      transform:translateY(-30px);
-      z-index:-1;
+
+    /* ── HERO ── */
+    .aiv4-hero{
+      position:relative;padding:44px 22px 36px;text-align:center;
+      overflow:hidden;border-bottom:1px solid rgba(0,180,255,.06);
     }
-    .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:6px}
-    .chip{
-      background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:999px;
-      padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:.15s;
-      backdrop-filter: blur(6px)
+    .aiv4-hero::before{
+      content:'';position:absolute;inset:0;
+      background:
+        radial-gradient(circle at 22% 55%,rgba(0,180,255,.07),transparent 50%),
+        radial-gradient(circle at 82% 28%,rgba(136,0,255,.05),transparent 50%),
+        linear-gradient(rgba(0,180,255,.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,180,255,.04) 1px,transparent 1px);
+      background-size:100%,100%,28px 28px,28px 28px;
+      animation:hero-grid 8s ease-in-out infinite alternate;
     }
-    .chip:hover,.chip:active{background:linear-gradient(140deg, var(--accent), var(--accent-2));border-color:transparent;color:#fff;transform:translateY(-1px)}
+    @keyframes hero-grid{from{opacity:.45}to{opacity:1}}
+    /* floating dot particles */
+    .aiv4-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+    .aiv4-particles::before{
+      content:'';position:absolute;width:4px;height:4px;border-radius:50%;
+      background:var(--accent);
+      box-shadow:
+        55px 40px 0 rgba(0,207,255,.55),140px 18px 0 rgba(0,207,255,.35),
+        220px 100px 0 rgba(0,207,255,.25),90px 140px 0 rgba(136,0,255,.45),
+        270px 55px 0 rgba(136,0,255,.28),310px 130px 0 rgba(0,207,255,.45),
+        175px 35px 0 rgba(255,136,0,.35),30px 100px 0 rgba(0,207,255,.30);
+      top:8%;left:4%;
+      animation:float-p 6s ease-in-out infinite;
+    }
+    .aiv4-particles::after{
+      content:'';position:absolute;width:3px;height:3px;border-radius:50%;
+      background:rgba(136,0,255,.6);
+      box-shadow:
+        70px 55px 0 rgba(0,207,255,.35),165px 95px 0 rgba(136,0,255,.45),
+        245px 28px 0 rgba(0,207,255,.25),110px 145px 0 rgba(255,136,0,.28),
+        300px 75px 0 rgba(0,207,255,.38);
+      top:18%;right:4%;
+      animation:float-p 6s ease-in-out infinite;animation-delay:3s;
+    }
+    @keyframes float-p{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(-14px);opacity:1}}
+    .aiv4-hero-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px}
+    .aiv4-logo-big{
+      font-size:62px;font-weight:900;font-family:'Courier New',monospace;
+      letter-spacing:-2px;color:var(--accent);line-height:1;
+      text-shadow:0 0 40px rgba(0,207,255,.5),0 0 80px rgba(0,207,255,.2);
+      animation:logo-pulse 4s ease-in-out infinite;
+    }
+    .aiv4-logo-big span{color:#ff8800;text-shadow:0 0 40px rgba(255,136,0,.5)}
+    @keyframes logo-pulse{
+      0%,100%{text-shadow:0 0 40px rgba(0,207,255,.5),0 0 80px rgba(0,207,255,.2)}
+      50%{text-shadow:0 0 65px rgba(0,207,255,.85),0 0 120px rgba(0,207,255,.3)}
+    }
+    .aiv4-tagline{font-size:14px;line-height:1.65;color:var(--text2);max-width:300px}
+    .aiv4-cta-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+    .aiv4-btn-primary{
+      background:linear-gradient(135deg,rgba(0,180,255,.95),rgba(0,100,175,.95));
+      border:none;border-radius:10px;padding:11px 20px;color:#fff;
+      font-size:13px;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit;
+      box-shadow:0 8px 24px rgba(0,180,255,.3);
+    }
+    .aiv4-btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(0,180,255,.45)}
+    .aiv4-btn-sec{
+      background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.18);
+      border-radius:10px;padding:10px 16px;color:var(--text);
+      font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;
+    }
+    .aiv4-btn-sec:hover{background:rgba(0,180,255,.13);border-color:rgba(0,180,255,.38);transform:translateY(-1px)}
+
+    /* ── Sections ── */
+    .aiv4-section{padding:26px 16px;border-bottom:1px solid rgba(0,180,255,.05)}
+    .aiv4-section-last{border-bottom:none;padding-bottom:20px}
+    .aiv4-section-tag{
+      font-size:9px;letter-spacing:4px;color:var(--accent);opacity:.7;
+      font-family:'Courier New',monospace;text-transform:uppercase;margin-bottom:5px;
+    }
+    .aiv4-section h2{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.2px;margin-bottom:18px}
+
+    /* ── REACTOR PANEL (Core Status) ── */
+    .aiv4-reactor-panel{display:flex;flex-direction:column;align-items:center;gap:22px}
+    .aiv4-reactor{position:relative;width:140px;height:140px;flex-shrink:0}
+    .aiv4-reactor-ring{position:absolute;border-radius:50%;border:1px solid}
+    .aiv4-reactor-ring.r1{
+      inset:0;border-color:rgba(0,180,255,.25);
+      animation:cortex-spin 12s linear infinite;
+    }
+    .aiv4-reactor-ring.r1::before{
+      content:'';position:absolute;width:8px;height:8px;border-radius:50%;
+      background:var(--accent);box-shadow:0 0 10px var(--accent);
+      top:-4px;left:calc(50% - 4px);
+    }
+    .aiv4-reactor-ring.r2{
+      inset:18px;border-color:rgba(136,0,255,.2);border-style:dashed;
+      animation:cortex-spin 7s linear infinite reverse;
+    }
+    .aiv4-reactor-ring.r2::before{
+      content:'';position:absolute;width:6px;height:6px;border-radius:50%;
+      background:var(--accent-2);box-shadow:0 0 8px var(--accent-2);
+      right:-3px;top:calc(50% - 3px);
+    }
+    .aiv4-reactor-ring.r3{
+      inset:35px;border-color:rgba(0,255,153,.15);
+      animation:cortex-spin 4s linear infinite;
+    }
+    .aiv4-reactor-core{
+      position:absolute;inset:50px;border-radius:50%;
+      background:radial-gradient(circle,rgba(0,180,255,.12),transparent 80%);
+      border:1px solid rgba(0,180,255,.3);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:cortex-pulse 3.5s ease-in-out infinite;
+    }
+    .aiv4-reactor-core span{font-size:9px;color:var(--accent);font-family:'Courier New',monospace}
+    .aiv4-reactor-core strong{font-size:16px;font-weight:900;font-family:'Courier New',monospace;color:var(--text)}
+    @keyframes cortex-spin{to{transform:rotate(360deg)}}
+    @keyframes cortex-pulse{
+      0%,100%{box-shadow:0 0 30px rgba(0,180,255,.08),inset 0 0 15px rgba(0,180,255,.04)}
+      50%{box-shadow:0 0 60px rgba(0,180,255,.18),inset 0 0 25px rgba(0,180,255,.08)}
+    }
+    .aiv4-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+    .aiv4-stat{
+      background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.09);
+      border-radius:12px;padding:12px 8px;text-align:center;transition:.2s;cursor:default;
+    }
+    .aiv4-stat:hover{background:rgba(0,180,255,.1);border-color:rgba(0,180,255,.24)}
+    .aiv4-stat-icon{font-size:18px;margin-bottom:4px}
+    .aiv4-stat-val{font-size:15px;font-weight:900;font-family:'Courier New',monospace;color:var(--accent);line-height:1.2}
+    .aiv4-stat-label{font-size:9px;color:var(--text2);margin-top:3px;line-height:1.3}
+
+    /* ── FEATURE CARDS ── */
+    .aiv4-cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    @media(min-width:480px){.aiv4-cards-grid{grid-template-columns:repeat(3,1fr)}}
+    .aiv4-card{
+      background:rgba(255,255,255,.018);border:1px solid rgba(0,180,255,.08);
+      border-radius:14px;padding:16px 13px 26px;cursor:pointer;transition:.2s;
+      position:relative;overflow:hidden;
+    }
+    .aiv4-card::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(0,180,255,.07),transparent);
+      opacity:0;transition:.2s;
+    }
+    .aiv4-card:hover{border-color:rgba(0,180,255,.3);transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.45)}
+    .aiv4-card:hover::after{opacity:1}
+    .aiv4-card-icon{font-size:24px;margin-bottom:8px}
+    .aiv4-card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px}
+    .aiv4-card-desc{font-size:11px;color:var(--text2);line-height:1.4}
+    .aiv4-card-arrow{
+      position:absolute;bottom:10px;right:12px;font-size:14px;
+      color:rgba(0,180,255,.28);transition:.2s;font-family:monospace;
+    }
+    .aiv4-card:hover .aiv4-card-arrow{color:var(--accent);transform:translateX(3px)}
+
+    /* ── DASHBOARD ── */
+    .aiv4-dashboard{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:560px){.aiv4-dashboard{grid-template-columns:1fr 1fr}}
+    .aiv4-chart-card{
+      background:rgba(0,180,255,.025);border:1px solid rgba(0,180,255,.08);
+      border-radius:14px;padding:16px;
+    }
+    .aiv4-chart-title{
+      font-size:10px;color:var(--text2);margin-bottom:14px;
+      font-family:'Courier New',monospace;letter-spacing:.5px;text-transform:uppercase;
+    }
+    .aiv4-bar-chart{display:flex;align-items:flex-end;gap:5px;height:80px}
+    .aiv4-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+    .aiv4-bar{
+      width:100%;height:var(--h,50%);
+      background:linear-gradient(180deg,var(--accent),rgba(0,180,255,.2));
+      border-radius:3px 3px 0 0;
+      animation:bar-grow .9s ease-out both;position:relative;
+    }
+    .aiv4-bar::after{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:rgba(0,207,255,.85);border-radius:2px;box-shadow:0 0 6px rgba(0,207,255,.6);
+    }
+    @keyframes bar-grow{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+    .aiv4-bar-col span{font-size:9px;color:var(--text2);font-family:'Courier New',monospace}
+    .aiv4-progress-list{display:flex;flex-direction:column;gap:10px}
+    .aiv4-prog-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2)}
+    .aiv4-prog-row>span:first-child{min-width:52px}
+    .aiv4-prog-row>span:last-child{min-width:32px;text-align:right;color:var(--accent);font-family:'Courier New',monospace}
+    .aiv4-prog-bar{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+    .aiv4-prog-fill{
+      height:100%;width:var(--w,50%);
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      border-radius:2px;animation:prog-grow .9s ease-out both;transform-origin:left;
+    }
+    @keyframes prog-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+    /* ── COMMAND TERMINAL ── */
+    .aiv4-cmd-terminal{
+      background:rgba(0,0,0,.45);border:1px solid rgba(0,180,255,.12);
+      border-radius:14px;padding:16px;font-family:'Courier New',monospace;
+    }
+    .aiv4-cmd-line{
+      display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+      cursor:pointer;transition:.12s;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:2px;
+    }
+    .aiv4-cmd-line:hover{background:rgba(0,180,255,.09);color:var(--text)}
+    .aiv4-cmd-line.active{color:var(--accent)}
+    .aiv4-prompt{color:var(--accent);opacity:.65;flex-shrink:0}
+    .aiv4-cmd-cursor{
+      display:flex;align-items:center;gap:8px;padding:8px 10px;
+      font-size:13px;color:rgba(255,255,255,.22);margin-top:2px;
+    }
+    .aiv4-cursor-blink{color:var(--accent);animation:cur-blink .9s step-end infinite}
+    @keyframes cur-blink{0%,100%{opacity:1}50%{opacity:0}}
+
+    /* ── INTEGRATIONS ── */
+    .aiv4-integrations{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(min-width:480px){.aiv4-integrations{grid-template-columns:repeat(6,1fr)}}
+    .aiv4-int-item{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      padding:14px 8px;background:rgba(255,255,255,.018);
+      border:1px solid rgba(0,180,255,.07);border-radius:12px;
+      cursor:pointer;transition:.2s;
+    }
+    .aiv4-int-item:hover{background:rgba(0,180,255,.08);border-color:rgba(0,180,255,.24);transform:translateY(-2px)}
+    .aiv4-int-icon{font-size:22px}
+    .aiv4-int-item>span{font-size:9px;color:var(--text2);font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── EVOLUTION TIMELINE ── */
+    .aiv4-timeline{display:flex;flex-direction:column;gap:0;padding-left:4px}
+    .aiv4-tl-item{display:flex;gap:16px;position:relative;padding-bottom:22px}
+    .aiv4-tl-item:last-of-type{padding-bottom:0}
+    .aiv4-tl-item::before{
+      content:'';position:absolute;left:11px;top:24px;bottom:0;
+      width:1px;background:rgba(0,180,255,.12);
+    }
+    .aiv4-tl-item:last-of-type::before{display:none}
+    .aiv4-tl-dot{
+      width:22px;height:22px;border-radius:50%;flex-shrink:0;
+      border:2px solid rgba(0,180,255,.22);background:rgba(0,0,0,.4);
+      display:flex;align-items:center;justify-content:center;
+      position:relative;z-index:1;margin-top:2px;
+    }
+    .aiv4-tl-item.done .aiv4-tl-dot{background:rgba(0,180,255,.12);border-color:rgba(0,180,255,.48)}
+    .aiv4-tl-item.done .aiv4-tl-dot::after{content:'✓';font-size:11px;color:var(--accent)}
+    .aiv4-tl-item.current .aiv4-tl-dot{
+      background:rgba(0,180,255,.15);border-color:var(--accent);
+      box-shadow:0 0 14px rgba(0,180,255,.45);
+      animation:cortex-pulse 2s ease-in-out infinite;
+    }
+    .aiv4-tl-item.current .aiv4-tl-dot::after{content:'▶';font-size:9px;color:var(--accent)}
+    .aiv4-tl-content{flex:1;padding-top:2px}
+    .aiv4-tl-ver{
+      font-size:9px;letter-spacing:2px;color:var(--accent);
+      font-family:'Courier New',monospace;text-transform:uppercase;margin-bottom:3px;
+    }
+    .aiv4-tl-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .aiv4-tl-desc{font-size:12px;color:var(--text2);line-height:1.4}
+    .aiv4-footer-note{
+      text-align:center;padding:18px 16px;color:var(--text2);
+      font-size:9px;letter-spacing:3px;font-family:'Courier New',monospace;
+      text-transform:uppercase;opacity:.4;
+    }
+    /* keep sendChip-triggered chip nodes (used from cards) */
+    .chips{display:none}
+    .chip{display:none}
+
+    /* Integration badge (connected checkmark) */
+    .aiv4-int-item{position:relative}
+    .aiv4-int-badge{
+      position:absolute;top:6px;right:7px;
+      background:var(--green);color:#000;border-radius:50%;
+      width:15px;height:15px;font-size:9px;font-weight:900;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .aiv4-int-item.connected{border-color:rgba(0,255,153,.35);background:rgba(0,255,153,.06)}
+
+    /* Gmail Modal & Emails panel */
+    #gmail-overlay,#emails-overlay{
+      position:fixed;inset:0;z-index:4000;
+      background:rgba(0,0,0,.75);
+      display:flex;align-items:flex-end;justify-content:center;
+      backdrop-filter:blur(6px);
+    }
+    #gmail-overlay.hidden,#emails-overlay.hidden{display:none}
+    .gmail-modal{
+      background:rgba(5,8,24,.98);border-radius:22px 22px 0 0;
+      padding:24px 20px 36px;width:100%;max-width:500px;
+      border-top:1px solid rgba(0,180,255,.14);
+      animation:su .25s ease;
+    }
+    .gmail-modal h3{font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    .gmail-modal .gm-hint{font-size:11px;color:var(--text2);margin-bottom:18px;line-height:1.5}
+    .gmail-modal .gm-hint a{color:var(--accent);text-decoration:none}
+    .gm-field{margin-bottom:14px}
+    .gm-field label{font-size:11px;color:var(--text2);display:block;margin-bottom:5px;letter-spacing:.3px;font-family:'Courier New',monospace;text-transform:uppercase}
+    .gm-field input{
+      width:100%;background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.14);
+      border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;
+      outline:none;font-family:inherit;transition:.2s;
+    }
+    .gm-field input:focus{border-color:rgba(0,180,255,.4)}
+    .gm-btns{display:flex;gap:10px;margin-top:6px}
+    .gm-btn-connect{
+      flex:1;background:linear-gradient(135deg,rgba(0,180,255,.9),rgba(0,100,175,.9));
+      border:none;border-radius:10px;padding:12px;color:#fff;
+      font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;
+    }
+    .gm-btn-connect:hover{opacity:.88}
+    .gm-btn-connect:disabled{opacity:.4;cursor:not-allowed}
+    .gm-btn-cancel{
+      background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;
+      padding:12px 18px;color:var(--text2);font-size:14px;cursor:pointer;font-family:inherit;
+    }
+    .gm-btn-disconnect{
+      background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.2);border-radius:10px;
+      padding:12px 18px;color:var(--accent2);font-size:13px;cursor:pointer;font-family:inherit;transition:.2s;
+    }
+    .gm-status{font-size:12px;margin-top:10px;padding:8px 12px;border-radius:8px;display:none}
+    .gm-status.ok{background:rgba(0,255,153,.1);border:1px solid rgba(0,255,153,.25);color:var(--green);display:block}
+    .gm-status.err{background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);color:var(--accent2);display:block}
+    /* Emails list panel */
+    .emails-panel{max-height:80dvh;overflow-y:auto}
+    .email-item{
+      padding:12px 14px;border-bottom:1px solid rgba(0,180,255,.06);
+      cursor:pointer;transition:.15s;
+    }
+    .email-item:hover{background:rgba(0,180,255,.07)}
+    .email-from{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .email-subj{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .email-date{font-size:10px;color:rgba(255,255,255,.25);font-family:'Courier New',monospace;float:right;margin-top:-20px}
+    .email-snip{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+    /* ══════════════════════════════════════════════════════
+       🌌 CINEMATIC INTRO
+       ══════════════════════════════════════════════════════ */
+    #cin-intro{
+      position:fixed;inset:0;z-index:9999;
+      background:#000;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:28px;
+      animation:cin-fade-out .8s ease-in 3.4s forwards;
+    }
+    #cin-intro.gone{display:none}
+    #cin-intro::before{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,180,255,.016) 2px,rgba(0,180,255,.016) 4px);
+    }
+    @keyframes cin-fade-out{to{opacity:0}}
+    .cin-reactor{
+      position:relative;width:170px;height:170px;
+      animation:cin-zoom-in 1s cubic-bezier(.16,1,.3,1) .1s both;
+    }
+    @keyframes cin-zoom-in{from{transform:scale(4);opacity:0}to{transform:scale(1);opacity:1}}
+    .cin-r{position:absolute;border-radius:50%;border:1px solid}
+    .cin-r1{inset:0;border-color:rgba(0,180,255,.65);animation:cortex-spin 3s linear infinite}
+    .cin-r1::before{
+      content:'';position:absolute;width:11px;height:11px;border-radius:50%;
+      background:var(--accent);box-shadow:0 0 18px var(--accent),0 0 40px var(--accent);
+      top:-5px;left:calc(50% - 5px);
+    }
+    .cin-r2{inset:22px;border-color:rgba(136,0,255,.5);border-style:dashed;animation:cortex-spin 2s linear infinite reverse}
+    .cin-r2::before{
+      content:'';position:absolute;width:8px;height:8px;border-radius:50%;
+      background:var(--accent-2);box-shadow:0 0 12px var(--accent-2);
+      right:-4px;top:calc(50% - 4px);
+    }
+    .cin-r3{inset:42px;border-color:rgba(0,255,153,.35);animation:cortex-spin 1.5s linear infinite}
+    .cin-core{
+      position:absolute;inset:62px;border-radius:50%;
+      background:radial-gradient(circle,rgba(0,180,255,.28),transparent 80%);
+      border:2px solid rgba(0,207,255,.7);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      box-shadow:0 0 80px rgba(0,180,255,.4),inset 0 0 40px rgba(0,180,255,.2);
+      animation:cin-core-pulse 1s ease-in-out infinite;
+    }
+    @keyframes cin-core-pulse{
+      0%,100%{box-shadow:0 0 80px rgba(0,180,255,.4),inset 0 0 40px rgba(0,180,255,.2)}
+      50%{box-shadow:0 0 130px rgba(0,180,255,.7),inset 0 0 60px rgba(0,180,255,.35)}
+    }
+    .cin-core-text{font-size:8px;color:var(--accent);font-family:'Courier New',monospace;letter-spacing:1.5px}
+    .cin-core-pct{font-size:17px;font-weight:900;font-family:'Courier New',monospace;color:#fff;line-height:1.1}
+    .cin-log{
+      display:flex;flex-direction:column;gap:5px;min-width:220px;
+      font-family:'Courier New',monospace;font-size:12px;
+    }
+    .cin-log-line{color:rgba(0,207,255,.65);opacity:0;animation:cin-line-in .35s ease both}
+    .cin-log-line.ok::after{content:' ✓';color:var(--green)}
+    .cin-log-line.ready{color:var(--accent);font-weight:bold;font-size:14px;letter-spacing:1px}
+    @keyframes cin-line-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+    /* ══════════════════════════════════════════════════════
+       🤖 HOLOGRAPHIC AVATAR
+       ══════════════════════════════════════════════════════ */
+    .holo-container{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .holo-wrap{position:relative;width:120px;height:120px}
+    .holo-frame{
+      position:absolute;inset:0;border-radius:50%;
+      border:1.5px solid rgba(0,180,255,.35);
+      box-shadow:0 0 30px rgba(0,180,255,.15),inset 0 0 20px rgba(0,180,255,.04);
+      animation:holo-frame-pulse 4s ease-in-out infinite;pointer-events:none;
+    }
+    @keyframes holo-frame-pulse{
+      0%,100%{box-shadow:0 0 30px rgba(0,180,255,.15),inset 0 0 20px rgba(0,180,255,.04);border-color:rgba(0,180,255,.35)}
+      50%{box-shadow:0 0 55px rgba(0,180,255,.35),inset 0 0 30px rgba(0,180,255,.08);border-color:rgba(0,180,255,.65)}
+    }
+    .holo-wrap::before,.holo-wrap::after{
+      content:'';position:absolute;width:14px;height:14px;
+      border-color:rgba(0,207,255,.6);border-style:solid;z-index:3;
+    }
+    .holo-wrap::before{top:3px;left:3px;border-width:2px 0 0 2px}
+    .holo-wrap::after{bottom:3px;right:3px;border-width:0 2px 2px 0}
+    .holo-svg{width:100%;height:100%;display:block}
+    .holo-eye-inner{animation:holo-eye-pulse 2.8s ease-in-out infinite}
+    @keyframes holo-eye-pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    .holo-blink-l,.holo-blink-r{animation:holo-blink 5s ease-in-out infinite}
+    .holo-blink-r{animation-delay:.08s}
+    @keyframes holo-blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.05)}}
+    .holo-voice{
+      display:flex;align-items:center;gap:3px;height:18px;justify-content:center;
+    }
+    .hv-bar{width:3px;border-radius:2px;background:rgba(0,180,255,.3);height:3px;transition:height .12s ease,background .3s}
+    #holo-face-wrap.thinking .hv-bar{
+      background:rgba(255,136,0,.75);animation:hv-wave .7s ease-in-out infinite;
+    }
+    #holo-face-wrap.speaking .hv-bar{
+      background:rgba(0,207,255,.85);animation:hv-wave .5s ease-in-out infinite;
+    }
+    .hv-bar:nth-child(1){animation-delay:0s}
+    .hv-bar:nth-child(2){animation-delay:.1s}
+    .hv-bar:nth-child(3){animation-delay:.2s}
+    .hv-bar:nth-child(4){animation-delay:.3s}
+    .hv-bar:nth-child(5){animation-delay:.15s}
+    .hv-bar:nth-child(6){animation-delay:.05s}
+    .hv-bar:nth-child(7){animation-delay:.25s}
+    @keyframes hv-wave{0%,100%{height:3px}50%{height:16px}}
+    .holo-label{
+      font-size:8px;letter-spacing:3px;color:rgba(0,207,255,.5);
+      font-family:'Courier New',monospace;text-transform:uppercase;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       🧠 VISUAL MEMORY
+       ══════════════════════════════════════════════════════ */
+    .aiv4-memory-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .aiv4-mem-tag{
+      border-radius:999px;padding:5px 13px;
+      font-size:11px;font-family:'Courier New',monospace;
+      border:1px solid;cursor:default;transition:.2s;
+      animation:mem-float-in .5s ease both;
+    }
+    .aiv4-mem-tag:hover{transform:scale(1.08)}
+    @keyframes mem-float-in{from{opacity:0;transform:translateY(6px) scale(.95)}to{opacity:1;transform:none}}
+    .mem-hi{background:rgba(0,180,255,.12);border-color:rgba(0,180,255,.4);color:var(--accent);font-size:13px;font-weight:700}
+    .mem-md{background:rgba(136,0,255,.08);border-color:rgba(136,0,255,.3);color:rgba(200,180,255,.8)}
+    .mem-lo{background:rgba(0,255,153,.05);border-color:rgba(0,255,153,.15);color:rgba(0,255,153,.55);font-size:10px}
+    .aiv4-mem-stats{display:flex;flex-direction:column;gap:8px}
+    .aiv4-mem-stat{
+      display:flex;align-items:center;gap:12px;
+      background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.08);
+      border-radius:12px;padding:11px 14px;font-size:12px;
+    }
+    .aiv4-mem-stat-icon{font-size:19px;flex-shrink:0}
+    .aiv4-mem-stat-info{flex:1}
+    .aiv4-mem-stat-title{color:var(--text);font-weight:700;margin-bottom:5px}
+    .aiv4-mem-stat-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+    .aiv4-mem-stat-fill{height:100%;border-radius:2px;animation:prog-grow 1.2s ease-out both;transform-origin:left}
+    .aiv4-mem-stat-fill.f1{background:linear-gradient(90deg,var(--accent),var(--accent-2));width:73%}
+    .aiv4-mem-stat-fill.f2{background:linear-gradient(90deg,var(--accent-2),#ff2d55);width:48%}
+    .aiv4-mem-stat-fill.f3{background:linear-gradient(90deg,var(--green),var(--accent));width:61%}
+    .aiv4-mem-new{font-size:10px;color:var(--green);font-family:'Courier New',monospace;flex-shrink:0}
+
+    /* ══════════════════════════════════════════════════════
+       🔌 REAL CONTROLS
+       ══════════════════════════════════════════════════════ */
+    .aiv4-ctrl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .aiv4-ctrl-btn{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.1);
+      border-radius:14px;padding:16px 8px;cursor:pointer;transition:.18s;
+      position:relative;overflow:hidden;font-family:inherit;
+    }
+    .aiv4-ctrl-btn::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(circle at center,rgba(0,180,255,.18),transparent 70%);
+      opacity:0;transition:.2s;
+    }
+    .aiv4-ctrl-btn:hover{border-color:rgba(0,180,255,.38);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.45)}
+    .aiv4-ctrl-btn:hover::before{opacity:1}
+    .aiv4-ctrl-btn:active{transform:scale(.95)}
+    .aiv4-ctrl-btn.fired{border-color:var(--green);animation:ctrl-fired .6s ease}
+    @keyframes ctrl-fired{
+      0%{box-shadow:0 0 0 rgba(0,255,153,0)}
+      40%{box-shadow:0 0 35px rgba(0,255,153,.55)}
+      100%{box-shadow:0 0 12px rgba(0,255,153,.2)}
+    }
+    .aiv4-ctrl-btn.danger{border-color:rgba(255,45,85,.2)}
+    .aiv4-ctrl-btn.danger:hover{border-color:rgba(255,45,85,.5)}
+    .aiv4-ctrl-btn.danger::before{background:radial-gradient(circle at center,rgba(255,45,85,.18),transparent 70%)}
+    .aiv4-ctrl-icon{font-size:24px;position:relative;z-index:1}
+    .aiv4-ctrl-label{font-size:10px;font-weight:700;color:var(--text);letter-spacing:.3px;text-align:center;line-height:1.3;position:relative;z-index:1}
+    .aiv4-ctrl-status{font-size:9px;color:var(--text2);font-family:'Courier New',monospace;position:relative;z-index:1}
 
     /* ── Modal ── */
     .overlay{
@@ -252,7 +848,7 @@
 
     /* safe area iPhone */
     @supports(padding-bottom:env(safe-area-inset-bottom)){
-      #input-area{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+      #input-area{margin-bottom:calc(10px + env(safe-area-inset-bottom))}
     }
     #messages::-webkit-scrollbar{width:4px}
     #messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -260,8 +856,12 @@
     /* ── Login overlay ───────────────────────────────────────────────── */
     #login-overlay{
       position:fixed;inset:0;z-index:3000;
-      background:radial-gradient(1200px 800px at 30% -5%, #2a3470 0%, transparent 50%),
-                 linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      background:
+        linear-gradient(rgba(0,180,255,.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,180,255,.03) 1px,transparent 1px),
+        radial-gradient(800px 600px at 30% 20%, rgba(0,60,160,.15) 0%, transparent 60%),
+        var(--bg);
+      background-size:44px 44px,44px 44px,100%,100%;
       display:flex;align-items:center;justify-content:center;padding:20px;
     }
     #login-overlay.hidden{display:none}
@@ -296,12 +896,12 @@
     /* ── User badge ───────────────────────────────────────────────────── */
     .user-badge{
       display:none;align-items:center;gap:6px;
-      background:rgba(124,108,255,.12);border:1px solid rgba(124,108,255,.3);
+      background:rgba(0,180,255,.07);border:1px solid rgba(0,180,255,.20);
       border-radius:20px;padding:5px 10px 5px 6px;
       font-size:13px;font-weight:600;cursor:pointer;transition:.18s;flex-shrink:0;
     }
     .user-badge.show{display:flex}
-    .user-badge:hover{background:rgba(124,108,255,.22)}
+    .user-badge:hover{background:rgba(0,180,255,.15)}
     .user-avatar-sm{
       width:24px;height:24px;border-radius:50%;
       background:linear-gradient(140deg,var(--accent),var(--accent-2));
@@ -363,9 +963,9 @@
     }
     .dev-card:hover,.dev-card:active{
       border-color:var(--accent);
-      background:rgba(124,108,255,.13);
+      background:rgba(0,180,255,.08);
       transform:translateY(-3px);
-      box-shadow:0 10px 28px rgba(77,110,255,.22);
+      box-shadow:0 10px 28px rgba(0,180,255,.18);
     }
     .dev-card.is-me{border-color:rgba(87,211,168,.35);background:rgba(87,211,168,.07)}
     .dev-card.is-me:hover{border-color:var(--green);background:rgba(87,211,168,.15)}
@@ -382,6 +982,17 @@
       background:var(--green);color:#0a0f1f;font-size:9px;font-weight:800;
       border-radius:999px;padding:2px 7px;letter-spacing:.5px;text-transform:uppercase;
     }
+    .dc-quick-btns{
+      position:absolute;top:6px;left:6px;
+      display:flex;gap:4px;
+    }
+    .dc-qbtn{
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;
+      color:rgba(255,255,255,.6);font-size:13px;padding:3px 7px;cursor:pointer;line-height:1;
+      transition:.15s;
+    }
+    .dc-qbtn:hover,.dc-qbtn:active{background:rgba(255,255,255,.2);color:#fff}
+    .dc-qbtn.del:hover,.dc-qbtn.del:active{background:rgba(220,60,60,.7);color:#fff;border-color:transparent}
     .no-devices-msg{
       grid-column:1/-1;text-align:center;padding:60px 20px;
       color:var(--text2);font-size:14px;line-height:1.8;
@@ -412,7 +1023,7 @@
       cursor:pointer;transition:.18s;color:var(--text);font-family:inherit;border-width:1px;
     }
     .action-btn:hover,.action-btn:active{
-      background:rgba(124,108,255,.16);border-color:var(--accent);
+      background:rgba(0,180,255,.12);border-color:var(--accent);
       transform:translateY(-2px);
     }
     .action-btn.act-danger:hover,.action-btn.act-danger:active{
@@ -441,14 +1052,32 @@
   </style>
 </head>
 <body>
+<div id="cin-intro">
+  <div class="cin-reactor">
+    <div class="cin-r cin-r1"></div>
+    <div class="cin-r cin-r2"></div>
+    <div class="cin-r cin-r3"></div>
+    <div class="cin-core">
+      <span class="cin-core-text">CORTEX</span>
+      <span class="cin-core-pct" id="cin-pct">0%</span>
+    </div>
+  </div>
+  <div class="cin-log">
+    <div class="cin-log-line ok">POWER — OK</div>
+    <div class="cin-log-line ok">MEMÓRIA NEURAL — CARREGANDO</div>
+    <div class="cin-log-line ok">INTEGRAÇÕES — ATIVAS</div>
+    <div class="cin-log-line ok">SEGURANÇA — VERIFICADA</div>
+    <div class="cin-log-line ready">► AIV4 PRONTO</div>
+  </div>
+</div>
 <div class="bg-orb orb1"></div>
 <div class="bg-orb orb2"></div>
 <div id="app">
   <header>
-    <div class="avatar"><img src="/app/icon.svg" alt="Ícone do Barretão"></div>
+    <div class="avatar">AIV<span style="color:#ff8800">4</span></div>
     <div class="header-info">
-      <h1 id="agent-label">Barretão Assistant</h1>
-      <div class="status">
+      <h1 id="agent-label">AIV4</h1>
+      <div class="status" onclick="checkStatus()" title="Clique para reconectar" style="cursor:pointer">
         <div class="dot offline" id="status-dot"></div>
         <span id="status-text">Não conectado</span>
       </div>
@@ -464,28 +1093,509 @@
 
   <div id="messages">
     <div id="empty-state">
-      <div class="section-title">Assistente local com IA</div>
-      <div class="big-icon"><img src="/app/icon.svg" alt="Ícone do Barretão"></div>
-      <h2>Olá. Sou o Barretão.</h2>
-      <p>Assistente pessoal local com foco em produtividade, rotina e respostas rápidas.</p>
-      <div class="chips">
-        <div class="chip" onclick="sendChip('bom dia')">Bom dia</div>
-        <div class="chip" onclick="sendChip('o que você sabe sobre mim?')">Meu perfil</div>
-        <div class="chip" onclick="sendChip('minha rotina de hoje')">Minha rotina</div>
-        <div class="chip" onclick="sendChip('meus eventos de hoje')">Eventos de hoje</div>
-        <div class="chip" onclick="sendChip('pesquisar notícias de hoje')">Pesquisar</div>
-        <div class="chip" onclick="sendChip('qual a previsão do tempo?')">Previsão do tempo</div>
-        <div class="chip" id="install-guide-chip" onclick="openInstallGuide()">📲 Instalar no dispositivo</div>
+
+      <!-- ══ HERO ══════════════════════════════════════════════ -->
+      <div class="aiv4-hero">
+        <div class="aiv4-particles"></div>
+        <div class="aiv4-hero-content">
+          <div class="holo-container" id="holo-face-wrap">
+            <div class="holo-wrap">
+              <div class="holo-frame"></div>
+              <svg class="holo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <clipPath id="face-clip"><ellipse cx="50" cy="50" rx="30" ry="36"/></clipPath>
+                </defs>
+                <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(0,207,255,.05)" stroke-width="1"/>
+                <line x1="50" y1="6" x2="50" y2="94" stroke="rgba(0,207,255,.04)" stroke-width=".5"/>
+                <line x1="6" y1="50" x2="94" y2="50" stroke="rgba(0,207,255,.04)" stroke-width=".5"/>
+                <ellipse cx="50" cy="50" rx="30" ry="36" fill="rgba(0,5,18,.75)" stroke="rgba(0,207,255,.28)" stroke-width="1.2"/>
+                <line x1="20" y1="14" x2="80" y2="14" stroke="rgba(0,207,255,.5)" stroke-width="1.5" clip-path="url(#face-clip)">
+                  <animateTransform attributeName="transform" type="translate" from="0,0" to="0,72" dur="2.8s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values=".55;.55;0" keyTimes="0;.85;1" dur="2.8s" repeatCount="indefinite"/>
+                </line>
+                <g class="holo-blink-l" style="transform-box:fill-box;transform-origin:center">
+                  <circle cx="36" cy="44" r="7" fill="rgba(0,20,40,.5)" stroke="rgba(0,207,255,.5)" stroke-width="1.2"/>
+                  <circle cx="36" cy="44" r="3.5" class="holo-eye-inner" fill="rgba(0,207,255,.6)"/>
+                  <circle cx="37.5" cy="42.5" r="1.2" fill="rgba(255,255,255,.8)"/>
+                </g>
+                <g class="holo-blink-r" style="transform-box:fill-box;transform-origin:center">
+                  <circle cx="64" cy="44" r="7" fill="rgba(0,20,40,.5)" stroke="rgba(0,207,255,.5)" stroke-width="1.2"/>
+                  <circle cx="64" cy="44" r="3.5" class="holo-eye-inner" fill="rgba(0,207,255,.6)"/>
+                  <circle cx="65.5" cy="42.5" r="1.2" fill="rgba(255,255,255,.8)"/>
+                </g>
+                <path d="M47 52 L44 62 L50 64 L56 62 L53 52" fill="none" stroke="rgba(0,207,255,.14)" stroke-width=".8"/>
+                <path d="M20 49 L28 51" stroke="rgba(0,207,255,.3)" stroke-width="1" stroke-linecap="round"/>
+                <path d="M80 49 L72 51" stroke="rgba(0,207,255,.3)" stroke-width="1" stroke-linecap="round"/>
+                <path d="M36 70 Q50 74 64 70" fill="none" stroke="rgba(0,207,255,.45)" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="43" cy="79" r="1" fill="rgba(0,207,255,.3)"/>
+                <circle cx="50" cy="81" r="1.5" fill="rgba(0,207,255,.42)"/>
+                <circle cx="57" cy="79" r="1" fill="rgba(0,207,255,.3)"/>
+                <path d="M13 23 L13 15 L21 15" fill="none" stroke="rgba(0,207,255,.55)" stroke-width="1.5"/>
+                <path d="M87 23 L87 15 L79 15" fill="none" stroke="rgba(0,207,255,.55)" stroke-width="1.5"/>
+                <path d="M13 77 L13 85 L21 85" fill="none" stroke="rgba(0,207,255,.55)" stroke-width="1.5"/>
+                <path d="M87 77 L87 85 L79 85" fill="none" stroke="rgba(0,207,255,.55)" stroke-width="1.5"/>
+                <text x="13" y="97" fill="rgba(0,207,255,.28)" font-size="4.5" font-family="monospace">AIV4 v4.0</text>
+                <text x="67" y="97" fill="rgba(0,207,255,.28)" font-size="4.5" font-family="monospace">NN-02</text>
+              </svg>
+            </div>
+            <div class="holo-voice">
+              <div class="hv-bar"></div><div class="hv-bar"></div><div class="hv-bar"></div>
+              <div class="hv-bar"></div><div class="hv-bar"></div><div class="hv-bar"></div>
+              <div class="hv-bar"></div>
+            </div>
+            <div class="holo-label">ASSISTENTE IA &middot; ONLINE</div>
+          </div>
+          <div class="aiv4-logo-big">AIV<span>4</span></div>
+          <p class="aiv4-tagline">Seu cérebro digital.<br>Automatize tudo. Evolua todos os dias.</p>
+          <div class="aiv4-cta-btns">
+            <button class="aiv4-btn-primary" onclick="sendChip('bom dia')">⚡ Iniciar AIV4</button>
+            <button class="aiv4-btn-sec" onclick="openDevices()">🧠 Dispositivos</button>
+            <button class="aiv4-btn-sec" onclick="sendChip('mostrar status do sistema')">📊 Dashboard</button>
+          </div>
+        </div>
       </div>
-      <div class="brand-note">Barretão Hub · IA local · Privacidade em primeiro lugar</div>
+
+      <!-- ══ CORE STATUS ════════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ NÚCLEO</div>
+        <h2>Core Status — Reator AIV4</h2>
+        <div class="aiv4-reactor-panel">
+          <div class="aiv4-reactor">
+            <div class="aiv4-reactor-ring r1"></div>
+            <div class="aiv4-reactor-ring r2"></div>
+            <div class="aiv4-reactor-ring r3"></div>
+            <div class="aiv4-reactor-core">
+              <span>CORE</span>
+              <strong id="core-learn-pct">78%</strong>
+            </div>
+          </div>
+          <div class="aiv4-stats-grid">
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">🟢</div>
+              <div class="aiv4-stat-val" id="stat-status-val">ONLINE</div>
+              <div class="aiv4-stat-label">Status</div>
+            </div>
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">🧠</div>
+              <div class="aiv4-stat-val"><span class="count-up" data-target="78">0</span>%</div>
+              <div class="aiv4-stat-label">Aprendizado</div>
+            </div>
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">📧</div>
+              <div class="aiv4-stat-val"><span class="count-up" data-target="12">0</span></div>
+              <div class="aiv4-stat-label">Emails hoje</div>
+            </div>
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">⚙️</div>
+              <div class="aiv4-stat-val"><span class="count-up" data-target="5">0</span></div>
+              <div class="aiv4-stat-label">Rotinas ativas</div>
+            </div>
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">📱</div>
+              <div class="aiv4-stat-val" id="stat-dev-count">—</div>
+              <div class="aiv4-stat-label">Dispositivos</div>
+            </div>
+            <div class="aiv4-stat">
+              <div class="aiv4-stat-icon">⚡</div>
+              <div class="aiv4-stat-val"><span class="count-up" data-target="247">0</span></div>
+              <div class="aiv4-stat-label">Ações totais</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FEATURE CARDS ══════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ MÓDULOS</div>
+        <h2>Funcionalidades principais</h2>
+        <div class="aiv4-cards-grid">
+          <div class="aiv4-card" onclick="sendChip('resumir meus emails')">
+            <div class="aiv4-card-icon">📧</div>
+            <div class="aiv4-card-title">Leitura de Emails</div>
+            <div class="aiv4-card-desc">Resume e classifica automaticamente</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+          <div class="aiv4-card" onclick="sendChip('gerar código python para automação')">
+            <div class="aiv4-card-icon">💻</div>
+            <div class="aiv4-card-title">Gerador de Código</div>
+            <div class="aiv4-card-desc">Cria, corrige e analisa código</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+          <div class="aiv4-card" onclick="sendChip('minha rotina de hoje')">
+            <div class="aiv4-card-icon">📅</div>
+            <div class="aiv4-card-title">Gestão de Rotinas</div>
+            <div class="aiv4-card-desc">Agenda inteligente adaptativa</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+          <div class="aiv4-card" onclick="sendChip('o que você aprendeu sobre mim?')">
+            <div class="aiv4-card-icon">🧠</div>
+            <div class="aiv4-card-title">Aprendizado Contínuo</div>
+            <div class="aiv4-card-desc">Evolui com o tempo e uso</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+          <div class="aiv4-card" onclick="sendChip('gerar imagem de cidade futurista')">
+            <div class="aiv4-card-icon">🖼️</div>
+            <div class="aiv4-card-title">Geração de Conteúdo</div>
+            <div class="aiv4-card-desc">Imagens, textos, planilhas</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+          <div class="aiv4-card" onclick="sendChip('pesquisar notícias de hoje')">
+            <div class="aiv4-card-icon">📊</div>
+            <div class="aiv4-card-title">Inteligência Analítica</div>
+            <div class="aiv4-card-desc">Dados, insights e relatórios</div>
+            <div class="aiv4-card-arrow">→</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MEMÓRIA NEURAL ══════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ MEMÓRIA NEURAL</div>
+        <h2>O que a IA aprendeu sobre você</h2>
+        <div class="aiv4-memory-cloud">
+          <div class="aiv4-mem-tag mem-hi" style="animation-delay:.05s" onclick="sendChip('o que você sabe sobre programação?')">código</div>
+          <div class="aiv4-mem-tag mem-hi" style="animation-delay:.1s" onclick="sendChip('minha rotina de hoje')">rotinas</div>
+          <div class="aiv4-mem-tag mem-hi" style="animation-delay:.15s" onclick="sendChip('automação que posso fazer hoje')">automação</div>
+          <div class="aiv4-mem-tag mem-md" style="animation-delay:.2s" onclick="sendChip('resumir meus emails')">emails</div>
+          <div class="aiv4-mem-tag mem-md" style="animation-delay:.25s" onclick="sendChip('minha agenda de hoje')">agenda</div>
+          <div class="aiv4-mem-tag mem-hi" style="animation-delay:.3s" onclick="sendChip('gerar código python')">python</div>
+          <div class="aiv4-mem-tag mem-md" style="animation-delay:.35s" onclick="sendChip('previsão do tempo')">clima</div>
+          <div class="aiv4-mem-tag mem-lo" style="animation-delay:.4s" onclick="sendChip('abrir YouTube')">youtube</div>
+          <div class="aiv4-mem-tag mem-lo" style="animation-delay:.45s" onclick="sendChip('status do discord')">discord</div>
+          <div class="aiv4-mem-tag mem-md" style="animation-delay:.5s" onclick="sendChip('gerar imagem')">imagens</div>
+          <div class="aiv4-mem-tag mem-lo" style="animation-delay:.55s">spotify</div>
+          <div class="aiv4-mem-tag mem-lo" style="animation-delay:.6s" onclick="sendChip('abrir terminal')">terminal</div>
+        </div>
+        <div class="aiv4-mem-stats">
+          <div class="aiv4-mem-stat">
+            <div class="aiv4-mem-stat-icon">🧠</div>
+            <div class="aiv4-mem-stat-info">
+              <div class="aiv4-mem-stat-title">Conhecimento acumulado</div>
+              <div class="aiv4-mem-stat-bar"><div class="aiv4-mem-stat-fill f1"></div></div>
+            </div>
+            <div class="aiv4-mem-new">+12 esta semana</div>
+          </div>
+          <div class="aiv4-mem-stat">
+            <div class="aiv4-mem-stat-icon">💡</div>
+            <div class="aiv4-mem-stat-info">
+              <div class="aiv4-mem-stat-title">Preferências identificadas</div>
+              <div class="aiv4-mem-stat-bar"><div class="aiv4-mem-stat-fill f2"></div></div>
+            </div>
+            <div class="aiv4-mem-new">+5 hoje</div>
+          </div>
+          <div class="aiv4-mem-stat">
+            <div class="aiv4-mem-stat-icon">🔄</div>
+            <div class="aiv4-mem-stat-info">
+              <div class="aiv4-mem-stat-title">Padrões de comportamento</div>
+              <div class="aiv4-mem-stat-bar"><div class="aiv4-mem-stat-fill f3"></div></div>
+            </div>
+            <div class="aiv4-mem-new">+8 padrões</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONTROLE REAL ══════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ CONTROLE REAL</div>
+        <h2>Ações imediatas</h2>
+        <div class="aiv4-ctrl-grid">
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'ligar luz da sala')">
+            <div class="aiv4-ctrl-icon">💡</div>
+            <div class="aiv4-ctrl-label">Ligar Luz</div>
+            <div class="aiv4-ctrl-status">sala</div>
+          </button>
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'silenciar o computador')">
+            <div class="aiv4-ctrl-icon">🔇</div>
+            <div class="aiv4-ctrl-label">Silenciar</div>
+            <div class="aiv4-ctrl-status">volume</div>
+          </button>
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'abrir YouTube')">
+            <div class="aiv4-ctrl-icon">▶️</div>
+            <div class="aiv4-ctrl-label">YouTube</div>
+            <div class="aiv4-ctrl-status">abrir app</div>
+          </button>
+          <button class="aiv4-ctrl-btn danger" onclick="fireCtrl(this,'bloquear tela')">
+            <div class="aiv4-ctrl-icon">🔒</div>
+            <div class="aiv4-ctrl-label">Bloquear PC</div>
+            <div class="aiv4-ctrl-status">tela</div>
+          </button>
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'executar script de backup')">
+            <div class="aiv4-ctrl-icon">⚙️</div>
+            <div class="aiv4-ctrl-label">Script</div>
+            <div class="aiv4-ctrl-status">backup</div>
+          </button>
+          <button class="aiv4-ctrl-btn" onclick="fireCtrl(this,'volume ao máximo')">
+            <div class="aiv4-ctrl-icon">🔊</div>
+            <div class="aiv4-ctrl-label">Volume Max</div>
+            <div class="aiv4-ctrl-status">áudio</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ DASHBOARD ══════════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ DASHBOARD</div>
+        <h2>Performance desta semana</h2>
+        <div class="aiv4-dashboard">
+          <div class="aiv4-chart-card">
+            <div class="aiv4-chart-title">Uso da IA por dia</div>
+            <div class="aiv4-bar-chart">
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:60%"></div><span>Seg</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:85%;animation-delay:.1s"></div><span>Ter</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:45%;animation-delay:.2s"></div><span>Qua</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:90%;animation-delay:.3s"></div><span>Qui</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:70%;animation-delay:.4s"></div><span>Sex</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:30%;animation-delay:.5s"></div><span>Sáb</span></div>
+              <div class="aiv4-bar-col"><div class="aiv4-bar" style="--h:20%;animation-delay:.6s"></div><span>Dom</span></div>
+            </div>
+          </div>
+          <div class="aiv4-chart-card">
+            <div class="aiv4-chart-title">Tarefas por categoria</div>
+            <div class="aiv4-progress-list">
+              <div class="aiv4-prog-row">
+                <span>Código</span>
+                <div class="aiv4-prog-bar"><div class="aiv4-prog-fill" style="--w:72%"></div></div>
+                <span>72%</span>
+              </div>
+              <div class="aiv4-prog-row">
+                <span>Rotinas</span>
+                <div class="aiv4-prog-bar"><div class="aiv4-prog-fill" style="--w:58%;animation-delay:.15s"></div></div>
+                <span>58%</span>
+              </div>
+              <div class="aiv4-prog-row">
+                <span>Pesquisa</span>
+                <div class="aiv4-prog-bar"><div class="aiv4-prog-fill" style="--w:44%;animation-delay:.3s"></div></div>
+                <span>44%</span>
+              </div>
+              <div class="aiv4-prog-row">
+                <span>Imagens</span>
+                <div class="aiv4-prog-bar"><div class="aiv4-prog-fill" style="--w:33%;animation-delay:.45s"></div></div>
+                <span>33%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ COMMAND TERMINAL ═══════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ COMANDOS</div>
+        <h2>Interface de comando</h2>
+        <div class="aiv4-cmd-terminal">
+          <div class="aiv4-cmd-line active" onclick="sendChip('resumir meus emails')">
+            <span class="aiv4-prompt">›</span> AIV4, resumir meus emails
+          </div>
+          <div class="aiv4-cmd-line" onclick="sendChip('criar código python para automação de tarefas')">
+            <span class="aiv4-prompt">›</span> AIV4, criar código em Python
+          </div>
+          <div class="aiv4-cmd-line" onclick="sendChip('ativar rotina de estudo')">
+            <span class="aiv4-prompt">›</span> AIV4, ativar rotina de estudo
+          </div>
+          <div class="aiv4-cmd-line" onclick="sendChip('pesquisar notícias de tecnologia hoje')">
+            <span class="aiv4-prompt">›</span> AIV4, pesquisar notícias de tech
+          </div>
+          <div class="aiv4-cmd-cursor">
+            <span class="aiv4-prompt">›</span> <span class="aiv4-cursor-blink">_</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ INTEGRATIONS ═══════════════════════════════════════ -->
+      <div class="aiv4-section">
+        <div class="aiv4-section-tag">◈ INTEGRAÇÕES</div>
+        <h2>Conectado ao seu ecossistema</h2>
+        <div class="aiv4-integrations">
+          <div class="aiv4-int-item" id="int-gmail" onclick="openGmailModal()">
+            <div class="aiv4-int-icon">📧</div>
+            <span>Gmail</span>
+            <span class="aiv4-int-badge" id="int-gmail-badge" style="display:none">✓</span>
+          </div>
+          <div class="aiv4-int-item" onclick="sendChip('enviar mensagem whatsapp')">
+            <div class="aiv4-int-icon">💬</div><span>WhatsApp</span>
+          </div>
+          <div class="aiv4-int-item" onclick="sendChip('status do discord')">
+            <div class="aiv4-int-icon">🎮</div><span>Discord</span>
+          </div>
+          <div class="aiv4-int-item" onclick="openDevices()">
+            <div class="aiv4-int-icon">🏠</div><span>IoT</span>
+          </div>
+          <div class="aiv4-int-item" onclick="sendChip('listar integrações de api disponíveis')">
+            <div class="aiv4-int-icon">⚡</div><span>APIs</span>
+          </div>
+          <div class="aiv4-int-item" onclick="openDevices()">
+            <div class="aiv4-int-icon">🖥️</div><span>PC Control</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EVOLUTION TIMELINE ══════════════════════════════════ -->
+      <div class="aiv4-section aiv4-section-last">
+        <div class="aiv4-section-tag">◈ EVOLUÇÃO</div>
+        <h2>Jornada da IA</h2>
+        <div class="aiv4-timeline">
+          <div class="aiv4-tl-item done">
+            <div class="aiv4-tl-dot"></div>
+            <div class="aiv4-tl-content">
+              <div class="aiv4-tl-ver">v1 — concluído</div>
+              <div class="aiv4-tl-title">Comandos básicos</div>
+              <div class="aiv4-tl-desc">Respostas simples, perguntas e respostas</div>
+            </div>
+          </div>
+          <div class="aiv4-tl-item done">
+            <div class="aiv4-tl-dot"></div>
+            <div class="aiv4-tl-content">
+              <div class="aiv4-tl-ver">v2 — concluído</div>
+              <div class="aiv4-tl-title">Automação</div>
+              <div class="aiv4-tl-desc">Controle de dispositivos e rotinas automáticas</div>
+            </div>
+          </div>
+          <div class="aiv4-tl-item done">
+            <div class="aiv4-tl-dot"></div>
+            <div class="aiv4-tl-content">
+              <div class="aiv4-tl-ver">v3 — concluído</div>
+              <div class="aiv4-tl-title">Aprendizado</div>
+              <div class="aiv4-tl-desc">Memória persistente, perfil e preferências do usuário</div>
+            </div>
+          </div>
+          <div class="aiv4-tl-item current">
+            <div class="aiv4-tl-dot"></div>
+            <div class="aiv4-tl-content">
+              <div class="aiv4-tl-ver">v4 ◀ ATUAL</div>
+              <div class="aiv4-tl-title">Autonomia</div>
+              <div class="aiv4-tl-desc">IA proativa, multi-dispositivo, geração de conteúdo e código</div>
+            </div>
+          </div>
+        </div>
+        <div class="aiv4-footer-note">AIV4 · CORTEX NEURAL · PRIVACIDADE EM PRIMEIRO LUGAR</div>
+      </div>
+
     </div>
   </div>
 
   <div id="input-area">
-    <button class="ibtn" id="btn-mic" title="Falar">🎤</button>
-    <textarea id="msg-input" placeholder="Escreva ou fale..." rows="1"></textarea>
-    <button class="ibtn" id="btn-send" title="Enviar">➤</button>
+    <!-- ◈ Command palette (appears above when typing /) -->
+    <div id="cmd-palette" class="hidden" role="listbox">
+      <div class="cmd-item" data-prefix="/briefing" data-text="briefing do dia">
+        <span class="cmd-icon">☀️</span><span class="cmd-label">Briefing</span>
+        <span class="cmd-desc">Resumo diário completo</span><span class="cmd-prefix">/briefing</span>
+      </div>
+      <div class="cmd-item" data-prefix="/clima" data-text="qual a previsão do tempo?">
+        <span class="cmd-icon">⌁</span><span class="cmd-label">Clima</span>
+        <span class="cmd-desc">Previsão do tempo agora</span><span class="cmd-prefix">/clima</span>
+      </div>
+      <div class="cmd-item" data-prefix="/rotina" data-text="minha rotina de hoje">
+        <span class="cmd-icon">◈</span><span class="cmd-label">Rotina</span>
+        <span class="cmd-desc">Minha rotina de hoje</span><span class="cmd-prefix">/rotina</span>
+      </div>
+      <div class="cmd-item" data-prefix="/imagem" data-text="gerar imagem de ">
+        <span class="cmd-icon">⬡</span><span class="cmd-label">Imagem</span>
+        <span class="cmd-desc">Gerar imagem com IA</span><span class="cmd-prefix">/imagem</span>
+      </div>
+      <div class="cmd-item" data-prefix="/dispositivo" data-text="listar dispositivos">
+        <span class="cmd-icon">⊕</span><span class="cmd-label">Dispositivo</span>
+        <span class="cmd-desc">Controlar dispositivo</span><span class="cmd-prefix">/dispositivo</span>
+      </div>
+      <div class="cmd-item" data-prefix="/noticias" data-text="pesquisar notícias de hoje">
+        <span class="cmd-icon">⊗</span><span class="cmd-label">Notícias</span>
+        <span class="cmd-desc">Notícias de hoje</span><span class="cmd-prefix">/noticias</span>
+      </div>
+      <div class="cmd-hint">
+        <span><span class="cmd-key">↑↓</span> navegar</span>
+        <span><span class="cmd-key">Tab</span> selecionar</span>
+        <span><span class="cmd-key">Esc</span> fechar</span>
+      </div>
+    </div>
+    <!-- Attachment pills -->
+    <div id="attach-bar"></div>
+    <!-- Textarea -->
+    <div id="input-body">
+      <textarea id="msg-input" placeholder="Pergunte ao AIV4… (/ para comandos)" rows="1"></textarea>
+    </div>
+    <!-- Toolbar -->
+    <div id="input-toolbar">
+      <div id="itool-left">
+        <button class="itool-btn" id="btn-attach" title="Anexar arquivo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="itool-btn" id="btn-cmd" title="Comandos rápidos (/)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3-3z"/></svg>
+        </button>
+        <button class="ibtn" id="btn-mic" title="Falar">🎤</button>
+      </div>
+      <button id="btn-send" title="Enviar">
+        <span>Enviar</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
   </div>
+</div>
+
+<!-- ◈ Thinking indicator (floating) -->
+<div id="thinking-bar" class="hidden">
+  <div class="think-avatar">AIV<span>4</span></div>
+  <span>Processando</span>
+  <div class="think-dots">
+    <div class="think-dot"></div>
+    <div class="think-dot"></div>
+    <div class="think-dot"></div>
+  </div>
+</div>
+
+<!-- Mouse glow -->
+<div id="mouse-glow"></div>
+
+<!-- Gmail Connect Modal -->
+<div id="gmail-overlay" class="hidden">
+  <div class="gmail-modal">
+    <h3>📧 Conectar Gmail</h3>
+    <p class="gm-hint">
+      Use uma <strong>Senha de App</strong> (não sua senha normal).
+      <a href="https://myaccount.google.com/apppasswords" target="_blank">Gerar Senha de App ↗</a>
+      &nbsp;— requer verificação em 2 etapas ativa.
+    </p>
+    <div id="gmail-connected-info" style="display:none;padding:10px 12px;background:rgba(0,255,153,.08);border:1px solid rgba(0,255,153,.2);border-radius:10px;margin-bottom:14px;font-size:13px;">
+      <strong style="color:var(--green)">✓ Conectado:</strong>
+      <span id="gmail-connected-email" style="color:var(--text2)"></span>
+    </div>
+    <div id="gmail-form">
+      <div class="gm-field">
+        <label>E-mail do Gmail</label>
+        <input type="email" id="gm-email" placeholder="voce@gmail.com" autocomplete="email">
+      </div>
+      <div class="gm-field">
+        <label>Senha de App (16 caracteres)</label>
+        <input type="password" id="gm-pass" placeholder="xxxx xxxx xxxx xxxx" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="gm-status" id="gm-status"></div>
+    <div class="gm-btns" id="gm-btns-connect">
+      <button class="gm-btn-connect" id="gm-connect-btn" onclick="doGmailConnect()">Conectar</button>
+      <button class="gm-btn-cancel" onclick="closeGmailModal()">Cancelar</button>
+    </div>
+    <div class="gm-btns" id="gm-btns-manage" style="display:none">
+      <button class="aiv4-btn-primary" style="flex:1;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;font-family:inherit" onclick="closeGmailModal();sendChip('resumir meus emails')">📰 Ver E-mails</button>
+      <button class="gm-btn-disconnect" onclick="doGmailDisconnect()">🔓 Desconectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Emails List Panel -->
+<div id="emails-overlay" class="hidden">
+  <div class="gmail-modal emails-panel">
+    <div class="modal-header">
+      <h3>📧 E-mails recentes</h3>
+      <button class="close-btn" onclick="closeEmailsPanel()">&#x2715;</button>
+    </div>
+    <div id="emails-list-body"><div class="hint" style="text-align:center;padding:20px">🔄 Carregando...</div></div>
+  </div>
+</div>
+
+<!-- Lock Screen Overlay -->
+<div id="lock-overlay" class="hidden">
+  <div class="lock-time" id="lock-time">00:00</div>
+  <div class="lock-date" id="lock-date"></div>
+  <div class="lock-hint">BLOQUEADO · AIV4 CORTEX</div>
+  <button class="lock-unlock-btn" onclick="unlockScreen()">🔓 Desbloquear</button>
 </div>
 
 <!-- Devices overlay -->
@@ -526,8 +1636,8 @@
 <!-- Login / Register overlay -->
 <div id="login-overlay" class="hidden">
   <div class="login-card">
-    <div class="login-logo">🍕</div>
-    <div class="login-title">Barretão</div>
+    <div class="login-logo" style="font-size:17px;font-family:'Courier New',monospace;letter-spacing:1px">AIV<span style="color:#ff8800">4</span></div>
+    <div class="login-title">AIV4</div>
     <div class="login-sub" id="login-sub">Faça login para continuar</div>
     <form class="login-form" id="login-form" onsubmit="doLogin(event)">
       <input id="login-user" type="text" placeholder="Usuário" autocomplete="username" required>
@@ -724,8 +1834,24 @@
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────
+// URL público sempre disponível
+const PUBLIC_HUB = 'https://barretao.myaiv4.com';
+
+// URL salvo pelo usuário (pode ser IP local)
+const _savedUrl = localStorage.getItem('brt_url') || '';
+const _originUrl = window.location.origin;
+
+// Se origin é localhost/capacitor (APK), ou não há nada salvo → usa público
+const _defaultUrl = (() => {
+  if (!_savedUrl) {
+    if (/localhost|capacitor:\/\/|127\.0\.0\.1/.test(_originUrl)) return PUBLIC_HUB;
+    return _originUrl;
+  }
+  return _savedUrl;
+})();
+
 let CFG = {
-  url:     localStorage.getItem('brt_url')     || window.location.origin,
+  url:     _defaultUrl,
   token:   localStorage.getItem('brt_token')   || '',
   tts:     localStorage.getItem('brt_tts')     !== 'false',
   automic: localStorage.getItem('brt_automic') === 'true',
@@ -1025,16 +2151,33 @@ async function checkStatus() {
     text.textContent = 'Configure o servidor ⚙️';
     return;
   }
+  // Tenta URL configurada
   try {
-    const r = await fetch(CFG.url + '/health', { signal: AbortSignal.timeout(4000) });
+    const r = await fetch(CFG.url + '/health', { signal: AbortSignal.timeout(6000) });
     if (r.ok) {
       dot.className  = 'dot online';
       text.textContent = 'Online ✓';
-    } else throw new Error();
-  } catch {
-    dot.className  = 'dot offline';
-    text.textContent = 'Sem conexão';
+      return;
+    }
+  } catch (_) {}
+  // Auto-fallback: tenta o URL público se o configurado falhou
+  if (CFG.url !== PUBLIC_HUB) {
+    try {
+      const r2 = await fetch(PUBLIC_HUB + '/health', { signal: AbortSignal.timeout(6000) });
+      if (r2.ok) {
+        CFG.url = PUBLIC_HUB;
+        localStorage.setItem('brt_url', PUBLIC_HUB);
+        dot.className  = 'dot online';
+        text.textContent = 'Online ✓ (reconectado)';
+        // Reinicia auth com o URL correto
+        await initAuth();
+        return;
+      }
+    } catch (_) {}
   }
+  // Realmente offline
+  dot.className  = 'dot offline';
+  text.textContent = 'Sem conexão';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -1050,13 +2193,20 @@ let isTyping = false;
 
 function addMessage(text, role) {
   const empty = document.getElementById('empty-state');
-  if (empty) empty.remove();
+  if (empty) {
+    empty.remove();
+    document.getElementById('messages').classList.add('chat-mode');
+  }
   const box = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
   div.innerHTML = `<div class="bubble">${escHtml(text)}</div><div class="msg-time">${now()}</div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
+  if (role === 'agent') {
+    setAvatarState('speaking');
+    setTimeout(() => setAvatarState('idle'), 2500);
+  }
 }
 
 function showTyping() {
@@ -1074,8 +2224,23 @@ function hideTyping() {
 }
 
 // ── API ───────────────────────────────────────────────────────────────────
-async function sendCommand(text) {
-  if (!CFG.url) { addMessage('Configure o servidor primeiro (⚙️).', 'agent'); openSettings(); return; }
+async function sendCommand(text, _done) {
+  setAvatarState('thinking');
+  if (!CFG.url) { setAvatarState('idle'); addMessage('Configure o servidor primeiro (⚙️).', 'agent'); openSettings(); if(_done)_done(); return; }
+
+  // ── Comandos locais interceptados antes de ir para o hub ──
+  const openMatch = text.match(/^(?:abri[rr]?|abre|open|abrir)\s+(.+)$/i);
+  if (openMatch) {
+    hideTyping(); if(_done) _done(); setAvatarState('idle');
+    openAppByName(openMatch[1].trim());
+    return;
+  }
+  if (/^(bloquear?\s*tela|lock\s*screen|travar\s*tela)$/i.test(text)) {
+    hideTyping(); if(_done) _done(); setAvatarState('idle');
+    lockScreen();
+    return;
+  }
+
   showTyping();
   const headers = { 'Content-Type': 'application/json' };
   if (CFG.token) headers['Authorization'] = `Bearer ${CFG.token}`;
@@ -1087,6 +2252,7 @@ async function sendCommand(text) {
     });
     const data = await r.json();
     hideTyping();
+    if(_done) _done();
     const answer = data.answer || data.detail || 'Sem resposta.';
     addMessage(answer, 'agent');
     if (CFG.tts) speak(answer);
@@ -1094,6 +2260,7 @@ async function sendCommand(text) {
     setOnline();
   } catch (err) {
     hideTyping();
+    if(_done) _done();
     const msg = err.name === 'TimeoutError'
       ? 'Tempo esgotado. O agente demorou demais para responder.'
       : 'Erro de conexão. Verifique o endereço do servidor (⚙️).';
@@ -1135,24 +2302,174 @@ document.getElementById('btn-devices').onclick  = openDevices;
 document.getElementById('btn-briefing').onclick = getBriefing;
 
 // ── Send ──────────────────────────────────────────────────────────────────
-function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
-  if (!text) return;
-  addMessage(text, 'user');
-  input.value = ''; input.style.height = 'auto';
-  sendCommand(text);
-}
-function sendChip(text) { addMessage(text, 'user'); sendCommand(text); }
+// ── Interactive Cortex Input ──────────────────────────────────────────────
 
-document.getElementById('btn-send').onclick = sendMessage;
-document.getElementById('msg-input').addEventListener('keydown', e => {
+const CMD_DEFS = [
+  { prefix:'/briefing',    text:'briefing do dia' },
+  { prefix:'/clima',       text:'qual a previsão do tempo?' },
+  { prefix:'/rotina',      text:'minha rotina de hoje' },
+  { prefix:'/imagem',      text:'gerar imagem de ' },
+  { prefix:'/dispositivo', text:'listar dispositivos' },
+  { prefix:'/noticias',    text:'pesquisar notícias de hoje' },
+];
+
+let cmdActive = -1;
+let cmdVisible = false;
+let _attachCounter = 0;
+
+const _inp      = document.getElementById('msg-input');
+const _send     = document.getElementById('btn-send');
+const _pal      = document.getElementById('cmd-palette');
+const _abar     = document.getElementById('attach-bar');
+const _tbar     = document.getElementById('thinking-bar');
+const _glow     = document.getElementById('mouse-glow');
+const _cmdItems = [..._pal.querySelectorAll('.cmd-item')];
+
+function _updateSendBtn() {
+  if (_inp.value.trim()) _send.classList.add('ready');
+  else _send.classList.remove('ready');
+}
+
+function _resizeInput() {
+  _inp.style.height = 'auto';
+  _inp.style.height = Math.min(_inp.scrollHeight, 180) + 'px';
+}
+
+function _palShow(filter) {
+  const q = filter.toLowerCase();
+  let any = false;
+  _cmdItems.forEach((el, i) => {
+    const match = CMD_DEFS[i].prefix.startsWith(q);
+    el.style.display = match ? '' : 'none';
+    if (match) any = true;
+  });
+  if (!any) { _palHide(); return; }
+  _pal.classList.remove('hidden');
+  cmdVisible = true;
+  document.getElementById('btn-cmd').classList.add('active');
+  if (cmdActive < 0) _palSetActive(0);
+}
+
+function _palHide() {
+  _pal.classList.add('hidden');
+  cmdVisible = false;
+  cmdActive = -1;
+  _cmdItems.forEach(el => el.classList.remove('cmd-active'));
+  document.getElementById('btn-cmd').classList.remove('active');
+}
+
+function _palSetActive(idx) {
+  const visible = _cmdItems.filter(el => el.style.display !== 'none');
+  visible.forEach(el => el.classList.remove('cmd-active'));
+  if (idx < 0 || idx >= visible.length) { cmdActive = -1; return; }
+  cmdActive = idx;
+  visible[idx].classList.add('cmd-active');
+  visible[idx].scrollIntoView({ block:'nearest' });
+}
+
+function _palPick(globalIdx) {
+  const def = CMD_DEFS[globalIdx];
+  if (!def) return;
+  _inp.value = def.text;
+  _resizeInput(); _updateSendBtn();
+  _palHide();
+  _inp.focus();
+  // place cursor at end
+  _inp.selectionStart = _inp.selectionEnd = _inp.value.length;
+}
+
+// Keyboard nav inside palette
+_inp.addEventListener('keydown', e => {
+  if (cmdVisible) {
+    const visible = _cmdItems.filter(el => el.style.display !== 'none');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _palSetActive(cmdActive < visible.length - 1 ? cmdActive + 1 : 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _palSetActive(cmdActive > 0 ? cmdActive - 1 : visible.length - 1);
+    } else if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) {
+      e.preventDefault();
+      const visible2 = _cmdItems.filter(el => el.style.display !== 'none');
+      const tgt = cmdActive >= 0 ? visible2[cmdActive] : visible2[0];
+      if (tgt) _palPick(_cmdItems.indexOf(tgt));
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); _palHide();
+    }
+    return;
+  }
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
-document.getElementById('msg-input').addEventListener('input', function() {
-  this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+
+// Show/hide palette on input
+_inp.addEventListener('input', function() {
+  _resizeInput(); _updateSendBtn();
+  const v = this.value;
+  if (v.startsWith('/') && !v.includes(' ')) _palShow(v);
+  else _palHide();
 });
+
+// Click on cmd items
+_cmdItems.forEach((el, i) => {
+  el.addEventListener('mousedown', e => { e.preventDefault(); _palPick(i); });
+});
+
+// ⊕ btn-cmd toggle
+document.getElementById('btn-cmd').addEventListener('click', function() {
+  if (cmdVisible) { _palHide(); return; }
+  _inp.value = '/';
+  _palShow('/');
+  _inp.focus();
+});
+
+// ⊕ btn-attach mock
+document.getElementById('btn-attach').addEventListener('click', function() {
+  _attachCounter++;
+  const name = `arquivo-${_attachCounter}.pdf`;
+  const pill = document.createElement('div');
+  pill.className = 'attach-pill';
+  pill.innerHTML = `📎 ${name}<button title="Remover">×</button>`;
+  pill.querySelector('button').onclick = () => pill.remove();
+  _abar.appendChild(pill);
+});
+
+// Send button
+_send.addEventListener('click', sendMessage);
+
+function sendMessage() {
+  const text = _inp.value.trim();
+  if (!text) return;
+  _palHide();
+  addMessage(text, 'user');
+  _inp.value = ''; _resizeInput(); _updateSendBtn();
+  _tbar.classList.remove('hidden');
+  sendCommand(text, () => _tbar.classList.add('hidden'));
+}
+function sendChip(text) { addMessage(text, 'user'); sendCommand(text); }
+function fireCtrl(btn, cmd) {
+  btn.classList.add('fired');
+  setTimeout(() => btn.classList.remove('fired'), 1500);
+  sendCommand(cmd);
+}
+
+// ── Mouse glow (follows cursor when input focused) ──
+let _glowOn = false;
+document.addEventListener('mousemove', e => {
+  if (!_glowOn) return;
+  _glow.style.left = e.clientX + 'px';
+  _glow.style.top  = e.clientY + 'px';
+});
+_inp.addEventListener('focus',  () => { _glowOn = true;  _glow.style.opacity = '1'; });
+_inp.addEventListener('blur',   () => { _glowOn = false; _glow.style.opacity = '0'; });
+
+// Close palette on outside click
+document.addEventListener('mousedown', e => {
+  if (!cmdVisible) return;
+  if (!_pal.contains(e.target) && e.target !== document.getElementById('btn-cmd'))
+    _palHide();
+});
+
+_updateSendBtn();
 
 // ── Voice input ───────────────────────────────────────────────────────────
 let recognition = null;
@@ -1284,6 +2601,92 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── Devices menu ─────────────────────────────────────────────────────────
+// ── App deep links (Android URI schemes) ─────────────────────────────────
+const APP_LINKS = {
+  'whatsapp':       'whatsapp://',
+  'instagram':      'instagram://',
+  'youtube':        'youtube://',
+  'tiktok':         'snssdk1180://',
+  'spotify':        'spotify://',
+  'chrome':         'googlechrome://',
+  'google':         'googlechrome://',
+  'maps':           'comgooglemaps://',
+  'gmail':          'googlegmail://',
+  'netflix':        'nflx://',
+  'facebook':       'fb://',
+  'twitter':        'twitter://',
+  'x':              'twitter://',
+  'telegram':       'tg://',
+  'uber':           'uber://',
+  'ifood':          'ifood://',
+  'nubank':         'nubank://',
+  'inter':          'bancointer://',
+  'picpay':         'picpay://',
+  'mercado pago':   'mercadopago://',
+  'mercadopago':    'mercadopago://',
+  'waze':           'waze://',
+  'zoom':           'zoom://',
+  'discord':        'discord://',
+  'twitch':         'twitch://',
+  'prime':          'aiv2://',
+  'camera':         'content://media/external/images/media',
+};
+
+let _lockInterval = null;
+async function lockScreen() {
+  // Se rodando dentro do APK Capacitor → usa plugin nativo (bloqueia de verdade)
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    try {
+      const { ScreenLock } = window.Capacitor.Plugins;
+      const res = await ScreenLock.lock();
+      if (res && res.locked) return;
+    } catch (e) {
+      addMessage('⚠️ ' + (e.message || 'Ative a permissão de Device Admin nas configurações.'), 'agent');
+      return;
+    }
+  }
+  // Fallback PWA → overlay de tela preta
+  const el = document.getElementById('lock-overlay');
+  if (!el) return;
+  el.classList.remove('hidden');
+  _updateLockTime();
+  _lockInterval = setInterval(_updateLockTime, 1000);
+  try { document.documentElement.requestFullscreen?.(); } catch(_){}
+}
+function unlockScreen() {
+  const el = document.getElementById('lock-overlay');
+  if (el) el.classList.add('hidden');
+  if (_lockInterval) { clearInterval(_lockInterval); _lockInterval = null; }
+  try { document.exitFullscreen?.(); } catch(_){}
+}
+function _updateLockTime() {
+  const now = new Date();
+  const t = document.getElementById('lock-time');
+  const d = document.getElementById('lock-date');
+  if (t) t.textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  if (d) d.textContent = now.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+}
+function openAppByName(name) {
+  const key = name.toLowerCase().trim();
+  const uri = APP_LINKS[key];
+  // Se rodando no APK Capacitor → usa AppLauncher nativo (mais confiável)
+  if (window.Capacitor && window.Capacitor.isNativePlatform() && uri) {
+    const { AppLauncher } = window.Capacitor.Plugins;
+    AppLauncher.openUrl({ url: uri })
+      .then(() => addMessage(`📱 Abrindo ${name}...`, 'agent'))
+      .catch(() => addMessage(`⚠️ Não foi possível abrir ${name}. App instalado?`, 'agent'));
+    return true;
+  }
+  if (uri) {
+    addMessage(`📱 Abrindo ${name}...`, 'agent');
+    setTimeout(() => { window.location.href = uri; }, 300);
+    return true;
+  }
+  addMessage(`⚠️ App "${name}" não reconhecido.\nApps disponíveis: whatsapp, instagram, youtube, tiktok, spotify, telegram, netflix, uber, ifood, nubank, waze, gmail, maps, discord, twitch`, 'agent');
+  return false;
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 let _devicesCache = [];
 let _sheetDevice  = null;
 
@@ -1306,9 +2709,14 @@ function renderDeviceGrid(devs) {
     const icon = deviceTypeIcon(d.type);
     const online = d.is_online ? 'on' : 'off';
     const statusTxt = d.is_online ? 'Online' : 'Offline';
+    const sid = escHtml(d.id);
     return `
-    <div class="dev-card${isMe ? ' is-me' : ''}" onclick="openDeviceSheet(${JSON.stringify(d.id)})">
+    <div class="dev-card${isMe ? ' is-me' : ''}" data-devid="${sid}" onclick="openDeviceSheet(this.dataset.devid)">
       ${isMe ? '<div class="me-badge">ESTE</div>' : ''}
+      <div class="dc-quick-btns">
+        <button class="dc-qbtn" title="Renomear" data-devid="${sid}" onclick="event.stopPropagation();renameDevice(this.dataset.devid)">✏️</button>
+        <button class="dc-qbtn del" title="Excluir" data-devid="${sid}" onclick="event.stopPropagation();deleteDevice(this.dataset.devid)">🗑</button>
+      </div>
       <div class="dc-icon">${icon}</div>
       <div class="dc-name">${escHtml(d.name)}</div>
       <div class="dc-status"><div class="dc-dot ${online}"></div>${statusTxt}</div>
@@ -1320,39 +2728,57 @@ function openDeviceSheet(deviceId) {
   const dev = _devicesCache.find(d => d.id === deviceId);
   if (!dev) return;
   _sheetDevice = dev;
-  const isMe = dev.id === DEVICE_ID;
+  const isMe   = dev.id === DEVICE_ID;
+  const isPC   = ['pc','desktop','notebook','server'].includes((dev.type||'').toLowerCase());
+  const isPhone= ['phone','tablet'].includes((dev.type||'').toLowerCase());
   document.getElementById('dsh-icon').textContent  = deviceTypeIcon(dev.type);
   document.getElementById('dsh-name').textContent  = dev.name;
   document.getElementById('dsh-meta').textContent  = `${dev.type} · ${dev.is_online ? '🟢 Online' : '⚫ Offline'}${isMe ? ' · este dispositivo' : ''}`;
   document.getElementById('dsh-cmd-input').value   = '';
-  // build action buttons
+  document.getElementById('dsh-cmd-input').placeholder = isMe
+    ? 'Comando personalizado...'
+    : `Enviar comando para ${dev.name}...`;
+
   const acts = [];
   if (isMe) {
-    // actions run directly on the hub (same PC)
-    acts.push({icon:'⏻',  label:'Desligar',  cmd:'desligar pc',           cls:'act-danger'});
-    acts.push({icon:'🔄', label:'Reiniciar', cmd:'/pc restart',            cls:''});
-    acts.push({icon:'🔒', label:'Bloquear',  cmd:'/pc lock',               cls:''});
-    acts.push({icon:'😴', label:'Dormir',    cmd:'/pc sleep',              cls:''});
-    acts.push({icon:'❄️', label:'Hibernar',  cmd:'/pc hibernate',          cls:''});
-    acts.push({icon:'✅', label:'Cancelar',  cmd:'/pc cancel',             cls:'act-green'});
+    // comandos diretos — executam imediatamente no hub (este PC)
+    acts.push({icon:'⏻',  label:'Desligar',  cmd:'desligar pc',  cls:'act-danger', direct:true});
+    acts.push({icon:'🔄', label:'Reiniciar', cmd:'/pc restart',  cls:'',           direct:true});
+    acts.push({icon:'🔒', label:'Bloquear',  cmd:'/pc lock',     cls:'',           direct:true});
+    acts.push({icon:'😴', label:'Dormir',    cmd:'/pc sleep',    cls:'',           direct:true});
+    acts.push({icon:'❄️', label:'Hibernar',  cmd:'/pc hibernate',cls:'',           direct:true});
+    acts.push({icon:'✅', label:'Cancelar',  cmd:'/pc cancel',   cls:'act-green',  direct:true});
+  } else if (isPC) {
+    // PC remoto — comandos ficam na fila e executam no hub desse PC quando ele sincronizar
+    acts.push({icon:'🔆', label:'Ligar (WOL)',cmd:'__wol__',     cls:'act-green',  direct:false});
+    acts.push({icon:'⏻',  label:'Desligar',  cmd:'desligar pc', cls:'act-danger', direct:false});
+    acts.push({icon:'🔄', label:'Reiniciar', cmd:'/pc restart', cls:'',           direct:false});
+    acts.push({icon:'🔒', label:'Bloquear',  cmd:'/pc lock',    cls:'',           direct:false});
+    acts.push({icon:'😴', label:'Dormir',    cmd:'/pc sleep',   cls:'',           direct:false});
+    acts.push({icon:'❄️', label:'Hibernar',  cmd:'/pc hibernate',cls:'',          direct:false});
+  } else if (isPhone) {
+    // Celular/tablet — controle remoto via fila
+    acts.push({icon:'🔒', label:'Bloquear tela', cmd:'__lock_screen__', cls:'', direct:false});
+    acts.push({icon:'📱', label:'Abrir app',     cmd:'__open_app__',    cls:'', direct:false});
   } else {
-    // actions queued for the remote device via heartbeat
-    acts.push({icon:'🔆', label:'Ligar (WOL)',  cmd:'__wol__',             cls:'act-green'});
-    acts.push({icon:'⏻',  label:'Desligar',    cmd:'desligar pc',          cls:'act-danger'});
-    acts.push({icon:'🔄', label:'Reiniciar',   cmd:'/pc restart',          cls:''});
-    acts.push({icon:'🔒', label:'Bloquear',    cmd:'/pc lock',             cls:''});
-    acts.push({icon:'😴', label:'Dormir',      cmd:'/pc sleep',            cls:''});
-    acts.push({icon:'❄️', label:'Hibernar',    cmd:'/pc hibernate',        cls:''});
+    // sempre: renomear + remover
+    acts.push({icon:'✏️', label:'Renomear', cmd:'__rename__', cls:''});
+    acts.push({icon:'🗑',  label:'Remover',  cmd:'__delete__', cls:'act-danger'});
   }
-  // always: remove device
-  acts.push({icon:'🗑',  label:'Remover',   cmd:'__delete__',              cls:'act-danger'});
-  document.getElementById('dsh-actions').innerHTML = acts.map((a,i) =>
-    `<button class="action-btn ${a.cls}" onclick="_sheetAct(${i})">`+
-    `<div class="ab-icon">${a.icon}</div>`+
-    `<div class="ab-label">${a.label}</div>`+
-    `</button>`
-  ).join('');
-  // store acts list on sheet for click handler
+
+  const noActions = acts.length === 2; // só rename+delete
+  document.getElementById('dsh-actions').innerHTML =
+    (noActions && !isMe
+      ? `<div style="grid-column:1/-1;color:var(--text2);font-size:13px;padding:8px 0;text-align:center">
+          📡 Use o campo abaixo para enviar comandos de texto para este dispositivo.
+         </div>`
+      : '') +
+    acts.map((a,i) =>
+      `<button class="action-btn ${a.cls||''}" onclick="_sheetAct(${i})">`+
+      `<div class="ab-icon">${a.icon}</div>`+
+      `<div class="ab-label">${a.label}</div>`+
+      `</button>`
+    ).join('');
   document.getElementById('dsh-actions')._acts = acts;
   document.getElementById('dev-sheet').classList.remove('hidden');
 }
@@ -1361,39 +2787,71 @@ function _sheetAct(i) {
   const acts = document.getElementById('dsh-actions')._acts;
   const act  = acts[i];
   if (!act || !_sheetDevice) return;
+  if (act.cmd === '__rename__') {
+    closeDeviceSheet();
+    renameDevice(_sheetDevice.id);
+    return;
+  }
   if (act.cmd === '__delete__') {
     if (!confirm(`Remover "${_sheetDevice.name}"?`)) return;
     deleteDevice(_sheetDevice.id);
     closeDeviceSheet();
     return;
   }
-  if (act.cmd === '__wol__') {
-    // send WOL command via hub
-    const mac = prompt('MAC do dispositivo para ligar (ex: AA:BB:CC:DD:EE:FF):');
-    if (!mac) return;
-    _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, `ligar pc ${mac}`, act.label);
+  if (act.cmd === '__lock_screen__') {
+    closeDeviceSheet();
+    if (_sheetDevice.id === DEVICE_ID) {
+      lockScreen();
+    } else {
+      const devName = _sheetDevice.name;
+      authFetch(`/devices/${_sheetDevice.id}/command`, {method:'POST', body: JSON.stringify({text:'__lock_screen__'})});
+      addMessage(`📡 Tela de ${devName} será bloqueada na próxima sincronização.`, 'agent');
+    }
+    closeDevices();
     return;
   }
-  _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, act.cmd, act.label);
+  if (act.cmd === '__open_app__') {
+    const appName = prompt('Nome do app (ex: whatsapp, youtube, spotify, instagram, tiktok, nubank, uber):');
+    if (!appName) return;
+    closeDeviceSheet();
+    if (_sheetDevice.id === DEVICE_ID) {
+      openAppByName(appName);
+    } else {
+      const devName = _sheetDevice.name;
+      authFetch(`/devices/${_sheetDevice.id}/command`, {method:'POST', body: JSON.stringify({text:`abrir ${appName}`})});
+      addMessage(`📡 Abrindo ${appName} em ${devName}...`, 'agent');
+    }
+    closeDevices();
+    return;
+  }
+  if (act.cmd === '__wol__') {
+    const mac = prompt('MAC do dispositivo para ligar (ex: AA:BB:CC:DD:EE:FF):');
+    if (!mac) return;
+    _doDeviceAction(_sheetDevice.id, true, `ligar pc ${mac}`, act.label); // WOL sempre executa no hub
+    return;
+  }
+  _doDeviceAction(_sheetDevice.id, act.direct !== false, act.cmd, act.label);
 }
 
-async function _doDeviceAction(deviceId, isMe, cmd, label) {
+async function _doDeviceAction(deviceId, direct, cmd, label) {
   closeDeviceSheet();
   const devName = (_devicesCache.find(d => d.id === deviceId) || {}).name || deviceId;
-  addMessage(`⌨️ ${label} → ${devName}`, 'user');
+  addMessage(`⌨️ ${label}${direct ? '' : ` → ${devName}`}`, 'user');
   showTyping();
   try {
-    if (isMe) {
-      // run directly on the hub
+    if (direct) {
+      // executa imediatamente no hub (este PC)
       const r = await authFetch('/command', { method:'POST', body: JSON.stringify({text: cmd, source:'devices-menu'}) });
       const data = await r.json().catch(()=>({}));
       hideTyping();
       addMessage(data.answer || data.detail || 'Comando enviado.', 'agent');
     } else {
-      // queue for remote device
+      // fila para o PC remoto executar no próximo heartbeat
       const r = await authFetch(`/devices/${deviceId}/command`, { method:'POST', body: JSON.stringify({text: cmd}) });
       hideTyping();
-      addMessage(r.ok ? `📡 "${label}" enviado para ${devName}. Será executado na próxima sincronização.` : 'Falha ao enviar comando.', 'agent');
+      addMessage(r.ok
+        ? `📡 "${label}" enviado para ${devName}.`
+        : 'Falha ao enviar comando.', 'agent');
     }
   } catch (e) {
     hideTyping();
@@ -1402,12 +2860,55 @@ async function _doDeviceAction(deviceId, isMe, cmd, label) {
   closeDevices();
 }
 
+async function renameDevice(deviceId) {
+  const dev = _devicesCache.find(d => d.id === deviceId);
+  if (!dev) return;
+  const newName = prompt(`Novo nome para "${dev.name}":`, dev.name);
+  if (!newName || newName.trim() === dev.name) return;
+  try {
+    const r = await authFetch(`/devices/${deviceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newName.trim() }),
+    });
+    if (r.ok) {
+      dev.name = newName.trim();
+      renderDeviceGrid(_devicesCache);
+    } else {
+      alert('Erro ao renomear dispositivo.');
+    }
+  } catch (_) {
+    alert('Erro de conexão.');
+  }
+}
+
+async function deleteDevice(deviceId) {
+  const dev = _devicesCache.find(d => d.id === deviceId);
+  const name = dev ? dev.name : deviceId;
+  if (!confirm(`Excluir "${name}"?`)) return;
+  try {
+    const r = await authFetch(`/devices/${deviceId}`, { method: 'DELETE' });
+    if (r.ok) {
+      _devicesCache = _devicesCache.filter(d => d.id !== deviceId);
+      renderDeviceGrid(_devicesCache);
+      // atualiza lista no painel de config
+      const card = document.getElementById(`dev-${deviceId}`);
+      if (card) card.remove();
+    } else {
+      alert('Erro ao excluir dispositivo.');
+    }
+  } catch (_) {
+    alert('Erro de conexão.');
+  }
+}
+
 async function sendSheetCustomCmd() {
   const input = document.getElementById('dsh-cmd-input');
   const cmd = input.value.trim();
   if (!cmd || !_sheetDevice) return;
   input.value = '';
-  await _doDeviceAction(_sheetDevice.id, _sheetDevice.id === DEVICE_ID, cmd, cmd);
+  const isMe = _sheetDevice.id === DEVICE_ID;
+  // sempre usa fila para dispositivos remotos (PC ou celular)
+  await _doDeviceAction(_sheetDevice.id, isMe, cmd, cmd);
 }
 
 function closeDeviceSheet() {
@@ -1462,22 +2963,40 @@ async function authFetch(path, opts = {}) {
 
 async function initAuth() {
   if (SESSION_TOKEN) CFG.token = SESSION_TOKEN;
-  if (!CFG.url) { showLoginOverlay(); return; }
+  // Garante URL nunca vazio
+  if (!CFG.url) CFG.url = PUBLIC_HUB;
   if (SESSION_TOKEN) {
     try {
       const r = await authFetch('/auth/me');
       if (r.ok) { const d = await r.json(); onLoggedIn(d.user, false); return; }
-    } catch (_) {}
+    } catch (_) {
+      // Se falhou com URL salvo, tenta público
+      if (CFG.url !== PUBLIC_HUB) {
+        CFG.url = PUBLIC_HUB;
+        localStorage.setItem('brt_url', PUBLIC_HUB);
+        try {
+          const r2 = await authFetch('/auth/me');
+          if (r2.ok) { const d2 = await r2.json(); onLoggedIn(d2.user, false); return; }
+        } catch (_2) {}
+      }
+    }
     SESSION_TOKEN = '';
     localStorage.removeItem('brt_session_token');
   }
-  try {
-    const r = await fetch(CFG.url + '/auth/setup', { signal: AbortSignal.timeout(5000) });
-    if (r.ok) {
-      const d = await r.json();
-      if (d.needs_setup) showRegisterForm(); else showLoginForm();
-    } else showLoginForm();
-  } catch (_) { showLoginForm(); }
+  // Tenta URL configurado para exibir form de login
+  const trySetup = async (url) => {
+    try {
+      const r = await fetch(url + '/auth/setup', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) { const d = await r.json(); if (d.needs_setup) showRegisterForm(); else showLoginForm(); return true; }
+    } catch (_) {}
+    return false;
+  };
+  const ok = await trySetup(CFG.url);
+  if (!ok && CFG.url !== PUBLIC_HUB) {
+    CFG.url = PUBLIC_HUB;
+    localStorage.setItem('brt_url', PUBLIC_HUB);
+    await trySetup(PUBLIC_HUB);
+  } else if (!ok) { showLoginForm(); }
   showLoginOverlay();
 }
 
@@ -1562,9 +3081,38 @@ async function heartbeat(register = false) {
       const d = await r.json();
       if (d.pending_commands && d.pending_commands.length) {
         for (const cmd of d.pending_commands) {
-          addMessage(`📡 Comando remoto: ${cmd.command}`, 'agent');
+          // ── Comandos locais do celular (executam no browser) ──
+          if (cmd.command === '__lock_screen__') {
+            lockScreen();
+            await authFetch(`/devices/${DEVICE_ID}/ack/${cmd.id}`, {method:'POST', body: JSON.stringify({answer:'tela bloqueada'})});
+            continue;
+          }
+          const openMatch = cmd.command.match(/^(?:abri[rr]?|abre|open)\s+(.+)$/i);
+          if (openMatch) {
+            openAppByName(openMatch[1]);
+            await authFetch(`/devices/${DEVICE_ID}/ack/${cmd.id}`, {method:'POST', body: JSON.stringify({answer:`abrindo ${openMatch[1]}`})});
+            continue;
+          }
+          // ── Outros comandos → executa no hub (IA responde) ──
+          addMessage(`📡 Comando remoto: ${cmd.command}`, 'user');
+          showTyping();
+          let answer = 'executado';
+          try {
+            const cr = await authFetch('/command', {
+              method: 'POST',
+              body: JSON.stringify({ text: cmd.command, source: 'remote-device' }),
+            });
+            const cd = await cr.json().catch(() => ({}));
+            answer = cd.answer || cd.detail || 'executado';
+            hideTyping();
+            addMessage(answer, 'agent');
+          } catch (_) {
+            hideTyping();
+            answer = 'erro ao executar';
+            addMessage('⚠️ Erro ao executar comando remoto.', 'agent');
+          }
           await authFetch(`/devices/${DEVICE_ID}/ack/${cmd.id}`, {
-            method: 'POST', body: JSON.stringify({ answer: 'recebido' }),
+            method: 'POST', body: JSON.stringify({ answer }),
           });
         }
       }
@@ -1612,11 +3160,6 @@ async function loadDevices() {
   }
 }
 
-async function deleteDevice(deviceId) {
-  if (!confirm('Remover este dispositivo?')) return;
-  try { await authFetch(`/devices/${deviceId}`, { method: 'DELETE' }); loadDevices(); } catch (_) {}
-}
-
 async function promptDeviceCommand(deviceId, deviceName) {
   const cmd = prompt(`Comando para "${deviceName}":`);
   if (!cmd) return;
@@ -1640,12 +3183,286 @@ async function doLogout() {
   initAuth();
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
-if (!CFG.url) {
-  openSettings();
-} else {
-  initAuth();
+// ── Live home data ────────────────────────────────────────────────────────
+let _gmailConnected = false;
+let _gmailEmail = '';
+
+function _countUpTo(el, target) {
+  if (!el) return;
+  let cur = 0;
+  const step = Math.max(1, target / 45);
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, target);
+    el.textContent = Math.floor(cur);
+    if (cur >= target) { el.textContent = target; clearInterval(t); }
+  }, 22);
 }
+
+async function loadHomeData() {
+  if (!SESSION_TOKEN && !CFG.token) return;
+
+  // ─ STATS ─
+  try {
+    const r = await authFetch('/stats');
+    if (r.ok) {
+      const d = await r.json();
+      const lsp = document.getElementById('stat-learn-span');
+      if (lsp) _countUpTo(lsp, d.learned_pct || 0);
+      const cp = document.getElementById('core-learn-pct');
+      if (cp) cp.textContent = (d.learned_pct || 0) + '%';
+      const rsp = document.getElementById('stat-routines-span');
+      if (rsp) _countUpTo(rsp, d.routines || 0);
+      const asp = document.getElementById('stat-actions-span');
+      if (asp) _countUpTo(asp, d.total_actions || 247);
+      const dc = document.getElementById('stat-dev-count');
+      if (dc) dc.textContent = d.devices != null ? d.devices : '—';
+      _gmailConnected = !!d.gmail_connected;
+      _gmailEmail = d.gmail_email || '';
+      _updateGmailBadge();
+      const ev = document.getElementById('stat-emails-val');
+      const el = document.getElementById('stat-emails-lbl');
+      if (ev && el) {
+        if (_gmailConnected) {
+          ev.textContent = '✓ OK'; ev.style.color = 'var(--green)';
+          el.textContent = 'Gmail ativo';
+        } else {
+          ev.textContent = '+ Link'; ev.style.color = 'rgba(0,207,255,.55)';
+          el.textContent = 'Conectar Gmail';
+        }
+      }
+    }
+  } catch (_) {}
+
+  // ─ MEMORY TAGS ─
+  try {
+    const r = await authFetch('/memory');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.tags && d.tags.length > 0) {
+        const cloud = document.querySelector('.aiv4-memory-cloud');
+        if (cloud) {
+          cloud.innerHTML = '';
+          const tiers = ['mem-hi', 'mem-md', 'mem-lo'];
+          d.tags.slice(0, 16).forEach((tag, i) => {
+            const cls = tiers[Math.min(i < 4 ? 0 : i < 9 ? 1 : 2, 2)];
+            const div = document.createElement('div');
+            div.className = 'aiv4-mem-tag ' + cls;
+            div.style.animationDelay = (i * 0.05) + 's';
+            div.textContent = tag.text;
+            div.title = tag.cat;
+            div.onclick = () => sendChip('o que você sabe sobre ' + tag.text);
+            cloud.appendChild(div);
+          });
+        }
+      }
+    }
+  } catch (_) {}
+
+  // ─ INTEGRATIONS BADGES ─
+  try {
+    const r = await authFetch('/integrations');
+    if (r.ok) {
+      const d = await r.json();
+      const gmail = (d.integrations || []).find(i => i.name === 'gmail');
+      _gmailConnected = !!gmail;
+      if (gmail) _gmailEmail = (gmail.config || {}).email || '';
+      _updateGmailBadge();
+    }
+  } catch (_) {}
+}
+
+function _updateGmailBadge() {
+  const tile  = document.getElementById('int-gmail');
+  const badge = document.getElementById('int-gmail-badge');
+  if (!tile || !badge) return;
+  if (_gmailConnected) {
+    tile.classList.add('connected'); badge.style.display = 'flex';
+  } else {
+    tile.classList.remove('connected'); badge.style.display = 'none';
+  }
+}
+
+function openGmailModal() {
+  const ov   = document.getElementById('gmail-overlay');
+  const info = document.getElementById('gmail-connected-info');
+  const form = document.getElementById('gmail-form');
+  const btnC = document.getElementById('gm-btns-connect');
+  const btnM = document.getElementById('gm-btns-manage');
+  const st   = document.getElementById('gm-status');
+  if (!ov) return;
+  st.className = 'gm-status'; st.textContent = '';
+  if (_gmailConnected) {
+    info.style.display = 'block';
+    document.getElementById('gmail-connected-email').textContent = _gmailEmail;
+    form.style.display = 'none';
+    btnC.style.display = 'none'; btnM.style.display = 'flex';
+  } else {
+    info.style.display = 'none';
+    form.style.display = 'block';
+    btnC.style.display = 'flex'; btnM.style.display = 'none';
+  }
+  ov.classList.remove('hidden');
+}
+
+function closeGmailModal() {
+  document.getElementById('gmail-overlay')?.classList.add('hidden');
+}
+
+async function doGmailConnect() {
+  const btn  = document.getElementById('gm-connect-btn');
+  const st   = document.getElementById('gm-status');
+  const em   = document.getElementById('gm-email').value.trim();
+  const pass = document.getElementById('gm-pass').value.trim();
+  if (!em || !pass) { st.className = 'gm-status err'; st.textContent = 'Preencha e-mail e senha de app.'; return; }
+  btn.disabled = true; btn.textContent = 'Conectando...';
+  st.className = 'gm-status'; st.textContent = '';
+  try {
+    const r = await authFetch('/integrations/gmail/connect', {
+      method: 'POST',
+      body: JSON.stringify({ email: em, app_password: pass }),
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      _gmailConnected = true; _gmailEmail = em;
+      _updateGmailBadge();
+      closeGmailModal();
+      loadHomeData();
+    } else {
+      st.className = 'gm-status err';
+      st.textContent = d.detail || 'Erro ao conectar.';
+    }
+  } catch (e) {
+    st.className = 'gm-status err'; st.textContent = 'Erro de rede: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Conectar';
+  }
+}
+
+async function doGmailDisconnect() {
+  if (!confirm('Desconectar Gmail?')) return;
+  await authFetch('/integrations/gmail', { method: 'DELETE' });
+  _gmailConnected = false; _gmailEmail = '';
+  _updateGmailBadge();
+  closeGmailModal();
+  loadHomeData();
+}
+
+async function openEmailsPanel() {
+  if (!_gmailConnected) { openGmailModal(); return; }
+  const ov   = document.getElementById('emails-overlay');
+  const body = document.getElementById('emails-list-body');
+  if (!ov) return;
+  body.innerHTML = '<div class="hint" style="text-align:center;padding:20px">🔄 Carregando e-mails...</div>';
+  ov.classList.remove('hidden');
+  try {
+    const r = await authFetch('/emails');
+    const d = await r.json();
+    if (!r.ok) {
+      body.innerHTML = '<div class="hint" style="color:var(--accent2);text-align:center;padding:20px">❌ ' + (d.detail || 'Erro') + '</div>';
+      return;
+    }
+    if (!d.emails || d.emails.length === 0) {
+      body.innerHTML = '<div class="hint" style="text-align:center;padding:20px">Nenhum e-mail encontrado.</div>';
+      return;
+    }
+    body.innerHTML = '';
+    d.emails.forEach(em => {
+      const div = document.createElement('div');
+      div.className = 'email-item';
+      const shortDate = (em.date || '').replace(/\s*\([^)]*\)/, '').replace(/^\w+,\s*/, '').slice(0, 16);
+      div.innerHTML =
+        '<div class="email-from">' + escHtml(em.from || '') + '</div>' +
+        '<div class="email-date">' + escHtml(shortDate) + '</div>' +
+        '<div class="email-subj">' + escHtml(em.subject || '(sem assunto)') + '</div>' +
+        (em.snippet ? '<div class="email-snip">' + escHtml(em.snippet) + '</div>' : '');
+      div.onclick = () => {
+        closeEmailsPanel();
+        sendChip('resumir email de: ' + (em.from || '') + ' assunto: ' + (em.subject || ''));
+      };
+      body.appendChild(div);
+    });
+  } catch (e) {
+    body.innerHTML = '<div class="hint" style="color:var(--accent2);text-align:center;padding:20px">❌ ' + e.message + '</div>';
+  }
+}
+
+function closeEmailsPanel() {
+  document.getElementById('emails-overlay')?.classList.add('hidden');
+}
+
+// Close overlays on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+  ['gmail-overlay', 'emails-overlay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', e => { if (e.target === el) el.classList.add('hidden'); });
+  });
+});
+
+// ── Cinematic intro ───────────────────────────────────────────────────────
+function initCinematic() {
+  const el = document.getElementById('cin-intro');
+  if (!el) return;
+  if (sessionStorage.getItem('cin_done')) { el.classList.add('gone'); return; }
+  const lines = el.querySelectorAll('.cin-log-line');
+  lines.forEach((line, i) => { line.style.animationDelay = (0.85 + i * 0.48) + 's'; });
+  let pct = 0;
+  const pctEl = document.getElementById('cin-pct');
+  const pctTimer = setInterval(() => {
+    pct = Math.min(pct + 3, 100);
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (pct >= 100) clearInterval(pctTimer);
+  }, 36);
+  setTimeout(() => {
+    el.classList.add('gone');
+    sessionStorage.setItem('cin_done', '1');
+  }, 4300);
+}
+initCinematic();
+
+// ── Holographic avatar state ──────────────────────────────────────────────
+function setAvatarState(state) { // 'idle' | 'thinking' | 'speaking'
+  const w = document.getElementById('holo-face-wrap');
+  if (!w) return;
+  w.classList.remove('thinking', 'speaking');
+  if (state !== 'idle') w.classList.add(state);
+}
+
+// ── AIV4 Home Animations ─────────────────────────────────────────────────
+function initHomeAnimations() {
+  // Count-up numbers
+  document.querySelectorAll('.count-up').forEach(el => {
+    const target = parseInt(el.dataset.target) || 0;
+    let cur = 0;
+    const step = Math.max(1, target / 45);
+    const timer = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = Math.floor(cur);
+      if (cur >= target) { el.textContent = target; clearInterval(timer); }
+    }, 22);
+  });
+  // Sync status indicator
+  const sv = document.getElementById('stat-status-val');
+  const dot = document.getElementById('status-dot');
+  if (sv && dot) {
+    sv.textContent = dot.classList.contains('online') ? 'ONLINE' : 'OFFLINE';
+    sv.style.color  = dot.classList.contains('online') ? 'var(--green)' : 'var(--accent2)';
+  }
+  // Sync device count
+  const dc = document.getElementById('stat-dev-count');
+  if (dc) {
+    const grid = document.getElementById('devices-grid');
+    const cards = grid ? grid.querySelectorAll('.dev-card').length : 0;
+    dc.textContent = cards || '—';
+  }
+}
+setTimeout(initHomeAnimations, 700);
+setTimeout(loadHomeData, 1500);
+
+// ── Init ──────────────────────────────────────────────────────────────────
+// Garante URL nunca fica vazio
+if (!CFG.url) CFG.url = PUBLIC_HUB;
+checkStatus(); // verifica conexão imediatamente
+initAuth();
 setInterval(checkStatus, 30000);
 setInterval(() => heartbeat(false), 30000);
 </script>

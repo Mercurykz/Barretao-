@@ -56,6 +56,13 @@ def init_db() -> None:
             created_at   TEXT NOT NULL,
             executed     INTEGER DEFAULT 0
         );
+        CREATE TABLE IF NOT EXISTS integrations (
+            name         TEXT NOT NULL,
+            user_id      TEXT NOT NULL,
+            config       TEXT NOT NULL DEFAULT '{}',
+            connected_at TEXT NOT NULL,
+            PRIMARY KEY (name, user_id)
+        );
         """)
 
 
@@ -183,6 +190,15 @@ def get_devices(user_id: str) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def rename_device(device_id: str, user_id: str, new_name: str) -> bool:
+    with _conn() as con:
+        cur = con.execute(
+            "UPDATE devices SET name=? WHERE id=? AND user_id=?",
+            (new_name.strip(), device_id, user_id),
+        )
+    return cur.rowcount > 0
+
+
 def delete_device(device_id: str, user_id: str) -> bool:
     with _conn() as con:
         cur = con.execute("DELETE FROM devices WHERE id=? AND user_id=?", (device_id, user_id))
@@ -219,3 +235,46 @@ def ack_command(cmd_id: str, answer: str = "") -> None:
             "UPDATE pending_commands SET executed=1, answer=? WHERE id=?",
             (answer, cmd_id),
         )
+
+
+# ── Integrations ─────────────────────────────────────────────────────────────
+
+import json as _json
+
+
+def save_integration(user_id: str, name: str, config: dict) -> None:
+    with _conn() as con:
+        con.execute(
+            """INSERT INTO integrations (name, user_id, config, connected_at)
+               VALUES (?,?,?,?)
+               ON CONFLICT(name, user_id) DO UPDATE SET
+                 config=excluded.config,
+                 connected_at=excluded.connected_at""",
+            (name, user_id, _json.dumps(config), _now()),
+        )
+
+
+def get_integration(user_id: str, name: str) -> Optional[dict]:
+    with _conn() as con:
+        row = con.execute(
+            "SELECT name, config, connected_at FROM integrations WHERE name=? AND user_id=?",
+            (name, user_id),
+        ).fetchone()
+    if not row:
+        return None
+    return {"name": row["name"], "config": _json.loads(row["config"]), "connected_at": row["connected_at"]}
+
+
+def list_integrations(user_id: str) -> list[dict]:
+    with _conn() as con:
+        rows = con.execute(
+            "SELECT name, config, connected_at FROM integrations WHERE user_id=? ORDER BY name",
+            (user_id,),
+        ).fetchall()
+    return [{"name": r["name"], "config": _json.loads(r["config"]), "connected_at": r["connected_at"]} for r in rows]
+
+
+def delete_integration(user_id: str, name: str) -> bool:
+    with _conn() as con:
+        cur = con.execute("DELETE FROM integrations WHERE name=? AND user_id=?", (name, user_id))
+    return cur.rowcount > 0
