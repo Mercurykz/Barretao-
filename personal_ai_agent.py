@@ -1733,6 +1733,145 @@ FORMATO DE RESPOSTA:
                 "lideranca, equipe, delegacao, alinhamento, resultado",
                 "Liderança eficaz dá direção clara, delega com contexto, acompanha indicadores e cria ambiente de confiança para que a equipe entregue resultados sustentáveis.",
             ),
+            # ── CIÊNCIA E FÍSICA ────────────────────────────────────────────────
+            ("Física Clássica", "ciência", "newton, força, movimento, gravidade, energia",
+             "Newton formulou as 3 leis do movimento: inércia, F=ma e ação-reação. Também descobriu a lei da gravitação universal: F=G*m1*m2/r². Energia se conserva; trabalho é força vezes deslocamento."),
+            ("Relatividade de Einstein", "ciência", "einstein, relatividade, tempo, espaço, luz, E=mc2",
+             "Einstein propôs que espaço e tempo são relativos ao observador. A relatividade especial diz que nada supera a luz. E=mc² mostra que massa equivale à energia. A relatividade geral descreve gravidade como curvatura do espaço-tempo."),
+            ("Física Quântica", "ciência", "quantum, elétron, fóton, incerteza, onda, partícula",
+             "Física quântica descreve o comportamento de partículas subatômicas. Heisenberg: não se pode medir posição e velocidade ao mesmo tempo. Partículas têm dualidade onda-partícula. Schrödinger descreveu estados quânticos com sua equação."),
+            ("Termodinâmica", "ciência", "calor, temperatura, entropia, energia, leis",
+             "1ª lei: energia se conserva. 2ª lei: entropia do universo aumenta; calor flui do quente ao frio. 3ª lei: temperatura absoluta zero (0 K = -273,15°C) é inalcançável. Temperatura mede energia cinética média das moléculas."),
+            ("Eletromagnetismo", "ciência", "eletricidade, magnetismo, ondas, campos, maxwell",
+             "Maxwell unificou eletricidade e magnetismo: cargas criam campos elétricos, correntes criam campos magnéticos. Ondas eletromagnéticas (luz, rádio, micro-ondas) se propagam a 300.000 km/s no vácuo."),
+            # ── QUÍMICA ─────────────────────────────────────────────────────────
+            ("Tabela Periódica", "ciência", "elemento, átomo, próton, nêutron, elétron, período, grupo",
+             "A tabela periódica organiza 118 elementos pelo número atômico. Linhas = períodos; colunas = grupos com propriedades similares. Metais (conduzem), não-metais (isolam), metaloides (intermediários). H e He são os mais abundantes no universo."),
+            ("Reações Químicas", "ciência", "reação, produto, reagente, equilíbrio, catalisador, mol",
+             "Reações químicas transformam reagentes em produtos conservando átomos (lei de Lavoisier). Catalisadores aceleram sem se consumir. pH mede acidez: <7 ácido, =7 neutro, >7 básico. 1 mol = 6,02×10²³ partículas."),
+            ("Bioquímica e DNA", "ciência", "DNA, RNA, proteína, célula, gene, hereditariedade",
+             "DNA é a molécula da hereditariedade, formada por 4 bases (A,T,G,C) em dupla hélice. Genes codificam proteínas via RNA. O genoma humano tem ~3 bilhões de pares de bases e ~20.000 genes. Mutações geram variabilidade e podem causar doenças."),
+            # ── BIOLOGIA ────────────────────────────────────────────────────────
+            ("Evolução Biológica", "ciência", "darwin, seleção natural, espécie, adaptação, evolução",
+             "Darwin propôs a seleção natural: organismos mais adaptados sobrevivem e se reproduzem mais. Mutações e variação genética fornecem matéria-prima. A evolução é gradual e conduzida pelo ambiente. Todos os seres vivos compartilham ancestrais comuns."),
+            ("Ecossistemas e Biodiversidade", "ciência", "ecossistema, cadeia alimentar, bioma, extinção, habitat",
+             "Ecossistemas são sistemas de interações entre seres vivos e ambiente. Cadeias alimentares transferem energia: produtores → consumidores → decompositores. Biodiversidade garante resiliência. Brasil tem a maior biodiversidade do planeta."),
+            ("Célula e Metabolismo", "ciência", "célula, mitocôndria, ATP, respiração, fotossíntese",
+             "Células eucariotas têm núcleo e organelas. Mitocôndria produz ATP por respiração celular (glicose + O₂ → ATP + CO₂ + H₂O). Cloroplastos fazem fotossíntese (CO₂ + H₂O + luz → glicose + O₂). ATP é a 'moeda energética' dos seres vivos."),
+            # ── MATEMÁTICA ──────────────────────────────────────────────────────
+            ("Álgebra Básica", "matemática", "equação, variável, polinômio, fatoração, inequação",
+             "Álgebra usa variáveis para representar números desconhecidos. Equações de 1º grau: ax+b=0 → x=-b/a. 2º grau: ax²+bx+c=0 → x=(-b±√(b²-4ac))/2a. Fatoração simplifica expressões. Inequações definem intervalos."),
+            ("Geometria", "matemática", "área, perímetro, ângulo, triângulo, círculo, volume",
+             "Geometria plana: área do triângulo = base×altura/2; círculo = πr². Pitágoras: a²=b²+c². Geometria espacial: volume do cubo = a³; esfera = 4πr³/3. Ângulos: 180° no triângulo, 360° em qualquer polígono convexo dividido em triângulos."),
+            ("Cálculo", "matemática", "derivada, integral, limite, função, taxa, área",
+             "Cálculo estuda variação e acumulação. Derivada mede taxa de variação (velocidade, inclinação). Integral calcula área sob a curva. Teorema fundamental: integral e derivada são operações inversas. Newton e Leibniz criaram o cálculo independentemente."),
+            ("Estatística e Probabilidade", "matemática", "média, mediana, desvio, probabilidade, distribuição",
+             "Média = soma/n; mediana = valor central; moda = mais frequente. Desvio padrão mede dispersão. Probabilidade vai de 0 a 1. Distribuição normal (gaussiana) descreve fenômenos naturais. Lei dos grandes números: frequência converge para probabilidade."),
+            ("Lógica e Conjuntos", "matemática", "conjunto, lógica, proposição, premissa, conclusão",
+             "Lógica analisa a validade de argumentos: premissas verdadeiras + raciocínio válido = conclusão válida. Conjuntos: união (A∪B), interseção (A∩B), complemento. Diagrama de Venn visualiza relações. Indução matemática prova fórmulas para todos os naturais."),
+            # ── ASTRONOMIA ──────────────────────────────────────────────────────
+            ("Sistema Solar", "astronomia", "sol, planeta, lua, órbita, mercúrio, vênus, marte, júpiter",
+             "O Sol contém 99,8% da massa do sistema solar. 8 planetas: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano, Netuno. Júpiter é o maior. Terra é o único com vida confirmada. A Lua é o satélite natural da Terra, causando marés."),
+            ("Estrelas e Ciclo Estelar", "astronomia", "estrela, supernova, anã branca, buraco negro, fusão nuclear",
+             "Estrelas brilham por fusão nuclear de hidrogênio em hélio. Estrelas massivas explodem em supernovas, gerando buracos negros ou estrelas de nêutrons. O Sol tem ~5 bilhões de anos de vida restante. A estrela mais próxima é Próxima Centauri, a 4,2 anos-luz."),
+            ("Galáxias e Universo", "astronomia", "galáxia, via láctea, big bang, expansão, matéria escura",
+             "O universo tem ~13,8 bilhões de anos, iniciou com o Big Bang e se expande. A Via Láctea tem ~300 bilhões de estrelas. Matéria escura (27%) e energia escura (68%) dominam o universo. Há estimativa de 2 trilhões de galáxias observáveis."),
+            # ── HISTÓRIA MUNDIAL ────────────────────────────────────────────────
+            ("Civilizações Antigas", "história", "egito, grécia, roma, mesopotâmia, civilização, antiguidade",
+             "Mesopotâmia (Suméria, Babilônia) inventou a escrita cuneiforme. Egito construiu pirâmides e desenvolveu hieróglifos. Grécia criou democracia, filosofia e matemática. Roma expandiu direito, engenharia e administração para toda a Europa e além."),
+            ("Idade Média", "história", "feudalismo, cruzadas, igreja, cavaleiro, castelo, europa medieval",
+             "Idade Média (476-1453): feudalismo organizava a sociedade em suseranos, vassalos e servos. Igreja Católica dominava política e cultura. Cruzadas (1096-1291) foram guerras religioso-políticas. Magna Carta (1215) limitou o poder do rei inglês."),
+            ("Revolução Francesa", "história", "revolução, liberdade, igualdade, fraternidade, napoleão, guilhotina",
+             "A Revolução Francesa (1789) derrubou a monarquia e proclamou os princípios de Liberdade, Igualdade e Fraternidade. Aboliu privilégios da nobreza, criou a Declaração dos Direitos do Homem. Napoleão emergiu do caos e conquistou a Europa."),
+            ("Guerras Mundiais", "história", "guerra mundial, primeira, segunda, nazismo, hiroshima, holocausto",
+             "1ª GM (1914-1918): trincheiras, gases, 20 milhões de mortos; terminou com Tratado de Versalhes que humilhou a Alemanha. 2ª GM (1939-1945): nazismo de Hitler, holocausto (6 mi judeus), bomba atômica no Japão, 70 milhões de mortos. ONU criada em 1945."),
+            ("Guerra Fria", "história", "guerra fria, EUA, URSS, capitalismo, comunismo, berlim, espaço",
+             "Guerra Fria (1947-1991): EUA (capitalismo) vs URSS (socialismo) em disputa ideológica sem guerra direta. Corrida espacial: URSS lançou Sputnik 1957; EUA chegou à Lua em 1969. Muro de Berlim (1961-1989). URSS se dissolveu em 1991."),
+            ("Revolução Industrial", "história", "industrial, vapor, máquina, fábrica, trabalho, capitalismo, ingleza",
+             "A Revolução Industrial (séc. XVIII-XIX) começou na Inglaterra com a máquina a vapor. Transformou produção artesanal em fabril, gerou urbanização, proletariado e capitalismo industrial. Luz elétrica, ferrovia e telégrafo surgiram neste período."),
+            # ── FILOSOFIA ───────────────────────────────────────────────────────
+            ("Filosofia Grega", "filosofia", "sócrates, platão, aristóteles, ética, metafísica, lógica",
+             "Sócrates usava o diálogo para questionar certezas (maiêutica). Platão propôs o mundo das ideias perfeitas e a caverna como metáfora da ignorância. Aristóteles sistematizou lógica, ética e ciência. Estoicismo pregava virtude; Epicurismo, a busca da felicidade."),
+            ("Filosofia Moderna", "filosofia", "descartes, kant, hegel, iluminismo, razão, empirismo",
+             "Descartes: 'Penso, logo existo'; separou mente e corpo. Locke: mente como tábula rasa, conhecimento vem da experiência. Kant: razão tem limites; o imperativo categórico orienta a ética. Hegel: dialética (tese-antítese-síntese) move a história."),
+            ("Ética e Moral", "filosofia", "ética, moral, bem, mal, virtude, consequência, dever",
+             "Ética estuda o que é certo. Consequencialismo: o certo maximiza bem-estar (utilitarismo). Deontologia (Kant): agir por dever independente das consequências. Ética das virtudes: cultivar caráter virtuoso. Relativismo moral: valores variam por cultura."),
+            ("Filosofia Contemporânea", "filosofia", "existencialismo, nietzsche, marx, freud, pós-moderno",
+             "Nietzsche: 'Deus está morto'; super-homem cria seus próprios valores. Marx: luta de classes e materialismo histórico. Existencialismo (Sartre): existência precede essência; somos livres e responsáveis. Pós-modernismo questiona grandes narrativas."),
+            # ── PSICOLOGIA ──────────────────────────────────────────────────────
+            ("Psicologia Básica", "psicologia", "mente, comportamento, cognição, emoção, freud, jung",
+             "Freud criou a psicanálise: inconsciente, id/ego/superego. Jung propôs arquétipos e inconsciente coletivo. Behaviorismo estuda comportamento observável (Pavlov, Skinner). Psicologia cognitiva foca processos mentais: percepção, memória, raciocínio."),
+            ("Inteligências e Aprendizagem", "psicologia", "inteligência, gardner, aprendizagem, memória, cognição",
+             "Gardner propôs 8 inteligências múltiplas (linguística, lógica, musical, etc.). Memória tem fases: codificação, armazenamento, recuperação. Curva do esquecimento de Ebbinghaus: revisão espaçada é essencial. Zona de desenvolvimento proximal (Vygotsky) guia aprendizagem."),
+            ("Vieses Cognitivos", "psicologia", "viés, heurística, kahneman, decisão, ancoragem, confirmação",
+             "Vieses cognitivos são atalhos mentais que levam a erros. Kahneman: sistema 1 (rápido, intuitivo) vs sistema 2 (lento, analítico). Viés de confirmação: busca provas que confirmem crenças. Ancoragem: decisões ancoradas no primeiro número visto."),
+            # ── GEOGRAFIA MUNDIAL ────────────────────────────────────────────────
+            ("Continentes e Oceanos", "geografia", "continente, oceano, africa, asia, americas, europa, oceania",
+             "7 continentes: África, Antártica, América do Norte, América do Sul, Ásia (maior), Europa, Oceania. 5 oceanos: Pacífico (maior), Atlântico, Índico, Ártico, Austral. Ásia tem 60% da população mundial. África é o 2º maior continente."),
+            ("Países e Capitais", "geografia", "país, capital, população, território, nações",
+             "Maiores países por área: Rússia, Canadá, EUA, China, Brasil. Maiores populações: China, Índia, EUA, Indonésia, Brasil. Vaticano é o menor país. 195 países reconhecidos pela ONU. Brasil tem 26 estados + DF; capital é Brasília."),
+            ("Clima e Fenômenos Naturais", "geografia", "clima, temperatura, chuva, terremoto, vulcão, furacão, el niño",
+             "Clima é diferente de tempo: clima é padrão de longo prazo. El Niño aquece o Pacífico e altera chuvas globais. Terremotos ocorrem em falhas tectônicas. Vulcões liberam magma do manto. Furacões se formam em oceanos quentes e tropicais."),
+            # ── TECNOLOGIA E PROGRAMAÇÃO ────────────────────────────────────────
+            ("Linguagens de Programação", "tecnologia", "python, javascript, java, c++, linguagem, código",
+             "Python: simples, ótimo para IA/dados. JavaScript: essencial para web. Java: multiplataforma, corporativo. C++: alto desempenho. SQL: bancos de dados. Rust: segurança de memória. Go: concorrência. TypeScript: JavaScript tipado. R: estatística."),
+            ("Inteligência Artificial e ML", "tecnologia", "ia, machine learning, deep learning, rede neural, llm, gpt",
+             "Machine Learning treina modelos com dados. Deep Learning usa redes neurais profundas. LLMs (GPT, Claude, Llama) processam e geram texto. IA generativa cria texto, imagem, código. Principais frameworks: TensorFlow, PyTorch, Scikit-learn."),
+            ("Cloud e DevOps", "tecnologia", "cloud, aws, azure, docker, kubernetes, ci/cd, devops",
+             "Cloud (AWS, Azure, GCP) oferece infraestrutura sob demanda. Docker containeriza apps. Kubernetes orquestra containers. CI/CD automatiza build/teste/deploy. Infrastructure as Code (Terraform) versiona a infra. Serverless executa funções sem gerenciar servidores."),
+            ("Redes e Internet", "tecnologia", "tcp/ip, http, dns, protocolo, rede, wifi, internet",
+             "Internet usa protocolo TCP/IP. HTTP/HTTPS transfere páginas web. DNS traduz domínios em IPs. Wi-Fi usa ondas de rádio (2,4 e 5 GHz). IPv4 tem ~4 bilhões de endereços; IPv6 tem 340 undecilhões. HTTPS usa TLS para criptografar dados."),
+            ("Banco de Dados", "tecnologia", "sql, nosql, banco, tabela, query, índice, postgresql, mongodb",
+             "Bancos relacionais (SQL): tabelas, joins, ACID. PostgreSQL, MySQL, SQLite são populares. NoSQL: MongoDB (documentos), Redis (cache), Cassandra (colunas). índices aceleram consultas. ORM mapeia objetos para tabelas. Transações garantem integridade."),
+            ("Cibersegurança", "tecnologia", "hacker, vulnerabilidade, criptografia, vpn, firewall, ataque",
+             "Criptografia protege dados: simétrica (mesma chave) e assimétrica (chave pública/privada). HTTPS usa TLS/SSL. Ataques comuns: SQL injection, XSS, phishing, ransomware. VPN cria túnel seguro. Zero-trust: nunca confiar, sempre verificar."),
+            ("Criptomoedas e Blockchain", "tecnologia", "bitcoin, blockchain, ethereum, cripto, descentralizado, nft",
+             "Blockchain é um livro-razão distribuído e imutável. Bitcoin (2009) usa prova de trabalho. Ethereum introduziu contratos inteligentes. NFTs são tokens únicos na blockchain. Criptomoedas são voláteis e descentralizadas, sem banco central."),
+            # ── ECONOMIA E FINANÇAS ──────────────────────────────────────────────
+            ("Economia Básica", "economia", "oferta, demanda, preço, mercado, pib, inflação, juros",
+             "Oferta e demanda determinam preços: maior demanda = preço sobe. PIB mede produção de um país. Inflação é alta geral de preços; Banco Central controla com juros. Juros altos reduzem inflação mas freiam crescimento. Desemprego e inflação têm relação inversa (curva de Phillips)."),
+            ("Investimentos", "finanças", "ações, renda fixa, tesouro, fundo, dividendo, risco, retorno",
+             "Renda fixa (Tesouro Direto, CDB): rendimento previsível. Renda variável (ações): maior risco e potencial retorno. Diversificação reduz risco. Dividendos são parte do lucro distribuído. P/L (preço/lucro) avalia ações. DCA: investir valor fixo regularmente."),
+            ("Matemática Financeira", "finanças", "juros compostos, valor presente, futuro, taxa, desconto",
+             "Juros simples: J=P×i×t. Juros compostos: M=P×(1+i)^t — dinheiro cresce exponencialmente. Valor presente desconta fluxos futuros. Taxa Selic é a taxa básica de juros do Brasil. IPCA mede inflação oficial. CDI acompanha a Selic."),
+            # ── SAÚDE E MEDICINA ────────────────────────────────────────────────
+            ("Sistema Nervoso", "saúde", "cérebro, neurônio, sinapse, sistema nervoso, cognição",
+             "O sistema nervoso central inclui cérebro e medula. O cérebro tem ~86 bilhões de neurônios conectados por sinapses. Lobo frontal: tomada de decisão. Amígdala: emoções. Hipocampo: memória. Dopamina: recompensa; serotonina: humor; acetilcolina: aprendizagem."),
+            ("Nutrição e Macronutrientes", "saúde", "proteína, carboidrato, gordura, vitamina, mineral, caloria",
+             "Macronutrientes: carboidratos (energia rápida), proteínas (construção muscular, 4kcal/g), gorduras (hormônios, 9kcal/g). Micronutrientes: vitaminas (A,B,C,D,E,K) e minerais (ferro, cálcio, magnésio). Déficit calórico emagrece; superávit engorda."),
+            ("Exercício e Fisiologia", "saúde", "musculo, treino, aeróbico, anaeróbico, força, hipertrofia",
+             "Exercício aeróbico (corrida, bike) melhora cardiorrespiratório e queima gordura. Anaeróbico (musculação) aumenta força e massa muscular por micro-lesões e síntese proteica. Progressão de carga é essencial. Descanso é parte do treino: músculos crescem na recuperação."),
+            ("Sono e Descanso", "saúde", "sono, REM, melatonina, circadiano, privação, recuperação",
+             "Adultos precisam de 7-9h de sono. Ciclos de ~90min: sono leve → profundo → REM. REM é crucial para memória e criatividade. Melatonina regula o sono; luz azul à noite a suprime. Privação de sono prejudica cognição, imunidade e metabolismo."),
+            # ── LÍNGUA PORTUGUESA ───────────────────────────────────────────────
+            ("Gramática Portuguesa", "linguagem", "gramática, concordância, regência, ortografia, crase, verbo",
+             "Crase: acento grave antes de palavras femininas com artigo (à, às). Concordância verbal: sujeito determina conjugação do verbo. Concordância nominal: adjetivo concorda com substantivo. Regência verbal define a preposição correta. Hífen: consulte as regras do Acordo Ortográfico de 2009."),
+            ("Literatura Brasileira", "cultura", "machado, drummond, guimarães rosa, clarice, modernismo",
+             "Machado de Assis: realismo, Memórias Póstumas de Brás Cubas. Guimarães Rosa: Grande Sertão Veredas, linguagem inventiva. Clarice Lispector: introspectiva, A Paixão Segundo G.H. Carlos Drummond: 'No meio do caminho havia uma pedra'. Modernismo (1922): semana de arte moderna."),
+            # ── DIREITO BRASILEIRO ───────────────────────────────────────────────
+            ("Constituição Federal do Brasil", "direito", "constituição, direitos, cidadão, lei, estado, CF88",
+             "A CF/88 (Constituição Cidadã) é a lei suprema do Brasil. Garante direitos fundamentais: vida, liberdade, igualdade, segurança, propriedade. Organiza os 3 poderes: Executivo, Legislativo, Judiciário. STF é guardião da Constituição. SUS e educação gratuita são direitos sociais."),
+            ("Direitos do Consumidor", "direito", "CDC, consumidor, produto, defeito, garantia, troca",
+             "CDC (Lei 8.078/1990) protege o consumidor: direito à informação clara, troca de produto com vício em 30 dias (não duráveis) ou 90 dias (duráveis). Direito de arrependimento em compras online: 7 dias. Fornecedor responde objetivamente por danos."),
+            ("CLT e Direito Trabalhista", "direito", "clt, trabalhador, FGTS, férias, 13o, rescisão, emprego",
+             "CLT garante: salário mínimo, 44h/semana, horas extras (+50%), férias (30 dias + 1/3), 13º salário, FGTS (8% do salário). Aviso prévio: 30 dias + 3 dias por ano trabalhado (max 90). FGTS pode ser sacado em demissão sem justa causa."),
+            # ── MÚSICA ──────────────────────────────────────────────────────────
+            ("Teoria Musical", "cultura", "nota, escala, acorde, ritmo, harmonia, melodia, tom",
+             "Escala musical tem 7 notas (Dó, Ré, Mi, Fá, Sol, Lá, Si) + semitons. Acordes: 3 ou mais notas simultâneas. Tom maior: alegre; menor: melancólico. Ritmo organiza notas no tempo. Harmonia é a progressão de acordes. BPM mede velocidade."),
+            ("Gêneros Musicais Brasileiros", "cultura", "samba, bossa nova, forró, funk, axé, MPB, pagode, baião",
+             "Samba: raízes africanas, Carnaval. Bossa Nova: João Gilberto, Tom Jobim, fusão com jazz. Forró: Luiz Gonzaga, triângulo, zabumba. Baião e xote do nordeste. MPB: música popular brasileira dos anos 60-70. Funk carioca: batida eletrônica, letra urbana."),
+            # ── MEIO AMBIENTE ────────────────────────────────────────────────────
+            ("Mudanças Climáticas", "meio-ambiente", "CO2, efeito estufa, temperatura, Paris, aquecimento, carbono",
+             "O efeito estufa retém calor: CO₂, metano e vapor de água são os principais gases. Atividade humana elevou CO₂ de 280ppm (pré-industrial) para 420ppm. Acordo de Paris: limitar aquecimento a 1,5°C. Consequências: gelo derrete, nível do mar sobe, eventos extremos aumentam."),
+            ("Biomas Brasileiros", "meio-ambiente", "amazônia, cerrado, caatinga, pantanal, mata atlântica, pampa",
+             "Amazônia: maior floresta tropical, 40% do território, 10% das espécies do planeta. Cerrado: savana tropical, nascentes de grandes rios. Caatinga: único bioma 100% brasileiro, semiárido. Pantanal: maior zona úmida do mundo. Mata Atlântica: >85% destruída."),
+            # ── MUNDO ATUAL ─────────────────────────────────────────────────────
+            ("Inteligência Artificial em 2025", "tecnologia", "ChatGPT, Claude, Gemini, LLM, IA generativa, agente",
+             "Em 2025 a IA generativa se consolidou: GPT-4o (OpenAI), Claude 3.7 (Anthropic), Gemini 2.0 (Google) e Llama 3 (Meta) são os principais LLMs. Agentes de IA executam tarefas autônomas. IA está em saúde, direito, educação, código e criação de conteúdo."),
+            ("Geopolítica Global Atual", "história", "EUA, China, Rússia, multipolar, conflitos, BRICS",
+             "O mundo pós-2022 é multipolar: EUA mantém hegemonia militar, China é potência econômica, BRICS inclui Brasil, Rússia, Índia, China, África do Sul + novos membros. Guerra na Ucrânia alterou energia e geopolítica europeia. IA e semicondutores são o novo campo de disputa."),
+            ("Redes Sociais e Comportamento", "tecnologia", "instagram, tiktok, twitter, vício, algoritmo, bolha",
+             "Redes sociais usam algoritmos de engajamento que priorizam conteúdo polêmico. TikTok é a mais viciante pelo feed infinito. Bolhas de filtro reforçam crenças existentes. Estudos ligam uso excessivo a ansiedade e depressão, especialmente em adolescentes."),
         ]
 
         llm_available = self._any_llm_available()
@@ -1804,13 +1943,13 @@ Máximo 400 caracteres, sem bullet points."""
 
     def _inject_kb_context(self, query: str) -> str:
         """Retorna contexto relevante do KB para injetar no prompt."""
-        results = self.query_knowledge_base(query, limit=2)
+        results = self.query_knowledge_base(query, limit=4)
         if not results:
             return ""
         
-        lines = ["📚 Contexto do meu Knowledge Base:"]
+        lines = ["📚 Do meu Knowledge Base (use para embasar a resposta):"]
         for _, topic, content, category in results:
-            lines.append(f"- [{category}] {topic}:\n  {content[:150]}...")
+            lines.append(f"- [{category}] {topic}: {content[:200]}")
         
         return "\n".join(lines)
 
@@ -4693,6 +4832,137 @@ Format as a structured JSON with:
             print("🌱 Seedando KB com tópicos base expandidos...")
             self.seed_knowledge_base_auto()
             return "✅ KB seedado com sucesso! Use '/kb status' para ver."
+
+        # ── /ensinar <tópico>: <conteúdo> — ensino direto pelo usuário ────
+        if normalized.startswith("/ensinar ") or normalized.startswith("ensinar barretao "):
+            raw = self.extract_after_first(text, ["/ensinar ", "ensinar barretao "]) or ""
+            if ":" in raw:
+                topic_part, content_part = raw.split(":", 1)
+                topic_part = topic_part.strip()
+                content_part = content_part.strip()
+                if topic_part and content_part:
+                    # Detecta categoria por palavras-chave
+                    cat_map = {
+                        "ciência": ["física","química","biologia","astronomia","átomo","célula"],
+                        "história": ["guerra","revolução","império","século","histórico"],
+                        "tecnologia": ["python","código","software","ia","api","programação"],
+                        "saúde": ["saúde","médico","nutrição","exercício","doença"],
+                        "matemática": ["equação","cálculo","número","fórmula","matemática"],
+                        "filosofia": ["ética","moral","filosofia","existência","razão"],
+                        "finanças": ["dinheiro","investimento","juros","renda","finança"],
+                    }
+                    cat = "geral"
+                    txt_low = (topic_part + " " + content_part).lower()
+                    for c, kws in cat_map.items():
+                        if any(kw in txt_low for kw in kws):
+                            cat = c
+                            break
+                    # Verifica se já existe e atualiza ou cria
+                    existing = self.conn.execute(
+                        "SELECT id FROM knowledge_base WHERE topic = ?", (topic_part,)
+                    ).fetchone()
+                    if existing:
+                        self.conn.execute(
+                            "UPDATE knowledge_base SET content=?, category=?, updated_at=? WHERE id=?",
+                            (content_part, cat, datetime.now().isoformat(), existing[0])
+                        )
+                        self.conn.commit()
+                        return f"✏️ Atualizei meu conhecimento sobre '{topic_part}' [{cat}]!"
+                    else:
+                        tags = self._cntk_compose_tags(topic_part, content_part, cat)
+                        self.save_kb_entry(topic_part, content_part, cat, tags)
+                        return f"🎓 Aprendi! Salvei '{topic_part}' [{cat}] na minha memória."
+            return (
+                "📝 Formato: /ensinar <Tópico>: <conteúdo>\n"
+                "Exemplo: /ensinar Python: Linguagem criada por Guido van Rossum em 1991, "
+                "conhecida pela sintaxe limpa e ampla biblioteca padrão."
+            )
+
+        # ── /kb add <tópico> | <categoria> | <conteúdo> ─────────────────
+        if normalized.startswith("/kb add "):
+            raw = self.extract_after_first(text, ["/kb add "]) or ""
+            parts_pipe = [p.strip() for p in raw.split("|")]
+            if len(parts_pipe) >= 3:
+                topic_part, cat_part, content_part = parts_pipe[0], parts_pipe[1], parts_pipe[2]
+                tags = self._cntk_compose_tags(topic_part, content_part, cat_part)
+                self.save_kb_entry(topic_part, content_part, cat_part, tags)
+                return f"🎓 Adicionado ao KB: '{topic_part}' [{cat_part}]"
+            return "Formato: /kb add <Tópico> | <Categoria> | <Conteúdo>"
+
+        # ── /kb apagar <tópico> ─────────────────────────────────────────
+        if normalized.startswith("/kb apagar ") or normalized.startswith("/kb deletar ") or normalized.startswith("/kb remover "):
+            topic_del = self.extract_after_first(text, ["/kb apagar ", "/kb deletar ", "/kb remover "]) or ""
+            if topic_del.strip():
+                deleted = self.conn.execute(
+                    "DELETE FROM knowledge_base WHERE topic LIKE ?", (f"%{topic_del.strip()}%",)
+                ).rowcount
+                self.conn.commit()
+                return f"🗑️ Removidas {deleted} entradas com '{topic_del.strip()}' do KB."
+            return "Use: /kb apagar <tópico>"
+
+        # ── /kb listar [categoria] ──────────────────────────────────────
+        if normalized.startswith("/kb listar") or normalized.startswith("/kb lista") or normalized == "/kb ls":
+            cat_filter = self.extract_after_first(text, ["/kb listar ", "/kb lista ", "/kb ls "]) or ""
+            cat_filter = cat_filter.strip()
+            try:
+                if cat_filter:
+                    rows = self.conn.execute(
+                        "SELECT topic, category FROM knowledge_base WHERE category LIKE ? ORDER BY topic LIMIT 40",
+                        (f"%{cat_filter}%",)
+                    ).fetchall()
+                else:
+                    rows = self.conn.execute(
+                        "SELECT topic, category FROM knowledge_base ORDER BY updated_at DESC LIMIT 40"
+                    ).fetchall()
+                if not rows:
+                    return f"Nenhuma entrada{' em ' + cat_filter if cat_filter else ''} no KB ainda."
+                lines = [f"📚 KB{'  ['+cat_filter+']' if cat_filter else ''} ({len(rows)} entradas):"]
+                for topic, cat in rows:
+                    lines.append(f"  • [{cat}] {topic}")
+                return "\n".join(lines)
+            except Exception as e:
+                return f"Erro ao listar KB: {e}"
+
+        # ── /testar ou /quiz — pergunta aleatória do KB ─────────────────
+        if normalized in {"/testar", "/quiz", "me teste", "me quize", "me faça uma pergunta", "faça uma pergunta", "quiz"}:
+            try:
+                rows = self.conn.execute(
+                    "SELECT topic, content, category FROM knowledge_base ORDER BY RANDOM() LIMIT 3"
+                ).fetchall()
+                if not rows:
+                    return "📚 KB vazio! Use '/kb seed' ou '/ensinar <Tópico>: <conteúdo>' para me ensinar."
+                topic, content, category = rows[0]
+                prompt = (
+                    f"Você é um professor criando uma pergunta de quiz. "
+                    f"Baseado no seguinte fato sobre '{topic}' ({category}):\n{content}\n\n"
+                    f"Crie UMA pergunta de múltipla escolha com 4 alternativas (A, B, C, D) em português. "
+                    f"Não revele a resposta ainda. Apenas a pergunta e as alternativas."
+                )
+                question = self._chat_with_models(
+                    [{"role": "system", "content": "Você é um professor que cria questões de quiz claras."},
+                     {"role": "user", "content": prompt}],
+                    purpose="quiz"
+                )
+                question = self._clean_response_text(question)
+                # Salva contexto do quiz na história para resposta posterior
+                self.history.append({"role": "assistant", "content": f"[QUIZ sobre '{topic}']\n{question}"})
+                return f"🧠 QUIZ — [{category.upper()}]\n\n{question}\n\n(Responda A, B, C ou D — ou 'resposta' para ver o gabarito)"
+            except Exception as e:
+                return f"Erro ao gerar quiz: {e}"
+
+        # ── resposta do quiz ─────────────────────────────────────────────
+        if normalized in {"resposta", "gabarito", "qual a resposta", "me diz a resposta"}:
+            # Verifica se tem quiz na história
+            last_quiz = next((m for m in reversed(self.history) if m.get("role")=="assistant" and "[QUIZ" in m.get("content","")), None)
+            if last_quiz:
+                prompt = f"Qual é a resposta correta desta questão? Explique por quê.\n\n{last_quiz['content']}"
+                resp = self._chat_with_models(
+                    [{"role": "system", "content": "Você é um professor que explica respostas de quiz."},
+                     {"role": "user", "content": prompt}],
+                    purpose="quiz"
+                )
+                return f"✅ Gabarito:\n{self._clean_response_text(resp)}"
+            return "Não encontrei um quiz ativo. Use '/testar' para começar."
 
         if normalized.startswith("/kb search ") or normalized.startswith("buscar kb "):
             query = self.extract_after_first(text, ["/kb search ", "buscar kb "]) or ""

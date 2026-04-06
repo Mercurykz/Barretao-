@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barretão HUD — Design Preview</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#00000d;--bg2:#030310;--surface:rgba(0,8,24,.88);
+    --accent:#00cfff;--accent2:#8800ff;--accent3:#ff2d55;
+    --green:#00ff99;--text:#c8e8ff;--text2:#3a6a8a;
+    --border:rgba(0,180,255,.12);
+  }
+  body{
+    background:
+      linear-gradient(rgba(0,180,255,.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,180,255,.03) 1px,transparent 1px),
+      radial-gradient(900px 600px at 15% 10%,rgba(0,80,180,.12) 0%,transparent 60%),
+      radial-gradient(700px 500px at 90% 90%,rgba(100,0,200,.10) 0%,transparent 60%),
+      #00000d;
+    background-size:44px 44px,44px 44px,100%,100%,100%;
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 16px;
+    gap:24px;
+  }
+
+  .label-title {
+    font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;
+    border-bottom:1px solid var(--border);padding-bottom:8px;width:100%;max-width:780px;
+  }
+
+  /* ── Mockup Shell ── */
+  .phone {
+    width:100%;max-width:780px;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(0,180,255,.05);
+  }
+
+  /* ── Status Bar ── */
+  .statusbar{
+    display:flex;align-items:center;gap:12px;padding:8px 16px;
+    background:rgba(0,8,24,.95);border-bottom:1px solid var(--border);
+    font-size:11px;font-family:'Courier New',monospace;
+    position:relative;overflow:hidden;
+  }
+  .statusbar::after{
+    content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    opacity:.4;
+  }
+  .sb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex-shrink:0;animation:pulse-dot 2s infinite}
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+  .sb-item{color:var(--accent);opacity:.8}
+  .sb-item span{color:var(--text2);margin-right:3px;font-size:9px}
+  .sb-spacer{flex:1}
+  .sb-time{color:var(--accent);font-weight:700;letter-spacing:1px}
+  .sb-model{color:var(--accent2);font-size:9px;opacity:.7}
+
+  /* ── Tab Bar ── */
+  .tabbar{
+    display:flex;gap:0;background:rgba(0,5,16,.95);border-bottom:1px solid var(--border);
+  }
+  .tab{
+    flex:1;padding:10px 8px;text-align:center;font-size:12px;color:var(--text2);
+    cursor:pointer;border-bottom:2px solid transparent;transition:.2s;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,207,255,.04)}
+  .tab-badge{
+    background:var(--accent3);color:#fff;border-radius:8px;
+    font-size:9px;padding:1px 5px;font-weight:700;line-height:1.4;
+  }
+
+  /* ── HUD Tab Content ── */
+  .hud-content{padding:14px;display:flex;flex-direction:column;gap:12px}
+
+  /* Arc Reactor Header */
+  .arc-header{
+    display:flex;align-items:center;gap:16px;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;
+    position:relative;overflow:hidden;
+  }
+  .arc-header::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background:linear-gradient(135deg,rgba(0,207,255,.03),rgba(136,0,255,.03));
+  }
+  .arc-ring{
+    width:52px;height:52px;border-radius:50%;
+    border:2px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:900;font-family:'Courier New',monospace;color:var(--accent);
+    box-shadow:0 0 20px rgba(0,207,255,.35),inset 0 0 10px rgba(0,207,255,.1);
+    position:relative;flex-shrink:0;
+    animation:pulse-ring 3s ease-in-out infinite;
+  }
+  .arc-ring::before{
+    content:'';position:absolute;width:44px;height:44px;border-radius:50%;
+    border:1px dashed rgba(0,207,255,.25);
+    animation:spin 6s linear infinite;
+  }
+  @keyframes pulse-ring{0%,100%{box-shadow:0 0 12px rgba(0,207,255,.3),inset 0 0 6px rgba(0,207,255,.08)}50%{box-shadow:0 0 28px rgba(0,207,255,.6),inset 0 0 14px rgba(0,207,255,.15)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .arc-info{flex:1}
+  .arc-info .name{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:1px}
+  .arc-info .status{font-size:11px;color:var(--text2);margin-top:2px}
+  .arc-info .status span{color:var(--green)}
+  .arc-corner{position:absolute;width:14px;height:14px;border-color:rgba(0,207,255,.3);border-style:solid;}
+  .ac-tl{top:8px;left:8px;border-width:1px 0 0 1px}
+  .ac-tr{top:8px;right:8px;border-width:1px 1px 0 0}
+  .ac-bl{bottom:8px;left:8px;border-width:0 0 1px 1px}
+  .ac-br{bottom:8px;right:8px;border-width:0 1px 1px 0}
+
+  /* Grid de widgets */
+  .widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .widget{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;
+  }
+  .widget-title{font-size:9px;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;margin-bottom:8px}
+  .widget-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(0,180,255,.06);font-size:12px}
+  .widget-row:last-child{border:none}
+  .widget-row .lbl{color:var(--text2);font-size:11px}
+  .widget-row .val{color:var(--accent);font-weight:600}
+  .widget-row .val.green{color:var(--green)}
+  .widget-row .val.red{color:var(--accent3)}
+
+  /* Shortcuts */
+  .shortcuts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .shortcut-btn{
+    background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:8px;
+    padding:10px 6px;text-align:center;cursor:pointer;transition:.15s;
+  }
+  .shortcut-btn:hover{background:rgba(0,180,255,.1);border-color:rgba(0,207,255,.3)}
+  .shortcut-btn .icon{font-size:18px;display:block;margin-bottom:4px}
+  .shortcut-btn .name{font-size:9px;color:var(--text2)}
+  .shortcut-add{border-style:dashed;opacity:.5}
+  .shortcut-add .icon{color:var(--text2)}
+
+  /* ── Chat Tab Preview ── */
+  .chat-content{padding:14px;display:flex;flex-direction:column;gap:10px}
+  .chat-msgs{display:flex;flex-direction:column;gap:8px}
+  .bubble{border-radius:14px;padding:10px 14px;font-size:13px;max-width:80%;line-height:1.5}
+  .bubble.bot{background:rgba(0,8,22,.96);border:1px solid rgba(0,180,255,.12);color:var(--text);align-self:flex-start}
+  .bubble.user{background:linear-gradient(135deg,rgba(0,207,255,.15),rgba(136,0,255,.15));border:1px solid rgba(0,207,255,.2);color:var(--text);align-self:flex-end}
+  .waveform-bar{
+    display:flex;align-items:center;gap:3px;padding:8px 14px;
+    background:rgba(0,8,22,.96);border:1px solid rgba(0,180,255,.12);border-radius:14px;
+    align-self:flex-start;
+  }
+  .wv{width:3px;background:var(--accent);border-radius:2px;animation:wave 1s ease-in-out infinite}
+  .wv:nth-child(1){height:6px;animation-delay:0s}.wv:nth-child(2){height:12px;animation-delay:.1s}
+  .wv:nth-child(3){height:20px;animation-delay:.2s}.wv:nth-child(4){height:26px;animation-delay:.3s}
+  .wv:nth-child(5){height:20px;animation-delay:.4s}.wv:nth-child(6){height:12px;animation-delay:.5s}
+  .wv:nth-child(7){height:6px;animation-delay:.6s}
+  @keyframes wave{0%,100%{transform:scaleY(.4);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+  .shortcut-bar{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
+  .sc-chip{
+    white-space:nowrap;border:1px solid var(--border);border-radius:20px;
+    padding:5px 12px;font-size:11px;color:var(--accent);cursor:pointer;flex-shrink:0;
+    background:rgba(0,180,255,.04);
+  }
+  .chat-input{
+    display:flex;gap:8px;align-items:center;
+    background:rgba(0,8,24,.8);border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+  }
+  .chat-input span{flex:1;color:var(--text2);font-size:13px}
+  .chat-input .mic{color:var(--accent);font-size:16px}
+
+  /* annotation */
+  .annotation{
+    font-size:11px;color:var(--text2);
+    background:rgba(136,0,255,.08);border:1px solid rgba(136,0,255,.2);
+    border-radius:8px;padding:8px 12px;margin-top:4px;
+    display:flex;align-items:flex-start;gap:8px;
+  }
+  .annotation::before{content:'💡';flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="label-title">DESIGN PREVIEW — ABA 🏠 HUD</div>
+
+<div class="phone">
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <div class="sb-dot"></div>
+    <div class="sb-item"><span>SP</span>28°C ☀️</div>
+    <div class="sb-item"><span>CPU</span>8%</div>
+    <div class="sb-item"><span>RAM</span>4.1 GB</div>
+    <div class="sb-spacer"></div>
+    <div class="sb-model">llama3.1:8b</div>
+    <div class="sb-time">15:42</div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tabbar">
+    <div class="tab active">🏠 HUD</div>
+    <div class="tab">💬 Chat</div>
+    <div class="tab">🧠 Memória</div>
+    <div class="tab">⚙️</div>
+  </div>
+
+  <!-- HUD Content -->
+  <div class="hud-content">
+
+    <!-- Arc Reactor Header -->
+    <div class="arc-header">
+      <div class="ac-tl arc-corner"></div><div class="ac-tr arc-corner"></div>
+      <div class="ac-bl arc-corner"></div><div class="ac-br arc-corner"></div>
+      <div class="arc-ring">AI</div>
+      <div class="arc-info">
+        <div class="name">BARRETÃO</div>
+        <div class="status">Status: <span>ONLINE · AGUARDANDO</span></div>
+        <div class="status" style="margin-top:2px">Uptime: <span>4h 23min</span> · Sessão ativa</div>
+      </div>
+    </div>
+
+    <!-- Widget Grid -->
+    <div class="widget-grid">
+      <!-- Briefing -->
+      <div class="widget">
+        <div class="widget-title">📋 Briefing</div>
+        <div class="widget-row"><span class="lbl">Gmail</span><span class="val red">3 novos</span></div>
+        <div class="widget-row"><span class="lbl">Agenda</span><span class="val green">Livre hoje</span></div>
+        <div class="widget-row"><span class="lbl">Tarefas</span><span class="val">2 pending</span></div>
+        <div class="widget-row"><span class="lbl">Clima</span><span class="val">28°C ☀️</span></div>
+      </div>
+      <!-- Sistema -->
+      <div class="widget">
+        <div class="widget-title">🖥️ Sistema</div>
+        <div class="widget-row"><span class="lbl">CPU</span><span class="val green">8%</span></div>
+        <div class="widget-row"><span class="lbl">RAM</span><span class="val">4.1 / 16 GB</span></div>
+        <div class="widget-row"><span class="lbl">Modelo</span><span class="val">Ollama</span></div>
+        <div class="widget-row"><span class="lbl">Discord</span><span class="val green">● ON</span></div>
+      </div>
+    </div>
+
+    <!-- Atalhos -->
+    <div class="widget">
+      <div class="widget-title">⚡ Atalhos Rápidos</div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-btn"><span class="icon">🎵</span><span class="name">Spotify</span></div>
+        <div class="shortcut-btn"><span class="icon">📧</span><span class="name">Gmail</span></div>
+        <div class="shortcut-btn"><span class="icon">📅</span><span class="name">Agenda</span></div>
+        <div class="shortcut-btn"><span class="icon">🏋️</span><span class="name">Academia</span></div>
+        <div class="shortcut-btn"><span class="icon">🌐</span><span class="name">Chrome</span></div>
+        <div class="shortcut-btn"><span class="icon">📁</span><span class="name">Explorer</span></div>
+        <div class="shortcut-btn"><span class="icon">💡</span><span class="name">Luzes</span></div>
+        <div class="shortcut-btn shortcut-add"><span class="icon">＋</span><span class="name">Novo</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="annotation">
+  Aba HUD: status bar sempre visível, anel animado que muda cor por estado (verde=idle, azul=pensando, roxo=falando), widgets de briefing + sistema, grid de atalhos configuráveis.
+</div>
+
+<div class="label-title" style="margin-top:8px">DESIGN PREVIEW — ABA 💬 CHAT</div>
+
+<div class="phone">
+  <div class="statusbar">
+    <div class="sb-dot"></div>
+    <div class="sb-item"><span>SP</span>28°C</div>
+    <div class="sb-spacer"></div>
+    <div class="sb-time">15:42</div>
+  </div>
+  <div class="tabbar">
+    <div class="tab">🏠 HUD</div>
+    <div class="tab active">💬 Chat</div>
+    <div class="tab">🧠 Memória</div>
+    <div class="tab">⚙️</div>
+  </div>
+  <div class="chat-content">
+    <div class="chat-msgs">
+      <div class="bubble bot">Bom dia! Você tem 3 emails não lidos no Gmail e sua agenda está livre hoje. Quer o briefing completo?</div>
+      <div class="bubble user">abre o spotify</div>
+      <div class="waveform-bar">
+        <div class="wv"></div><div class="wv"></div><div class="wv"></div><div class="wv"></div>
+        <div class="wv"></div><div class="wv"></div><div class="wv"></div>
+      </div>
+    </div>
+    <div class="shortcut-bar">
+      <div class="sc-chip">🎵 Spotify</div>
+      <div class="sc-chip">📧 Ver emails</div>
+      <div class="sc-chip">📋 Briefing</div>
+      <div class="sc-chip">🔇 Silenciar</div>
+      <div class="sc-chip">+ shortcut</div>
+    </div>
+    <div class="chat-input">
+      <span>mensagem ou comando...</span>
+      <span class="mic">🎙️</span>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  Aba Chat: waveform animado substitui o texto "digitando..." quando o Barretão fala. Chips de atalho rápido acima do input. Status bar sempre presente em ambas as abas.
+</div>
+
+</body>
+</html>
